@@ -1,0 +1,20 @@
+Required defines
+----------------
+CHIP_NAME               - this define's value contain the name of the target chip of the compilation
+                          The chip name should match to one of the directory names in the Chips folder
+
+
+
+Optional defines
+-----------------
+EXTERNAL_INCLUDE_FILE   -   The value of this define specifies an external file
+                            that will be included into the chip.c compilation
+NO_INTERNAL_IRQ_HANDLER -   The existance of this define forces the module NOT to use AIC module
+							as Interrupt handler facility.
+NO_LIBC                 -   The existance of this define prevents the inclusion of LIBC headers (such as string.h)
+
+VERBOSE_GLOBAL          -   The existance of this define switches all supported modules to a verbose mode
+VERBOSE_EMC             -   Switch EMC module to verbose mode
+VERBOSE_GMAC            -   Switch GMAC module to verbose mode
+VERBOSE_SPI_FLASH       -   Switch SPI_FLASH driver to verbose mode
+VERBOSE_GPIO			-   Switch GPIO driver to verbose mode

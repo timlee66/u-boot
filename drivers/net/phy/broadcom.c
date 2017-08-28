@@ -30,6 +30,9 @@
 #define MIIM_BCM54XX_EXP_SEL_SSD	0x0e00	/* Secondary SerDes select */
 #define MIIM_BCM54XX_EXP_SEL_ER		0x0f00	/* Expansion register select */
 
+#define RDB_REGISTER_SELECT 0x1E
+#define RDB_REGISTER_DATA   0x1F
+
 /* Broadcom BCM5461S */
 static int bcm5461_config(struct phy_device *phydev)
 {
@@ -252,6 +255,55 @@ static int bcm5482_startup(struct phy_device *phydev)
 	return 0;
 }
 
+#ifdef PHY_READ_RDB_IN_USE /* currently this function is not in use */
+static int phy_read_rdb(struct phy_device *phydev, int rdb_regnum)
+{
+	phy_write(phydev, MDIO_DEVAD_NONE, RDB_REGISTER_SELECT, rdb_regnum & 0x0FFF);
+	return  phy_read(phydev, MDIO_DEVAD_NONE, RDB_REGISTER_DATA);
+}
+#endif
+
+static int phy_write_rdb(struct phy_device *phydev, int rdb_regnum, u16 rdb_val)
+{
+	phy_write(phydev, MDIO_DEVAD_NONE, RDB_REGISTER_SELECT, rdb_regnum & 0x0FFF);
+	return phy_write(phydev, MDIO_DEVAD_NONE, RDB_REGISTER_DATA, rdb_val & 0xFFFF);
+}
+
+int fiber_config(struct phy_device *phydev)
+{
+	phy_write_rdb(phydev, 0x02F, 0x71E7);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x13, 0x0E00);
+	phy_write_rdb(phydev, 0x810, 0x00B3);
+	phy_write_rdb(phydev, 0x021, 0x7C02); /* I did it as in spec, in uboot script it set also bit 0 (0x7C03). seems a bug there??? */
+	phy_write(phydev, MDIO_DEVAD_NONE, MII_BMCR, 0x1940);
+	phy_write_rdb(phydev, 0x021, 0x7C03);
+	phy_write_rdb(phydev, 0x23E, 0x78E2);
+	phy_write(phydev, MDIO_DEVAD_NONE, MII_BMCR, 0x1140); /* I did it as in spec, both in uboot and linux scripts it cleared autonegotiation bit 12 (0x0140)  ??? */
+
+
+	phydev->speed = SPEED_1000;
+	phydev->duplex = BMCR_FULLDPLX;
+
+	return 0;
+}
+
+int fiber_startup(struct phy_device *phydev)
+{
+	unsigned int mii_reg;
+
+	/* Read the link */
+	mii_reg = phy_read(phydev, MDIO_DEVAD_NONE, MII_BMSR);
+	if (mii_reg & BMSR_LSTATUS)
+		phydev->link = 1;
+	else
+		phydev->link = 0;
+
+	phydev->speed = SPEED_1000;
+	phydev->duplex = BMCR_FULLDPLX;
+
+	return 0;
+}
+
 static struct phy_driver BCM5461S_driver = {
 	.name = "Broadcom BCM5461S",
 	.uid = 0x2060c0,
@@ -292,12 +344,23 @@ static struct phy_driver BCM_CYGNUS_driver = {
 	.shutdown = &genphy_shutdown,
 };
 
+static struct phy_driver BCM_Fiber_driver = {
+	.name = "Broadcom Fiber GPHY",
+	.uid =  0x00008595, /* or 0x00008599 */
+	.mask = 0x0000fff3,
+	.features = (SUPPORTED_1000baseT_Full),
+	.config = &fiber_config,
+	.startup = &fiber_startup,
+	.shutdown = &genphy_shutdown,
+};
+
 int phy_broadcom_init(void)
 {
 	phy_register(&BCM5482S_driver);
 	phy_register(&BCM5464S_driver);
 	phy_register(&BCM5461S_driver);
 	phy_register(&BCM_CYGNUS_driver);
+	phy_register(&BCM_Fiber_driver);
 
 	return 0;
 }

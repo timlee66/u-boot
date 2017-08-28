@@ -630,8 +630,11 @@ static struct phy_device *create_phy_by_mask(struct mii_dev *bus,
 		int addr = ffs(phy_mask) - 1;
 		int r = get_phy_id(bus, addr, devad, &phy_id);
 		/* If the PHY ID is mostly f's, we didn't find anything */
-		if (r == 0 && (phy_id & 0x1fffffff) != 0x1fffffff)
+		if ((r == 0) && ((phy_id & 0x1fffffff) != 0x1fffffff) && (phy_id != 0x0000FFFF) && (phy_id != 0x00000000))
+        {
+            printf("RGMII-Phy Addr: 0x%x  ", addr);
 			return phy_device_create(bus, addr, phy_id, interface);
+        }
 		phy_mask &= ~(1 << addr);
 	}
 	return NULL;
@@ -720,6 +723,15 @@ int phy_reset(struct phy_device *phydev)
 
 #ifdef CONFIG_PHY_RESET_DELAY
 	udelay(CONFIG_PHY_RESET_DELAY);	/* Intel LXT971A needs this */
+#endif
+
+#ifndef CONFIG_SYS_DELL_DRB_HW
+	/*-----------------------------------------------------------------------------------------------------*/
+	/* Phy 125Mhz Clock Output Enable (for BMC54612e)                                                                       */
+	/*-----------------------------------------------------------------------------------------------------*/
+	phy_write(phydev, devad, 0x17, 0xD34);    /* In Phy Reg 17h -> Enable Top Level Expantion Register 34H */
+	phy_write(phydev, devad, 0x15, 0x3);      /* In Phy Reg 15h (34h) -> Enable 125MHZ clock output */
+		phy_write(phydev, devad, 0x17, 0x0);      /* In Phy Reg 17h -> Disable Top Level Expantion Register 34H */
 #endif
 	/*
 	 * Poll the control register for the reset bit to go to 0 (it is

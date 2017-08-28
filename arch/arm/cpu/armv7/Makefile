@@ -53,3 +53,5 @@ obj-$(CONFIG_ARCH_S5PC1XX) += s5pc1xx/
 obj-$(if $(filter stv0991,$(SOC)),y) += stv0991/
 obj-$(CONFIG_ARCH_SUNXI) += sunxi/
 obj-$(CONFIG_VF610) += vf610/
+obj-$(CONFIG_NUVOTON) += npcm750/
+

@@ -262,6 +262,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_TERASTATION_PRO2     1584
 #define MACH_TYPE_LINKSTATION_PRO      1585
 #define MACH_TYPE_E350                 1596
+#define MACH_TYPE_NPCM750              1599
 #define MACH_TYPE_TS409                1601
 #define MACH_TYPE_CM_X300              1616
 #define MACH_TYPE_AT91SAM9G20EK        1624
@@ -4106,6 +4107,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_e350()	(machine_arch_type == MACH_TYPE_E350)
 #else
 # define machine_is_e350()	(0)
+#endif
+
+#ifdef CONFIG_MACH_NPCM750
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_NPCM750
+# endif
+# define machine_is_npcm750()	(machine_arch_type == MACH_TYPE_NPCM750)
+#else
+# define machine_is_npcm750()	(0)
 #endif
 
 #ifdef CONFIG_MACH_TS409

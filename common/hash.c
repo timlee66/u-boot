@@ -30,6 +30,23 @@
 #include <u-boot/sha256.h>
 #include <u-boot/md5.h>
 
+
+#ifdef CONFIG_SHA_PROG_HW_ACCEL
+#include <hw_sha.h>
+#endif
+
+/* use this to print last command runtime. Do not push to DENX. */
+#ifndef USE_HOSTCC
+#include "../include/configs/PolegSVB.h"
+extern void Tick(void);
+extern void Tock(void);
+#else /* ifndef USE_HOSTCC */
+#define Tick()
+#define Tock()
+#endif
+
+
+
 #ifdef CONFIG_SHA1
 static int hash_init_sha1(struct hash_algo *algo, void **ctxp)
 {
@@ -124,7 +141,8 @@ static struct hash_algo hash_algo[] = {
 	 */
 #ifdef CONFIG_SHA_HW_ACCEL
 	{
-		"sha1",
+		"hw_sha1",   /*  NTIL: was "sha1". For testing, one might want to compile both HW and SW sha. use ">> hash hw_sha1 addr len"  or ">> hash sha1 addr len" on same build */
+		              /* on production leave only the "sha1" (will use hw always). */
 		SHA1_SUM_LEN,
 		hw_sha1,
 		CHUNKSZ_SHA1,
@@ -134,7 +152,8 @@ static struct hash_algo hash_algo[] = {
 		hw_sha_finish,
 #endif
 	}, {
-		"sha256",
+		"hw_sha256",   /*  NTIL: was "sha256". For testing, one might want to compile both HW and SW sha. use ">> hash hw_sha256 addr len"  or ">> hash sha256 addr len" on same build */
+	                   /* on production leave only the "sha256" (will use hw always). */
 		SHA256_SUM_LEN,
 		hw_sha256,
 		CHUNKSZ_SHA256,
@@ -395,6 +414,8 @@ int hash_command(const char *algo_name, int flags, cmd_tbl_t *cmdtp, int flag,
 {
 	ulong addr, len;
 
+	printf("hash_command: hash algorithm '%s'\n", algo_name);
+
 	if ((argc < 2) || ((flags & HASH_FLAG_VERIFY) && (argc < 3)))
 		return CMD_RET_USAGE;
 
@@ -419,7 +440,11 @@ int hash_command(const char *algo_name, int flags, cmd_tbl_t *cmdtp, int flag,
 		}
 
 		buf = map_sysmem(addr, len);
+
+		Tick();
 		algo->hash_func_ws(buf, len, output, algo->chunk_size);
+		Tock();
+
 		unmap_sysmem(buf);
 
 		/* Try to avoid code bloat when verify is not needed */

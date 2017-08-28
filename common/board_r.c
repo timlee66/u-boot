@@ -783,9 +783,6 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_CMD_ONENAND
 	initr_onenand,
 #endif
-#ifdef CONFIG_GENERIC_MMC
-	initr_mmc,
-#endif
 #ifdef CONFIG_HAS_DATAFLASH
 	initr_dataflash,
 #endif
@@ -841,6 +838,9 @@ init_fnc_t init_sequence_r[] = {
 #endif
 #ifdef CONFIG_BOARD_LATE_INIT
 	board_late_init,
+#endif
+#ifdef CONFIG_GENERIC_MMC
+	initr_mmc,      /* Trego - MMC Must be after enable_interrupts */
 #endif
 #ifdef CONFIG_CMD_SCSI
 	INIT_FUNC_WATCHDOG_RESET

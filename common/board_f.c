@@ -458,6 +458,7 @@ static int reserve_uboot(void)
 	gd->relocaddr &= ~(65536 - 1);
 #endif
 
+	gd->relocaddr += CONFIG_SYS_TEXT_BASE & 0xFF;     /* Trego - Keep original alignments since we relocate from CONFIG_SYS_TEXT_BASE */
 	debug("Reserving %ldk for U-Boot at: %08lx\n", gd->mon_len >> 10,
 	      gd->relocaddr);
 
@@ -796,7 +797,9 @@ static init_fnc_t init_sequence_f[] = {
 #endif
 #if defined(CONFIG_ARM) || defined(CONFIG_MIPS) || \
 		defined(CONFIG_BLACKFIN) || defined(CONFIG_NDS32)
+#ifndef NPCM750     /* Done in interrupt_init */
 	timer_init,		/* initialize timer */
+#endif
 #endif
 #ifdef CONFIG_SYS_ALLOC_DPRAM
 #if !defined(CONFIG_CPM2)

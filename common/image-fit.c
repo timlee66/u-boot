@@ -27,6 +27,24 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <u-boot/sha1.h>
 #include <u-boot/sha256.h>
 
+#ifdef CONFIG_SHA_PROG_HW_ACCEL
+#include <hw_sha.h>
+#endif
+
+
+/* use this to print last command runtime. Do not push to DENX. */
+#ifndef USE_HOSTCC
+#include "../include/configs/PolegSVB.h"
+extern void Tick(void);
+extern void Tock(void);
+#else /* ifndef USE_HOSTCC */
+#define Tick()
+#define Tock()
+#endif
+
+
+
+
 /*****************************************************************************/
 /* New uImage format routines */
 /*****************************************************************************/
@@ -903,18 +921,31 @@ int fit_set_timestamp(void *fit, int noffset, time_t timestamp)
 int calculate_hash(const void *data, int data_len, const char *algo,
 			uint8_t *value, int *value_len)
 {
+	Tick();
+	printf(" calc hash addr 0x%lx size 0x%lx\n", (ulong)data, (ulong)data_len);
 	if (IMAGE_ENABLE_CRC32 && strcmp(algo, "crc32") == 0) {
 		*((uint32_t *)value) = crc32_wd(0, data, data_len,
 							CHUNKSZ_CRC32);
 		*((uint32_t *)value) = cpu_to_uimage(*((uint32_t *)value));
 		*value_len = 4;
 	} else if (IMAGE_ENABLE_SHA1 && strcmp(algo, "sha1") == 0) {
+
+#ifdef CONFIG_SHA_PROG_HW_ACCEL
+        hw_sha1((const uchar *)data, data_len,
+                    (unsigned char *)value, CHUNKSZ_SHA1);
+#else
 		sha1_csum_wd((unsigned char *)data, data_len,
 			     (unsigned char *)value, CHUNKSZ_SHA1);
+#endif
 		*value_len = 20;
 	} else if (IMAGE_ENABLE_SHA256 && strcmp(algo, "sha256") == 0) {
+#ifdef CONFIG_SHA_PROG_HW_ACCEL
+        hw_sha256((const uchar *)data, data_len,
+                    (unsigned char *)value, CHUNKSZ_SHA256);
+#else
 		sha256_csum_wd((unsigned char *)data, data_len,
-			       (unsigned char *)value, CHUNKSZ_SHA256);
+			        (unsigned char *)value, CHUNKSZ_SHA256);
+#endif
 		*value_len = SHA256_SUM_LEN;
 	} else if (IMAGE_ENABLE_MD5 && strcmp(algo, "md5") == 0) {
 		md5_wd((unsigned char *)data, data_len, value, CHUNKSZ_MD5);
@@ -923,6 +954,7 @@ int calculate_hash(const void *data, int data_len, const char *algo,
 		debug("Unsupported hash alogrithm\n");
 		return -1;
 	}
+	Tock();
 	return 0;
 }
 

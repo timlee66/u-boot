@@ -219,7 +219,7 @@ static inline void set_dacr(unsigned int val)
 	isb();
 }
 
-#ifdef CONFIG_ARMV7
+#if defined (CONFIG_ARMV7) && !defined(NPCM750)
 /* Short-Descriptor Translation Table Level 1 Bits */
 #define TTB_SECT_NS_MASK	(1 << 19)
 #define TTB_SECT_NG_MASK	(1 << 17)
@@ -256,7 +256,7 @@ enum {
 	MMU_SECTION_SIZE	= 1 << MMU_SECTION_SHIFT,
 };
 
-#ifdef CONFIG_ARMV7
+#if defined (CONFIG_ARMV7) && !defined(NPCM750)   /* Trego - need to check the following TLB change */
 /* TTBR0 bits */
 #define TTBR0_BASE_ADDR_MASK	0xFFFFC000
 #define TTBR0_RGN_NC			(0 << 3)

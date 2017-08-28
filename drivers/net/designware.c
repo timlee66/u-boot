@@ -469,6 +469,7 @@ int designware_initialize(ulong base_addr, u32 interface)
 {
 	struct eth_device *dev;
 	struct dw_eth_dev *priv;
+	int id = -1;
 
 	dev = (struct eth_device *) malloc(sizeof(struct eth_device));
 	if (!dev)
@@ -488,7 +489,15 @@ int designware_initialize(ulong base_addr, u32 interface)
 	memset(dev, 0, sizeof(struct eth_device));
 	memset(priv, 0, sizeof(struct dw_eth_dev));
 
-	sprintf(dev->name, "dwmac.%lx", base_addr);
+	if (base_addr == GMAC_BASE_ADDR(0))
+	{
+        id=2;       /* ETH2 */
+	}
+	else if (base_addr == GMAC_BASE_ADDR(1))
+	{
+        id=3;       /* ETH3 */
+	}
+	sprintf(dev->name, "ETH%d", id);        /* Trego - Print eth name same as GMAC-HAL */
 	dev->iobase = (int)base_addr;
 	dev->priv = priv;
 

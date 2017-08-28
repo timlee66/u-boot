@@ -666,6 +666,11 @@ config ARCH_ROCKCHIP
 	select CPU_V7
 	select DM
 
+config TARGET_NPCM750
+	bool "Support npcm750"
+	select CPU_V7
+
+
 endchoice
 
 source "arch/arm/mach-at91/Kconfig"
@@ -762,6 +767,7 @@ source "board/h2200/Kconfig"
 source "board/hisilicon/hikey/Kconfig"
 source "board/imx31_phycore/Kconfig"
 source "board/isee/igep0033/Kconfig"
+source "board/nuvoton/PolegSVB/Kconfig"
 source "board/maxbcm/Kconfig"
 source "board/mpl/vcma9/Kconfig"
 source "board/olimex/mx23_olinuxino/Kconfig"

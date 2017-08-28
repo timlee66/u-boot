@@ -1,0 +1,10 @@
+config NUVOTON_POLEG_SHA
+	bool "Nuvoton BMC - Hardware crypto device drivers: SHA"
+	help
+	  Enables Nuvoton Cryptographic HW SHA accelerator.
+
+config NUVOTON_POLEG_RNG
+	bool "Nuvoton BMC - Hardware crypto device drivers: RNG"
+	help
+	  Enables Nuvoton Cryptographic HW RNG accelerator.
+
