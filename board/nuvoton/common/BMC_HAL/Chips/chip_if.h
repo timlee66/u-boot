@@ -23,7 +23,7 @@
 /* Including external definitions if needed                                                                */
 /*---------------------------------------------------------------------------------------------------------*/
 #ifdef EXTERNAL_INCLUDE_FILE
-#include __EXTERNAL_FILE(EXTERNAL_INCLUDE_FILE)
+#include EXTERNAL_INCLUDE_FILE
 #endif
 
 #if defined AES_MODULE_TYPE

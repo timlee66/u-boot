@@ -11,7 +11,7 @@ PLATFORM_CPPFLAGS += -DNO_LIBC
 
 #Setting board depending flags
 PLATFORM_CPPFLAGS += -DBOARD_NAME=PolegSVB
-PLATFORM_CPPFLAGS += -DEXTERNAL_INCLUDE_FILE=$(srctree)/board/nuvoton/common/nuvoton_hal.h
+PLATFORM_CPPFLAGS += -DEXTERNAL_INCLUDE_FILE=\"$(srctree)/board/nuvoton/common/nuvoton_hal.h\"
 
 #Common optimizations flags
 #PLATFORM_CPPFLAGS += -D__HAVE_ARCH_STRCPY
