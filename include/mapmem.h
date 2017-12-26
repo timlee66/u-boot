@@ -21,6 +21,19 @@ static inline void *map_sysmem(phys_addr_t paddr, unsigned long len)
 
 static inline void unmap_sysmem(const void *vaddr)
 {
+#ifdef NPCM750
+#ifndef CONFIG_SPI_FLASH_GET_RESET_ON_CORE_RESET
+
+void SPI_Flash_Common_ExtendedAddrW(unsigned long dev_num, unsigned char HighAddr);
+
+	/* We access area in SPI flash that might be above 16MB we need to return
+	   ExtendedAddr to 0
+	*/
+	if ((unsigned long)vaddr >= SPI0CS0_BASE_ADDR &&
+		(unsigned long)vaddr < (SPI0CS0_BASE_ADDR+SPI0_MEMORY_SIZE+SPI3_MEMORY_SIZE))
+		SPI_Flash_Common_ExtendedAddrW(0, 0);
+#endif
+#endif
 }
 
 static inline phys_addr_t map_to_sysmem(const void *ptr)

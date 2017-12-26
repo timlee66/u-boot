@@ -67,6 +67,25 @@ void SPI_Flash_Common_GetID(UINT32 dev_num, UINT8 *pid0, UINT16 *pid1 )
 }
 
 
+/*---------------------------------------------------------------------------------------------------------*/
+/* Function:        SPI_Flash_Common_ExtendedAddrW                                                         */
+/*                                                                                                         */
+/* Parameters:                                                                                             */
+/*                  dev_num     - Flash device index                                                       */
+/*                  HighAddr    - 4th byte address (bits 24-31)                                            */
+/*                                                                                                         */
+/* Returns:         none                                                                                   */
+/* Side effects:                                                                                           */
+/* Description:                                                                                            */
+/*                  This routine sets the extended Address to HighAddr so commands with 3 so operations    */
+/*                  with 3 bytes address will be able to access a higher area                              */
+/*---------------------------------------------------------------------------------------------------------*/
+void SPI_Flash_Common_ExtendedAddrW(UINT32 dev_num, UINT8 HighAddr)
+{
+    FIU_UMA_Write(dev_num, SPI_WRITE_ENABLE_CMD, 0, FALSE, NULL, 0);
+    FIU_UMA_Write(dev_num, SPI_WRITE_EXTENDED_ADDR_REG_CMD, 0, FALSE, &HighAddr, sizeof(UINT8));
+}
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 /* Function:        SPI_Flash_Common_Erase                                                                 */
@@ -82,6 +101,14 @@ void SPI_Flash_Common_GetID(UINT32 dev_num, UINT8 *pid0, UINT16 *pid1 )
 /*---------------------------------------------------------------------------------------------------------*/
 void SPI_Flash_Common_SectorErase(UINT32 dev_num, UINT32 addr)
 {
+     UINT32 high_addr = addr >> 24;
+     UINT32 low_addr = addr & 0x00FFFFFF;
+
+	 if (high_addr)
+	 {
+		SPI_Flash_Common_ExtendedAddrW(dev_num, high_addr);
+	 }
+
      FIU_UMA_Write(
          dev_num,                           /* only one flash device */
          SPI_WRITE_ENABLE_CMD,              /* write enable transaction code */
@@ -90,17 +117,20 @@ void SPI_Flash_Common_SectorErase(UINT32 dev_num, UINT32 addr)
          NULL,                              /* no write data */
          0);                                /* no data */
 
-     SPI_Flash_Common_WaitTillReady(dev_num);
-
      FIU_UMA_Write(
          dev_num,                           /* only one flash device */
          SPI_4K_SECTOR_ERASE_CMD,           /* sector erase transaction code */
-         addr,                              /* address relevant */
+         low_addr,                          /* address relevant */
          TRUE,                              /* address for transaction */
          NULL,                              /* no write data */
          0);                                /* no data */
 
 	SPI_Flash_Common_WaitTillReady(dev_num);
+
+    if (high_addr)
+    {
+		SPI_Flash_Common_ExtendedAddrW(dev_num, 0);
+    }
 }
 
 
@@ -127,8 +157,6 @@ void SPI_Flash_Common_BulkErase(UINT32 dev_num)
          FALSE,                             /* no address for transaction */
          NULL,                              /* no write data */
          0);                                /* no data */
-
-     SPI_Flash_Common_WaitTillReady(dev_num);
 
      FIU_UMA_Write(
          dev_num,                           /* only one flash device */
@@ -166,17 +194,27 @@ void SPI_Flash_Common_BulkErase(UINT32 dev_num)
 /*---------------------------------------------------------------------------------------------------------*/
 void SPI_Flash_Common_Write(UINT32 devID, UINT32 destAddr, UINT8* data, UINT32 size)
 {
+    UINT32 high_addr = destAddr >> 24;
+    UINT32 low_addr = destAddr & 0x00FFFFFF;
+
+    if (high_addr)
+    {
+		SPI_Flash_Common_ExtendedAddrW(devID, high_addr);
+    }
+
 	/*-----------------------------------------------------------------------------------------------------*/
 	/* Write Flash Using 256 Page EXTENDED MODE                                                            */
 	/*-----------------------------------------------------------------------------------------------------*/
 	FIU_UMA_Write(devID, SPI_WRITE_ENABLE_CMD, 0, FALSE, NULL, 0);
 
-	SPI_Flash_Common_WaitTillReady(devID);
-
-
-	FIU_ManualWrite(devID, SPI_PAGE_PRGM_CMD, destAddr, data, size);
+	FIU_ManualWrite(devID, SPI_PAGE_PRGM_CMD, low_addr, data, size);
 
 	SPI_Flash_Common_WaitTillReady(devID);
+
+    if (high_addr)
+    {
+		SPI_Flash_Common_ExtendedAddrW(devID, 0);
+    }
 }
 
 

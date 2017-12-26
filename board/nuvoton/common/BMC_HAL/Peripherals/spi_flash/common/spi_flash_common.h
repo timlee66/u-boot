@@ -33,6 +33,7 @@
 #define SPI_32K_BLOCK_ERASE_CMD     0x52
 #define SPI_64K_BLOCK_ERASE_CMD     0xD8
 #define SPI_CHIP_ERASE_CMD          0xC7
+#define SPI_WRITE_EXTENDED_ADDR_REG_CMD 0xC5
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -118,6 +119,22 @@ void SPI_Flash_Common_BulkErase(UINT32 dev_num);
 /*---------------------------------------------------------------------------------------------------------*/
 void SPI_Flash_Common_Write(UINT32 devID, UINT32 destAddr, UINT8* data, UINT32 size);
 
+
+
+/*---------------------------------------------------------------------------------------------------------*/
+/* Function:        SPI_Flash_Common_ExtendedAddrW                                                         */
+/*                                                                                                         */
+/* Parameters:                                                                                             */
+/*                  dev_num     - Flash device index                                                       */
+/*                  HighAddr    - 4th byte address (bits 24-31)                                            */
+/*                                                                                                         */
+/* Returns:         none                                                                                   */
+/* Side effects:                                                                                           */
+/* Description:                                                                                            */
+/*                  This routine sets the extended Address to HighAddr so commands with 3 so operations    */
+/*                  with 3 bytes address will be able to access a higher area                              */
+/*---------------------------------------------------------------------------------------------------------*/
+void SPI_Flash_Common_ExtendedAddrW(UINT32 dev_num, UINT8 HighAddr);
 
 
 

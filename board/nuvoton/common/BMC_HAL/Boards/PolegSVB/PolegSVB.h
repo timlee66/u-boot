@@ -78,16 +78,24 @@
 /*---------------------------------------------------------------------------------------------------------*/
 /* SPI Flash                                                                                               */
 /*---------------------------------------------------------------------------------------------------------*/
+
+/* define CONFIG_SPI_FLASH_GET_RESET_ON_CORE_RESET only if on any core reset forces the SPI device
+   to get to reset too. It depends on system schematics
+*/
+//#define CONFIG_SPI_FLASH_GET_RESET_ON_CORE_RESET
+
 #define CONFIG_FLASH_BASE               FLASH_BASE_ADDR(0)
 
-#define CONFIG_SYS_MAX_FLASH_SECT       (_16MB_ / _4KB_)
+#define CONFIG_SYS_FLASH_SIZE		    (_32MB_)
 
-#define CONFIG_SPI3_ENABLE
+#define CONFIG_SYS_MAX_FLASH_SECT       (CONFIG_SYS_FLASH_SIZE / _4KB_)
+
+#define CONFIG_SPI3_ENABLE              /* add this if you use SPI3 */
 
 #ifdef CONFIG_SPI3_ENABLE
-#define CONFIG_SYS_MAX_FLASH_BANKS      8
-#else
 #define CONFIG_SYS_MAX_FLASH_BANKS      4
+#else
+#define CONFIG_SYS_MAX_FLASH_BANKS      2
 #endif
 
 #define BOOTER_VER_ADDR                0x800002F4
