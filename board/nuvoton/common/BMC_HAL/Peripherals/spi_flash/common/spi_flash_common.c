@@ -106,7 +106,7 @@ void SPI_Flash_Common_SectorErase(UINT32 dev_num, UINT32 addr)
 
 	 if (high_addr)
 	 {
-		 SPI_Flash_Common_ExtendedAddrW(dev_num, high_addr);
+		SPI_Flash_Common_ExtendedAddrW(dev_num, high_addr);
 	 }
 
      FIU_UMA_Write(
@@ -129,7 +129,7 @@ void SPI_Flash_Common_SectorErase(UINT32 dev_num, UINT32 addr)
 
     if (high_addr)
     {
-        SPI_Flash_Common_ExtendedAddrW(dev_num, 0);
+		SPI_Flash_Common_ExtendedAddrW(dev_num, 0);
     }
 }
 
@@ -199,7 +199,7 @@ void SPI_Flash_Common_Write(UINT32 devID, UINT32 destAddr, UINT8* data, UINT32 s
 
     if (high_addr)
     {
-        SPI_Flash_Common_ExtendedAddrW(devID, high_addr);
+		SPI_Flash_Common_ExtendedAddrW(devID, high_addr);
     }
 
 	/*-----------------------------------------------------------------------------------------------------*/
@@ -213,7 +213,7 @@ void SPI_Flash_Common_Write(UINT32 devID, UINT32 destAddr, UINT8* data, UINT32 s
 
     if (high_addr)
     {
-        SPI_Flash_Common_ExtendedAddrW(devID, 0);
+		SPI_Flash_Common_ExtendedAddrW(devID, 0);
     }
 }
 
