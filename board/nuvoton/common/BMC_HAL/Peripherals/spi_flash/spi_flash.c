@@ -219,11 +219,10 @@ HAL_STATUS SPI_Flash_Init(UINT32 flashBaseAddress)
 
 #if defined (NPCM750)
               SPI_Flash_Devices[fl_idx].startAddr = FLASH_BASE_ADDR(fl_idx);
-              if (SPI_Flash_Devices[fl_idx].chip_size > _16MB_)
-              {
-                  SPI_FLASH_MSG("\nReducing flash chip size from %lu MB to 16 MB\n", SPI_Flash_Devices[fl_idx].chip_size/_1MB_);
-                  SPI_Flash_Devices[fl_idx].chip_size = _16MB_;
-              }
+			  if (SPI_Flash_Devices[fl_idx].mf_id == DUMMY_MF_IF)
+			  {
+			      SPI_Flash_Devices[fl_idx].chip_size = 2UL << (pid1-1);
+			  }
 #else
               SPI_Flash_Devices[fl_idx].startAddr = SPI_Flash_BaseAddress + SPI_Flash_TotalSize;
 #endif

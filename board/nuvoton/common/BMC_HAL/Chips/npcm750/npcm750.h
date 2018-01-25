@@ -72,10 +72,9 @@
 
 #define FLASH_MEMORY_SIZE(device)       _128MB_
 
-#define FLASH_BASE_ADDR(device)         (SPI0CS0_BASE_ADDR + (device) * (FLASH_MEMORY_SIZE(device)))
+#define FLASH_BASE_ADDR(device)         ((device)==0? SPI0CS0_BASE_ADDR: (device)==1? SPI0CS1_BASE_ADDR:(device)==2? SPI3CS0_BASE_ADDR: SPI3CS1_BASE_ADDR)
 
-#define FIU_DEVICES_PER_MODULE           4
-#define FLASH_NUM_OF_DEVICES             8           /* Number of Chip select per FIU module ! */
+#define FIU_DEVICES_PER_MODULE           2           /* for SPI3 there are 4 but it is unlikely that someone will use them */
 
 #define SPI0_MEMORY_SIZE                _512KB_
 #define SPI3_MEMORY_SIZE                _512KB_

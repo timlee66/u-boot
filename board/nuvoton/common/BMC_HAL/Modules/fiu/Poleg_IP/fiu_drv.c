@@ -251,8 +251,6 @@ HAL_STATUS FIU_UMA_Read(UINT     device,
 	{
         case 0 :
         case 1 :
-        case 2 :
-        case 3 :
             SET_REG_FIELD(FIU_UMA_CTS(FIU_module), FIU_UMA_CTS_DEV_NUM, (UINT32)device);
             break;
         default:
@@ -372,8 +370,6 @@ HAL_STATUS FIU_UMA_Write(
 	{
         case 0 :
         case 1 :
-        case 2 :
-        case 3 :
             SET_REG_FIELD(FIU_UMA_CTS(FIU_module), FIU_UMA_CTS_DEV_NUM, (UINT32)device);
             break;
         default:
