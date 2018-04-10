@@ -122,7 +122,7 @@
 
 #define CONFIG_BOOTDELAY                3
 
-#define CONFIG_BOOTARGS                 "root=/dev/ram0 console=ttyS3,115200n8 mem=464M initrd=0x1d00000,0x600000 ramdisk_size=24000"
+#define CONFIG_BOOTARGS                 "earlyprintk=serial,uart3,115200 root=/dev/ram0 console=ttyS3,115200n8 mem=464M ramdisk_size=24000"
 
 #define CONFIG_IPADDR                   10.191.20.48
 #define CONFIG_NETMASK                  255.255.255.0
