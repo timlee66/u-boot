@@ -86,7 +86,7 @@
 
 #define CONFIG_FLASH_BASE               FLASH_BASE_ADDR(0)
 
-#define CONFIG_SYS_FLASH_SIZE		    (_32MB_)
+#define CONFIG_SYS_FLASH_SIZE		    (_64MB_)
 
 #define CONFIG_SYS_MAX_FLASH_SECT       (CONFIG_SYS_FLASH_SIZE / _4KB_)
 

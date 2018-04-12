@@ -67,6 +67,7 @@ int printf(const char* fmt, ...);
 	#define MX25L32_CAPACITY_ID            0x2016
 	#define MX25L64_CAPACITY_ID            0x2017
 	#define MX25L128_CAPACITY_ID           0x2018
+	#define MX66L512_CAPACITY_ID		   0x201A
 
 #define DUMMY_MF_IF                 0xFF
 	#define DUMMY_CAPACITY_ID              0xFFFF
@@ -93,8 +94,9 @@ static const flash_t supported_flash[]=
 	{SPANSION_MF_IF, S25FS256_CAPACITY_ID, (UINT8*)"S25FS256", _32MB_,  _4KB_,  _512B_, 0, SPI_Flash_Common_Write, SPI_Flash_Common_SectorErase, SPI_Flash_Common_GetStatus, SPI_Flash_Common_BulkErase},
 	{MACRONIX_MF_IF, MX25L64_CAPACITY_ID,  (UINT8*)"MX25L64",  _8MB_,   _4KB_,  _256B_, 0, SPI_Flash_Common_Write, SPI_Flash_Common_SectorErase, SPI_Flash_Common_GetStatus, SPI_Flash_Common_BulkErase},
 	{MACRONIX_MF_IF, MX25L128_CAPACITY_ID, (UINT8*)"MX25L128", _16MB_,  _4KB_,  _256B_, 0, SPI_Flash_Common_Write, SPI_Flash_Common_SectorErase, SPI_Flash_Common_GetStatus, SPI_Flash_Common_BulkErase},
+	{MACRONIX_MF_IF, MX66L512_CAPACITY_ID, (UINT8*)"MX66L512", _64MB_,  _4KB_,  _256B_, 0, SPI_Flash_Common_Write, SPI_Flash_Common_SectorErase, SPI_Flash_Common_GetStatus, SPI_Flash_Common_BulkErase},
 	{0},
-	{DUMMY_MF_IF, DUMMY_CAPACITY_ID, (UINT8*)"Unknown-Flash!!!",  _16MB_,  _4KB_,  _256B_, 0, SPI_Flash_Common_Write, SPI_Flash_Common_SectorErase, SPI_Flash_Common_GetStatus, SPI_Flash_Common_BulkErase}
+	{DUMMY_MF_IF, DUMMY_CAPACITY_ID, (UINT8*)"Auto detected flash",  _16MB_,  _4KB_,  _256B_, 0, SPI_Flash_Common_Write, SPI_Flash_Common_SectorErase, SPI_Flash_Common_GetStatus, SPI_Flash_Common_BulkErase}
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -217,20 +219,16 @@ HAL_STATUS SPI_Flash_Init(UINT32 flashBaseAddress)
 		{
               SPI_Flash_Devices[fl_idx]           = supported_flash[idx];
 
-#if defined (NPCM750)
               SPI_Flash_Devices[fl_idx].startAddr = FLASH_BASE_ADDR(fl_idx);
 			  if (SPI_Flash_Devices[fl_idx].mf_id == DUMMY_MF_IF)
 			  {
 			      SPI_Flash_Devices[fl_idx].chip_size = 2UL << (pid1-1);
 			  }
-#else
-              SPI_Flash_Devices[fl_idx].startAddr = SPI_Flash_BaseAddress + SPI_Flash_TotalSize;
-#endif
               SPI_Flash_TotalSize  += SPI_Flash_Devices[fl_idx].chip_size;
 
-              if(max_dev_size < supported_flash[idx].chip_size)
+			  if(max_dev_size < SPI_Flash_Devices[fl_idx].chip_size)
               {
-                  max_dev_size = supported_flash[idx].chip_size;
+				  max_dev_size = SPI_Flash_Devices[fl_idx].chip_size;
               }
 
 			  SPI_FLASH_MSG("\nSPI_Flash%d: Found CS%d dev#%d Name[%s] ChipSize[0x%x]\n",
