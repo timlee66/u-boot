@@ -389,11 +389,11 @@ UINT32 GCR_PowerOn_GetMemorySize(void)
         case 1:
             return 0x10000000;        /* 256 MB. */
         case 2:
-            return 0x20000000;        /* 512 MB. */
+        /* 3 and 4 should be 1 GB and 2 GB but as a workaround
+           to correctly load linux we set it as 512 MB         */
         case 3:
-            return 0x40000000;        /* 1 GB. */
         case 4:
-            return 0x80000000;        /* 2 GB. */
+            return 0x20000000;        /* 512 MB. */
 
         default:
            break;
