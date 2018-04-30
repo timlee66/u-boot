@@ -168,6 +168,10 @@ dtb-$(CONFIG_MACH_SUN9I) += \
 dtb-$(CONFIG_VF610) += vf500-colibri.dtb \
 	vf610-colibri.dtb
 
+dtb-$(CONFIG_TARGET_NPCM750) +=  \
+	nuvoton-npcm750-evb.dtb
+
+
 targets += $(dtb-y)
 
 # Add any required device tree compiler flags here
