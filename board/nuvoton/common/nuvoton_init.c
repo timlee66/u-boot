@@ -77,19 +77,45 @@ int checkboard(void)
 int dram_init (void)
 {
 
+
 #if 0    /* Trego - Done in Boot-Block */
 	CLK_ConfigurePCIClock();            /* For DDR config */
 
 	MC_ConfigureDDR();                  /* For DDR and debugger only perpose */
 #endif
 
+	gd->ram_size = GCR_PowerOn_GetMemorySize_limited();
 
-
-
-	gd->ram_size = GCR_PowerOn_GetMemorySize();
 
 	return 0;
 }
+
+/*---------------------------------------------------------------------------------------------------------*/
+/* Function:        last_stage_init                                                                        */
+/*                                                                                                         */
+/* Parameters:      none                                                                                   */
+/* Returns:                                                                                                */
+/* Side effects:                                                                                           */
+/* Description:                                                                                            */
+/*                  This routine performs last init stuff, done right before cli_loop                      */
+/*---------------------------------------------------------------------------------------------------------*/
+
+int last_stage_init(void)
+{
+	char memsz[32];
+
+	sprintf(memsz, "%ldM", (long int) (((GCR_PowerOn_GetMemorySize()  - CONFIG_SYS_MEM_TOP_HIDE)/ 0x100000)));
+	setenv("mem", memsz);
+
+	nuvoton_serial_set_console_env();
+
+	setenv("common_bootargs_dhcp", "setenv bootargs  earlycon=${earlycon} root=/dev/ram0 console=${console} mem=${mem} ramdisk_size=48000 basemac=${ethaddr} ip=dhcp");
+	setenv("common_bootargs_ip",   "  setenv bootargs  earlycon=${earlycon} root=/dev/ram0 console=${console} mem=${mem} ramdisk_size=48000 basemac=${ethaddr} ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}::eth${eth_num}");
+
+
+	return 0;
+}
+
 
 
 /*---------------------------------------------------------------------------------------------------------*/

@@ -41,7 +41,6 @@
 #define CONFIG_CMD_ELF                  /* ELF support */
 #define CONFIG_CMD_REGINFO              /* Register dump */
 #define CONFIG_CMD_SAVES                /* save S record dump */
-#define CONFIG_CMD_SDRAM                /* SDRAM DIMM SPD info printout */
 #define CONFIG_CMD_UNZIP                /* unzip from memory to memory */
 
 #define CONFIG_CMD_PING                 /* Ping command */
@@ -181,6 +180,11 @@
 
 #define CONFIG_SYS_RX_ETH_BUFFER        16             /* default is 4, set to 16 here. */
 
+/*---------------------------------------------------------------------------------------------------------*/
+/* I2C                                                                                                     */
+/*---------------------------------------------------------------------------------------------------------*/
+
+#define CONFIG_SYS_I2C_SPEED         100000
 
 #undef USB_INTERRUPT    /* No need USB Dev in UBOOT */
 

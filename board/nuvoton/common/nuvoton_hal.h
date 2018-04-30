@@ -24,3 +24,6 @@
 #undef SHM_MODULE_TYPE
 #undef SD_MODULE_TYPE
 #undef GPIO_MODULE_TYPE
+
+
+void nuvoton_serial_set_console_env(void);

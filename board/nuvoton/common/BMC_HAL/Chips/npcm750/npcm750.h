@@ -247,10 +247,10 @@
 /*---------------------------------------------------------------------------------------------------------*/
 #define UART_MODULE_TYPE                Hermon_IP
 #define UART_ACCESS                     MEM
-#define UART0_BASE_ADDR                 0xF0001000      /* UART0 registers  */
-#define UART1_BASE_ADDR                 0xF0002000      /* UART1 registers  */
-#define UART2_BASE_ADDR                 0xF0003000      /* UART2 registers  */
-#define UART3_BASE_ADDR                 0xF0004000      /* UART3 registers  */
+#define UART0_BASE_ADDR                 0xf0001000      /* UART0 registers  */
+#define UART1_BASE_ADDR                 0xf0002000      /* UART1 registers  */
+#define UART2_BASE_ADDR                 0xf0003000      /* UART2 registers  */
+#define UART3_BASE_ADDR                 0xf0004000      /* UART3 registers  */
 #define UART_PHYS_BASE_ADDR(module)     (UART0_BASE_ADDR + ((module) * 0x1000))
 #define UART_INTERRUPT(module)          (UART_INTERRUPT_0 + module)
 #define UART_NUM_OF_MODULES             4

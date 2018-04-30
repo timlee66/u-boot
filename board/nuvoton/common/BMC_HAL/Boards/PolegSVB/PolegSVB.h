@@ -100,6 +100,8 @@
 
 #define BOOTER_VER_ADDR                0x800002F4
 
+#define CONFIG_IMAGE_FORMAT_LEGACY
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 /* EMC configuration                                                                                       */

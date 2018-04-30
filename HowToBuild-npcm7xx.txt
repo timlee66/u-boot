@@ -10,5 +10,5 @@ Building:
 - run:
 	git clone https://github.com/Nuvoton-Israel/u-boot.git
 	cd u-boot
-	make PolegSVB_config CROSS_COMPILE=arm-none-linux-gnueabi- SUBLEVEL=6.2
-	make all CROSS_COMPILE=arm-none-linux-gnueabi- SUBLEVEL=6.2
+	make PolegSVB_config CROSS_COMPILE=arm-none-linux-gnueabi- SUBLEVEL=6.5
+	make all CROSS_COMPILE=arm-none-linux-gnueabi- SUBLEVEL=6.5

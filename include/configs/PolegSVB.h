@@ -122,12 +122,24 @@
 
 #define CONFIG_BOOTDELAY                3
 
-#define CONFIG_BOOTARGS                 "earlyprintk=serial,uart3,115200 root=/dev/ram0 console=ttyS3,115200n8 mem=464M ramdisk_size=24000"
+#define CONFIG_BOOTARGS                 "earlycon=${earlycon} root=/dev/ram0 " \
+										"console=${console} mem=${mem} ramdisk_size=48000 " \
+										"basemac=${ethaddr} \0"
 
-#define CONFIG_IPADDR                   10.191.20.48
+
+#define CONFIG_EXTRA_ENV_SETTINGS    	"stderr=serial\0" \
+										"stdin=serial\0" \
+										"stdout=serial\0" \
+										"ethact=ETH${eth_num}\0" \
+										""
+
+
+
+
+#define CONFIG_IPADDR                   127.0.0.1
 #define CONFIG_NETMASK                  255.255.255.0
-#define CONFIG_SERVERIP                 10.191.20.75
-#define CONFIG_GATEWAYIP                10.191.20.254
+#define CONFIG_SERVERIP                 127.0.0.1
+#define CONFIG_GATEWAYIP                127.0.0.1
 
 #define CONFIG_ETHADDR                  00:00:F7:A0:00:45      /* EMC1 */
 #define CONFIG_HAS_ETH1
@@ -193,6 +205,8 @@
 	#define CONFIG_ENV_OVERWRITE
 	#define CONFIG_FLASH_VERIFY
 #endif
+
+#define CONFIG_LAST_STAGE_INIT
 
 
 #endif /* __POLEGPALLADIUM_H*/

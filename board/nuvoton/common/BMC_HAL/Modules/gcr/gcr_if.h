@@ -57,6 +57,18 @@ void GCR_Mux_Uart(UINT redirection_mode, BOOLEAN CoreSP, BOOLEAN sp1, BOOLEAN sp
 
 
 /*---------------------------------------------------------------------------------------------------------*/
+/* Function:        GCR_Core_Uart_Get                                                                      */
+/*                                                                                                         */
+/* Parameters:                                                                                             */
+/* Returns:         none                                                                                   */
+/* Side effects:                                                                                           */
+/* Description:                                                                                            */
+/*                  This routine returns current UART number to be used by UBOOT\LINUX                     */
+/*---------------------------------------------------------------------------------------------------------*/
+UINT GCR_Core_Uart_Get (void);
+
+
+/*---------------------------------------------------------------------------------------------------------*/
 /* Function:        GCR_Mux_SPIFash                                                                        */
 /*                                                                                                         */
 /* Parameters:                                                                                             */
@@ -182,6 +194,17 @@ void GCR_Mux_PSPI(UINT devNum);
 /*                  This routine performs muxing for Graphics Core SPI Signals                             */
 /*---------------------------------------------------------------------------------------------------------*/
 void GCR_Mux_GSPI(void);
+
+/*---------------------------------------------------------------------------------------------------------*/
+/* Function:        GCR_PowerOn_GetMemorySize_limited                                                      */
+/*                                                                                                         */
+/* Parameters:      none                                                                                   */
+/* Returns:                                                                                                */
+/* Side effects:                                                                                           */
+/* Description:                                                                                            */
+/*                  This routine returns configured DDR memory size                                        */
+/*---------------------------------------------------------------------------------------------------------*/
+UINT32 GCR_PowerOn_GetMemorySize_limited(void);
 
 
 /*---------------------------------------------------------------------------------------------------------*/

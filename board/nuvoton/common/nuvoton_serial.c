@@ -21,7 +21,7 @@
 
 #include "BMC_HAL/Chips/chip_if.h"
 
-#define UART_DEV UART3_DEV
+static UART_DEV_T uart_dev = UART3_DEV;
 
 /*---------------------------------------------------------------------------------------------------------*/
 /* Function:        serial_init                                                                            */
@@ -34,13 +34,45 @@
 /*---------------------------------------------------------------------------------------------------------*/
 int nuvoton_serial_init(void)
 {
+
 	/* in NPCM750 the BootBlock already configured the UART and the muxes were done according to GPIO and board type */
-#ifndef NPCM750
-	UART_Init(UART_DEV, UART_MUX_MODE3_HSP1_UART1__HSP2_UART2__UART3_SI2, CONFIG_BAUDRATE);
-#endif
+	/* Get current settings that BB had previously set */
+	uart_dev = GCR_Core_Uart_Get();
+
 	return 0;
 }
 
+
+
+
+/*---------------------------------------------------------------------------------------------------------*/
+/* Function:        nuvoton_serial_set_console_env                                                         */
+/*                                                                                                         */
+/* Parameters:                                                                                             */
+/*                  c - char to write to UART                                                              */
+/*                                                                                                         */
+/* Returns:         none                                                                                   */
+/* Side effects:                                                                                           */
+/* Description:                                                                                            */
+/*                  This routine write single char to UART                                                 */
+/*---------------------------------------------------------------------------------------------------------*/
+void nuvoton_serial_set_console_env(void)
+{
+	char serial_base[32];
+
+	sprintf(serial_base, "uart8250,mmio32,0x%lx", (long int)UART_PHYS_BASE_ADDR(uart_dev));
+	setenv("earlycon", serial_base);
+
+	if(uart_dev == UART3_DEV)
+	{
+		setenv("console", "ttyS3,115200n8");
+	}
+	else //  (uart_dev == UART0_DEV)
+	{
+		setenv("console", "ttyS0,115200n8");
+	}
+	return;
+}
 
 
 
@@ -58,11 +90,11 @@ int nuvoton_serial_init(void)
 
 void nuvoton_serial_putc( const char c )
 {
-	UART_PutC(UART_DEV, c);
+	UART_PutC(uart_dev, c);
 
 	if (c == '\n')
 	{
-        UART_PutC(UART_DEV, '\r');
+        UART_PutC(uart_dev, '\r');
 	}
 }
 
@@ -82,7 +114,7 @@ void nuvoton_serial_puts( const INT8 *s )
 {
 	while (*s)
 	{
-	serial_putc( *s++ );
+		serial_putc( *s++ );
 	}
 }
 
@@ -100,7 +132,7 @@ void nuvoton_serial_puts( const INT8 *s )
 /*---------------------------------------------------------------------------------------------------------*/
 int nuvoton_serial_getc( void )
 {
-	return UART_GetC(UART_DEV);
+	return UART_GetC(uart_dev);
 }
 
 
@@ -116,7 +148,7 @@ int nuvoton_serial_getc( void )
 /*---------------------------------------------------------------------------------------------------------*/
 int nuvoton_serial_tstc( void )
 {
-	return UART_TestRX(UART_DEV);
+	return UART_TestRX(uart_dev);
 }
 
 
