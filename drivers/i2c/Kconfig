@@ -105,6 +105,7 @@ config SYS_I2C_UNIPHIER
 	  Support for UniPhier I2C controller driver.  This I2C controller
 	  is used on PH1-LD4, PH1-sLD8 or older UniPhier SoCs.
 
+
 config SYS_I2C_UNIPHIER_F
 	bool "UniPhier FIFO-builtin I2C driver"
 	depends on ARCH_UNIPHIER && DM_I2C
@@ -112,6 +113,12 @@ config SYS_I2C_UNIPHIER_F
 	help
 	  Support for UniPhier FIFO-builtin I2C controller driver.
 	  This I2C controller is used on PH1-Pro4 or newer UniPhier SoCs.
+
+
+config NUVOTON_POLEG_I2C
+	bool "Nuvoton I2C driver"
+	help
+	  Support for Nuvoton I2C controller driver.
 
 source "drivers/i2c/muxes/Kconfig"
 
