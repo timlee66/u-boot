@@ -262,7 +262,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_TERASTATION_PRO2     1584
 #define MACH_TYPE_LINKSTATION_PRO      1585
 #define MACH_TYPE_E350                 1596
-#define MACH_TYPE_NPCM750              1599
+#define MACH_TYPE_NPCM750              1597
 #define MACH_TYPE_TS409                1601
 #define MACH_TYPE_CM_X300              1616
 #define MACH_TYPE_AT91SAM9G20EK        1624
