@@ -364,6 +364,23 @@ HAL_STATUS UART_SetBreak(UART_DEV_T devNum, BOOLEAN state);
 
 
 
+
+
+/*---------------------------------------------------------------------------------------------------------*/
+/* Function:        UART_UartIsInit                                                                        */
+/*                                                                                                         */
+/* Parameters:                                                                                             */
+/*                  devNum -                                                                               */
+/*                                                                                                         */
+/* Returns:         none                                                                                   */
+/* Side effects:                                                                                           */
+/* Description:                                                                                            */
+/*                  This routine returns TRUE is UART module was init, FALSE otherwise                     */
+/*---------------------------------------------------------------------------------------------------------*/
+BOOLEAN UART_UartIsInit(UART_DEV_T devNum);
+
+
+
 /*---------------------------------------------------------------------------------------------------------*/
 /* Function:        UART_Isr                                                                               */
 /*                                                                                                         */

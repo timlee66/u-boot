@@ -91,35 +91,10 @@ UINT GCR_Core_Uart_Get (void)
 {
 	UART_DEV_T core_uart = UART0_DEV;
 
-	UINT8 redirection =  READ_REG_FIELD(SPSWC, SPSWC_SPMOD);
-
-	/*-----------------------------------------------------------------------------------------------------*/
-	/* Enable serial interfaces according to mux mode                                                      */
-	/*-----------------------------------------------------------------------------------------------------*/
-	switch (redirection)
-	{
-        case UART_MUX_MODE1_HSP1_SI2____HSP2_UART2__UART1_s_HSP1__UART3_s_SI2:
-        case UART_MUX_MODE2_HSP1_UART1__HSP2_SI2____UART2_s_HSP2__UART3_s_SI2:
-        case UART_MUX_MODE4_HSP1_SI1____HSP2_SI2____UART1_s_SI1___UART3_s_SI2__UART2_s_HSP1:
-        case UART_MUX_MODE5_HSP1_SI1____HSP2_UART2__UART1_s_HSP1__UART3_s_SI1:
-		case UART_MUX_MODE6_HSP1_SI1____HSP2_SI2____UART1_s_SI1___UART3_s_SI2__UART2_s_HSP2:
-            {
-                core_uart = UART0_DEV;
-                break;
-            }
-        case UART_MUX_MODE3_HSP1_UART1__HSP2_UART2__UART3_SI2:
-        case UART_MUX_MODE7_HSP1_SI1____HSP2_UART2__UART1_s_HSP1__UART3_SI2:
-            {
-                core_uart = UART3_DEV;
-                break;
-            }
-
-
-        /*---------------------------------------------------------------------------------------------*/
-        /* Illegal mux mode                                                                            */
-        /*---------------------------------------------------------------------------------------------*/
-        default: return -1;
-	}
+	if (UART_UartIsInit(UART0_DEV) == TRUE)
+		core_uart = UART0_DEV;
+	else
+		core_uart = UART3_DEV;
 
 	return core_uart;
 

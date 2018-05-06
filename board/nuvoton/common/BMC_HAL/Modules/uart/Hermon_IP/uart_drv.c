@@ -766,6 +766,38 @@ HAL_STATUS UART_SetBreak(UART_DEV_T devNum, BOOLEAN state)
 	return HAL_OK;
 }
 
+/*---------------------------------------------------------------------------------------------------------*/
+/* Function:        UART_UartIsInit                                                                        */
+/*                                                                                                         */
+/* Parameters:                                                                                             */
+/*                  devNum -                                                                               */
+/*                                                                                                         */
+/* Returns:         none                                                                                   */
+/* Side effects:                                                                                           */
+/* Description:                                                                                            */
+/*                  This routine returns TRUE is UART module was init, FALSE otherwise                     */
+/*---------------------------------------------------------------------------------------------------------*/
+BOOLEAN UART_UartIsInit(UART_DEV_T devNum)
+{
+
+	// AviF:
+	//The easiest way to check is LCR register - offset C: after reset it is 0x00 after configuration it is 0x03 (WLS: Word Length Select is 8 bits).
+	//To check baud rate you need also to change DLAB bit before so more complicated.
+	//
+	//So now it is simple for u-boot:
+	//If BB set UART0.LCR == 0x03 use UART0
+	//If BB set UART3.LCR == 0x03 use UART3
+	//They can't be both set.
+
+	if (REG_READ(UART_LCR(devNum)) != 0)
+		return TRUE;
+	else
+		return FALSE;
+
+}
+
+
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 /* Function:        UART_Irq                                                                               */
