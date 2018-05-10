@@ -5,6 +5,7 @@
 PLATFORM_CPPFLAGS += -I$(srctree)/
 PLATFORM_CPPFLAGS += -I$(srctree)/board/nuvoton/common/BMC_HAL/Chips
 PLATFORM_CPPFLAGS += -I$(srctree)/board/nuvoton/common/SWC_DEFS
+PLATFORM_CPPFLAGS += -I$(srctree)/board/nuvoton/PolegSVB
 
 # We don't use LIBC in this project
 PLATFORM_CPPFLAGS += -DNO_LIBC

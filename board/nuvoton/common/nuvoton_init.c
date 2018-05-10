@@ -22,6 +22,9 @@
 #include "BMC_HAL/Chips/chip_if.h"
 #include "BMC_HAL/version.h"
 
+//#include <../../../include/env_default.h>
+
+
 
 	DECLARE_GLOBAL_DATA_PTR;
 
@@ -148,7 +151,7 @@ int arch_interrupt_init (void)
 /*---------------------------------------------------------------------------------------------------------*/
 void print_common_info(void)
 {
-	printf("HAL ver : v%s\n", BMC_HAL_VERSION_STR);
+	printf(KBLU "\nHAL ver : v%s\n", BMC_HAL_VERSION_STR);
 	printf("\n");
 	printf("Board: %s\n", STRINGX(BOARD_NAME));
 	printf("Chip : %s\n", STRINGX(CHIP_NAME));
@@ -164,7 +167,7 @@ void print_common_info(void)
 	printf("APB4 Freq:   % 4ldMHz\n", CLK_GetAPBFreq(4)/1000000L);
 	printf("APB5 Freq:   % 4ldMHz\n", CLK_GetAPBFreq(5)/1000000L);
 	printf("CP Freq:     % 4ldMHz\n", CLK_GetCPFreq()/1000000L);
-	printf("\n");
+	printf("\n" KNRM);
 
 }
 

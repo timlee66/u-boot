@@ -669,6 +669,10 @@ config ARCH_ROCKCHIP
 config TARGET_NPCM750
 	bool "Support npcm750"
 	select CPU_V7
+	select OF_CONTROL
+	select DM
+	help
+	  Support for Poleg BMC SoC family developed by Nuvoton Inc.
 
 
 endchoice

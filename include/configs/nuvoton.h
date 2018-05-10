@@ -12,8 +12,8 @@
 /*            U-Boot                                                                                       */
 /*---------------------------------------------------------------------------------------------------------*/
 
-#ifndef __NUVOTON_H
-#define __NUVOTON_H
+#ifndef __NUVOTON_CONFIG_H
+#define __NUVOTON_CONFIG_H
 
 /*---------------------------------------------------------------------------------------------------------*/
 /* Including HAL definitions                                                                               */
@@ -29,6 +29,19 @@
 
 #endif
 
+
+#define KBOLD_ON    "\x1b[1m"
+#define KBOLD_OFF   "\x1b[22m"
+
+
+#define KNRM  "\x1B[0m" KBOLD_OFF
+#define KRED  "\x1B[31m" KBOLD_ON
+#define KGRN  "\x1B[32m" KBOLD_ON
+#define KYEL  "\x1B[33m" KBOLD_ON
+#define KBLU  "\x1B[34m" KBOLD_ON
+#define KMAG  "\x1B[35m" KBOLD_ON
+#define KCYN  "\x1B[36m" KBOLD_ON
+#define KWHT  "\x1B[37m" KBOLD_ON
 
 
 
@@ -81,7 +94,7 @@
 /*---------------------------------------------------------------------------------------------------------*/
 #define CORE_TYPE                       Cortex-A9
 #define CONFIG_ARMV7	                1	        /* This is an ARM V7 CPU core */
-#define CONFIG_IDENT_STRING             " by Nuvoton Technology Corp."
+#define CONFIG_IDENT_STRING             KGRN "\nNuvoton Technology Corp.\n" KNRM
 #define CONFIG_NUVOTON                  1
 
 #define CONFIG_DISPLAY_CPUINFO          1           /* display cpu info (and speed) */
@@ -180,6 +193,8 @@
 
 #define CONFIG_SYS_RX_ETH_BUFFER        16             /* default is 4, set to 16 here. */
 
+
+
 /*---------------------------------------------------------------------------------------------------------*/
 /* I2C                                                                                                     */
 /*---------------------------------------------------------------------------------------------------------*/
@@ -188,5 +203,5 @@
 
 #undef USB_INTERRUPT    /* No need USB Dev in UBOOT */
 
-#endif /* __NUVOTON_H */
+#endif /* __NUVOTON_CONFIG_H */
 

@@ -31,7 +31,6 @@
 /*#define CONFIG_SYS_DELL_DRB_HW            1*/
 
 
-
 /*
 	* Warning: changing CONFIG_SYS_TEXT_BASE requires
 	* adapting the initial boot program.
@@ -64,6 +63,7 @@
 
 
 #include "nuvoton.h"
+
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -120,34 +120,19 @@
 #define CONFIG_ETH_DEVS                 CHIP_NUM_OF_EMC_ETH + CHIP_NUM_OF_GMAC_ETH   /* 2 EMC + 2 GMAC */
 
 
-#define CONFIG_BOOTDELAY                3
-
-#define CONFIG_BOOTARGS                 "earlycon=${earlycon} root=/dev/ram0 " \
-										"console=${console} mem=${mem} ramdisk_size=48000 " \
-										"basemac=${ethaddr} \0"
-
-
-#define CONFIG_EXTRA_ENV_SETTINGS    	"stderr=serial\0" \
-										"stdin=serial\0" \
-										"stdout=serial\0" \
-										"ethact=ETH${eth_num}\0" \
-										""
-
-
-
-
 #define CONFIG_IPADDR                   127.0.0.1
 #define CONFIG_NETMASK                  255.255.255.0
 #define CONFIG_SERVERIP                 127.0.0.1
 #define CONFIG_GATEWAYIP                127.0.0.1
 
-#define CONFIG_ETHADDR                  00:00:F7:A0:00:45      /* EMC1 */
+#define CONFIG_ETHADDR                  00:00:00:00:00:00      /* EMC1 */
 #define CONFIG_HAS_ETH1
-#define CONFIG_ETH1ADDR                 00:00:F7:A0:00:46      /* EMC2 */
+#define CONFIG_ETH1ADDR                 00:00:00:00:00:01      /* EMC2 */
 #define CONFIG_HAS_ETH2
-#define CONFIG_ETH2ADDR                 00:00:F7:A0:00:47      /* GMAC1 */
+#define CONFIG_ETH2ADDR                 00:00:00:00:00:02      /* GMAC1 */
 #define CONFIG_HAS_ETH3
-#define CONFIG_ETH3ADDR                 00:00:F7:A0:00:48      /* GMAC2 */
+#define CONFIG_ETH3ADDR                 00:00:00:00:00:03      /* GMAC2 */
+
 
 #define CONFIG_CMD_GMAC
 #define CONFIG_CMD_RNG
@@ -187,26 +172,68 @@
 
 
 
+#define CONFIG_LAST_STAGE_INIT
+
+
+
+
 /*---------------------------------------------------------------------------------------------------------*/
 /* Environment organization                                                                                */
 /*---------------------------------------------------------------------------------------------------------*/
-#define CONFIG_ENV_SIZE                 0x40000                                         /* Total Size of Environment Sector */
-#define CONFIG_SYS_ENV_OFFSET           0xC0000                                         /* environment starts here */
+
+
+#undef  CONFIG_BOOTARGS
+#define CONFIG_BOOTARGS   "earlycon=${earlycon} root=/dev/ram console=${console} mem=${mem} ramdisk_size=48000 basemac=${ethaddr}"
+
+
+
+#define CONFIG_BOOTDELAY                2
+
+
+
+#undef  CONFIG_EXTRA_ENV_SETTINGS
+#define CONFIG_EXTRA_ENV_SETTINGS   "uimage_flash_addr=80200000\0"   \
+									"romfs_flash_addr=80600000\0"   \
+									"fdt_flash_addr=801E0000\0"   \
+									"stdin=serial\0"   \
+									"stdout=serial\0"   \
+									"ethact=ETH${eth_num}\0"   \
+									"bootcmd=setenv ethact ETH${eth_num}; run romboot\0"   \
+									"romboot=echo Booting Kernel from flash; echo +++ uimage at 0x${uimage_flash_addr}; " \
+									"echo +++ FS at 0x${romfs_flash_addr}; echo +++ DT at 0x${fdt_flash_addr}; " \
+									"echo Using bootargs: ${bootargs};" \
+									"bootm ${uimage_flash_addr} ${romfs_flash_addr} ${fdt_flash_addr}\0"   \
+									"autostart=yes\0"   \
+									"common_bootargs=${common_bootargs_dhcp}\0" \
+									"\0"
+
+
+
+#undef  CONFIG_BOOTCOMMAND
+#define CONFIG_BOOTCOMMAND "setenv ethact ETH${eth_num}; run romboot"
+
+#define CONFIG_ENV_SIZE                  0x10000              /* Changed on UBOOT 201510.10.6.9 ! Total Size of Environment Sector (64K)*/
+#define CONFIG_SYS_ENV_OFFSET           0x100000              /* Changed on UBOOT 201510.10.6.9 ! environment starts here */
+
+
+
 
 #ifdef _CONFIG_NO_FLASH_
 	#define CONFIG_SYS_NO_FLASH             1
 	#undef	CONFIG_CMD_IMLS
 	#define CONFIG_ENV_IS_NOWHERE
 #else
-	#define CONFIG_ENV_IS_IN_FLASH          1                                           /* We save the environment in flash */
-	/*#define CONFIG_SYS_ENV_SECT_SIZE        (128 << 10)                                 // Env sector size 128 KiB*/
-	#define CONFIG_ENV_ADDR                 (CONFIG_FLASH_BASE + CONFIG_SYS_ENV_OFFSET) /* Flash addr of environment */
 
-	#define CONFIG_ENV_OVERWRITE
-	#define CONFIG_FLASH_VERIFY
+#define CONFIG_ENV_IS_IN_FLASH          1                                           /* We save the environment in flash */
+
+#define CONFIG_ENV_ADDR                 (CONFIG_FLASH_BASE + CONFIG_SYS_ENV_OFFSET) /* Flash addr of environment */
+
+#define CONFIG_SYS_CONSOLE_ENV_OVERWRITE 1
+#define CONFIG_ENV_OVERWRITE             1
+#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+#define CONFIG_FLASH_VERIFY              1
 #endif
 
-#define CONFIG_LAST_STAGE_INIT
 
 
 #endif /* __POLEGPALLADIUM_H*/

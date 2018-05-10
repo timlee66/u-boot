@@ -57,10 +57,10 @@ int print_cpuinfo (void)
 	#define ROMCODE_VER     *((PTR32)(ROMCODE_VER_ADDR))
 	#define BOOTER_VER      *((PTR32)(BOOTER_VER_ADDR))
 
-	printf("RomCode   : v%02x.%02x.%02x.%02x\n", MSB0(ROMCODE_VER), MSB1(ROMCODE_VER), MSB2(ROMCODE_VER), MSB3(ROMCODE_VER));
+	printf(KMAG "RomCode   : v%02x.%02x.%02x.%02x\n", MSB0(ROMCODE_VER), MSB1(ROMCODE_VER), MSB2(ROMCODE_VER), MSB3(ROMCODE_VER));
 	printf("BootBlock : v%02x.%02x.%02x.%02x\n", MSB0(BOOTER_VER),  MSB1(BOOTER_VER),  MSB2(BOOTER_VER),  MSB3(BOOTER_VER));
 
-	printf("\n");
+	printf("\n" KNRM);
 
 	printf("PolegSVB Power-On Straps = 0x%x\n",(unsigned int)*((PTR32)(GCR_BASE_ADDR + 0x004)));
 
