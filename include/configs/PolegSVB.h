@@ -192,20 +192,19 @@
 
 
 #undef  CONFIG_EXTRA_ENV_SETTINGS
-#define CONFIG_EXTRA_ENV_SETTINGS   "uimage_flash_addr=80200000\0"   \
-									"romfs_flash_addr=80600000\0"   \
-									"fdt_flash_addr=801E0000\0"   \
-									"stdin=serial\0"   \
-									"stdout=serial\0"   \
-									"ethact=ETH${eth_num}\0"   \
-									"bootcmd=setenv ethact ETH${eth_num}; run romboot\0"   \
-									"romboot=echo Booting Kernel from flash; echo +++ uimage at 0x${uimage_flash_addr}; " \
-									"echo +++ FS at 0x${romfs_flash_addr}; echo +++ DT at 0x${fdt_flash_addr}; " \
-									"echo Using bootargs: ${bootargs};" \
-									"bootm ${uimage_flash_addr} ${romfs_flash_addr} ${fdt_flash_addr}\0"   \
-									"autostart=yes\0"   \
-									"common_bootargs=${common_bootargs_dhcp}\0" \
-									"\0"
+#define CONFIG_EXTRA_ENV_SETTINGS	"uimage_flash_addr=80200000\0"   \
+					"romfs_flash_addr=80600000\0"   \
+					"fdt_flash_addr=801E0000\0"   \
+					"stdin=serial\0"   \
+					"stdout=serial\0"   \
+					"ethact=ETH${eth_num}\0"   \
+					"bootcmd=setenv ethact ETH${eth_num}; run romboot\0"   \
+					"romboot=echo Booting Kernel from flash; echo +++ uimage at 0x${uimage_flash_addr}; " \
+					"echo Using bootargs: ${bootargs};" \
+					"bootm ${uimage_flash_addr}\0"   \
+					"autostart=yes\0"   \
+					"common_bootargs=${common_bootargs_dhcp}\0" \
+					"\0"
 
 
 
