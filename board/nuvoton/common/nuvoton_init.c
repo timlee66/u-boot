@@ -112,9 +112,6 @@ int last_stage_init(void)
 
 	nuvoton_serial_set_console_env();
 
-	setenv("common_bootargs_dhcp", "setenv bootargs  earlycon=${earlycon} root=/dev/ram0 console=${console} mem=${mem} ramdisk_size=48000 basemac=${ethaddr} ip=dhcp");
-	setenv("common_bootargs_ip",   "  setenv bootargs  earlycon=${earlycon} root=/dev/ram0 console=${console} mem=${mem} ramdisk_size=48000 basemac=${ethaddr} ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}::eth${eth_num}");
-
 
 	return 0;
 }
