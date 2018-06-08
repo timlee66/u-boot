@@ -6,9 +6,12 @@ Requirements:
 
 Building:
 =========
+- make sure you have in your path arm toolchain e.g:
+  /usr/sbin/cross_compiler/arm-2014.05/bin
+  that contains arm-none-linux-gnueabi-gcc and other arm tools
 - Choose a directory
 - run:
 	git clone https://github.com/Nuvoton-Israel/u-boot.git
 	cd u-boot
-	make PolegSVB_config CROSS_COMPILE=arm-none-linux-gnueabi- SUBLEVEL=6.9
-	make all CROSS_COMPILE=arm-none-linux-gnueabi- SUBLEVEL=6.9
+	make PolegSVB_config CROSS_COMPILE=arm-none-linux-gnueabi- SUBLEVEL=7.0
+	make all CROSS_COMPILE=arm-none-linux-gnueabi- SUBLEVEL=7.0
