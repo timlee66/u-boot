@@ -66,13 +66,10 @@ void nuvoton_serial_set_console_env(void)
 	if(uart_dev == UART3_DEV)
 	{
 		setenv("console", "ttyS3,115200n8");
-		setenv("bootargs", "earlycon=uart8250,mmio32,0xf0004000 root=/dev/ram console=ttyS3,115200n8 mem=464M ramdisk_size=48000 basemac=${ethaddr}");
 	}
 	else //  (uart_dev == UART0_DEV)
 	{
 		setenv("console", "ttyS0,115200n8");
-		setenv("bootargs", "earlycon=uart8250,mmio32,0xf0001000 root=/dev/ram console=ttyS0,115200n8 mem=464M ramdisk_size=48000 basemac=${ethaddr}");
-
 	}
 	return;
 }
