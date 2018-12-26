@@ -96,7 +96,7 @@
 /* Local Functions                                                                                         */
 /*---------------------------------------------------------------------------------------------------------*/
 static UINT32  CLK_CalculatePLLFrequency (UINT32 pllVal);
-static UINT32  CLK_GetPll0Freq (void);
+       UINT32  CLK_GetPll0Freq (void);
 static UINT32  CLK_GetPll1Freq (void);
 static UINT32  CLK_GetPll2Freq (void);
 /*static UINT32  CLK_GetPll2Freq (void); */
@@ -1543,7 +1543,7 @@ static UINT32  CLK_CalculatePLLFrequency (UINT32 pllVal)
 /* Description:                                                                                            */
 /*                  Returns the frequency of PLL0 in Hz                                                    */
 /*---------------------------------------------------------------------------------------------------------*/
-static UINT32  CLK_GetPll0Freq (void)
+UINT32  CLK_GetPll0Freq (void)
 {
 	UINT32  pllVal      = 0;
 
