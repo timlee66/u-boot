@@ -56,6 +56,9 @@ int print_cpuinfo (void)
 
 	#define ROMCODE_VER     *((PTR32)(ROMCODE_VER_ADDR))
 	#define BOOTER_VER      *((PTR32)(BOOTER_VER_ADDR))
+  #define SPSWC           0x004
+  #define MFSEL1          0x00c
+  #define INTCR           0x03c
 
 	printf(KMAG "RomCode   : v%02x.%02x.%02x.%02x\n", MSB0(ROMCODE_VER), MSB1(ROMCODE_VER), MSB2(ROMCODE_VER), MSB3(ROMCODE_VER));
 	printf("BootBlock : v%02x.%02x.%02x.%02x\n", MSB0(BOOTER_VER),  MSB1(BOOTER_VER),  MSB2(BOOTER_VER),  MSB3(BOOTER_VER));
@@ -63,6 +66,18 @@ int print_cpuinfo (void)
 	printf("\n" KNRM);
 
 	printf("PolegSVB Power-On Straps = 0x%x\n",(unsigned int)*((PTR32)(GCR_BASE_ADDR + 0x004)));
+
+  unsigned int spmod, hsl1sel;
+  spmod = 0x06;
+  hsl1sel = 0x400;
+
+  *((volatile uint32_t *)(GCR_BASE_ADDR + SPSWC)) |= spmod;
+  *((volatile uint32_t *)(GCR_BASE_ADDR + MFSEL1)) |= hsl1sel;
+  *((volatile uint32_t *)(GCR_BASE_ADDR + INTCR)) |= 0x4700;
+  *((volatile uint32_t *)(CLK_BASE_ADDR + 0x004)) |= 0x01E18F49;
+
+
+
 
 	if (STRP_SecureBoot_On())
 	{
