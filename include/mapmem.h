@@ -25,13 +25,18 @@ static inline void unmap_sysmem(const void *vaddr)
 #ifndef CONFIG_SPI_FLASH_GET_RESET_ON_CORE_RESET
 
 void SPI_Flash_Common_ExtendedAddrW(unsigned long dev_num, unsigned char HighAddr);
+#include "../board/nuvoton/common/BMC_HAL/Modules/fiu/Poleg_IP/fiu_regs.h"
 
 	/* We access area in SPI flash that might be above 16MB we need to return
 	   ExtendedAddr to 0
 	*/
-	if ((unsigned long)vaddr >= SPI0CS0_BASE_ADDR &&
-		(unsigned long)vaddr < (SPI0CS0_BASE_ADDR+SPI0_MEMORY_SIZE+SPI3_MEMORY_SIZE))
-		SPI_Flash_Common_ExtendedAddrW(0, 0);
+	u32 addr = (u32)vaddr;
+	if (( (addr >= SPI0CS0_BASE_ADDR) && (addr < (SPI0CS0_BASE_ADDR+SPI0_MEMORY_SIZE)) && 
+		READ_REG_FIELD(FIU_DRD_CFG(0),  FIU_DRD_CFG_ADDSIZ) == 1) ||
+	    ( (addr >= SPI3CS0_BASE_ADDR) && (addr < (SPI3CS0_BASE_ADDR+SPI3_MEMORY_SIZE)) && 
+		READ_REG_FIELD(FIU_DRD_CFG(3),  FIU_DRD_CFG_ADDSIZ) == 1) ){
+			SPI_Flash_Common_ExtendedAddrW((addr-SPI0CS0_BASE_ADDR)/FLASH_MEMORY_SIZE(0), 0);
+	}
 #endif
 #endif
 }

@@ -76,8 +76,8 @@
 
 #define FIU_DEVICES_PER_MODULE           2           /* for SPI3 there are 4 but it is unlikely that someone will use them */
 
-#define SPI0_MEMORY_SIZE                _512KB_
-#define SPI3_MEMORY_SIZE                _512KB_
+#define SPI0_MEMORY_SIZE                _256MB_
+#define SPI3_MEMORY_SIZE                _512MB_
 /*---------------------------------------------------------------------------------------------------------*/
 /* SPI Expansion Flash                                                                                     */
 /*---------------------------------------------------------------------------------------------------------*/
