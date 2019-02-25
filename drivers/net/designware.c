@@ -20,12 +20,6 @@
 #include <asm/io.h>
 #include "designware.h"
 
-#include "nuc970_eth.h"
-
-#define TOC_FREQ 125000000
-
-UINT32  CLK_GetPll0Freq (void);
-
 DECLARE_GLOBAL_DATA_PTR;
 
 #if !defined(CONFIG_PHYLIB)
@@ -34,37 +28,22 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static int dw_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 {
+	struct eth_mac_regs *mac_p = bus->priv;
 	ulong start;
+	u16 miiaddr;
 	int timeout = CONFIG_MDIO_TIMEOUT;
-	
-	if ((u32)bus->priv == EMC_BASE_ADDR(1)) {
-		phys_addr_t phy_iobase = (phys_addr_t)bus->priv;
 
-	        writel((addr << 8) | reg | PHYBUSY | MDCCR, phy_iobase + MIIDA);
+	miiaddr = ((addr << MIIADDRSHIFT) & MII_ADDRMSK) |
+		  ((reg << MIIREGSHIFT) & MII_REGMSK);
 
-		start = get_timer(0);
-		while (get_timer(start) < timeout) {
-			if (!(readl(phy_iobase + MIIDA) & PHYBUSY))
-				return (u16)readl(phy_iobase + MIID);
-			udelay(10);
-		};
-	}
-	else {	
-		struct eth_mac_regs *mac_p = bus->priv;
-		u16 miiaddr;
+	writel(miiaddr | MII_CLKRANGE_150_250M | MII_BUSY, &mac_p->miiaddr);
 
-		miiaddr = ((addr << MIIADDRSHIFT) & MII_ADDRMSK) |
-			  ((reg << MIIREGSHIFT) & MII_REGMSK);
-
-		writel(miiaddr | MII_CLKRANGE_150_250M | MII_BUSY, &mac_p->miiaddr);
-
-		start = get_timer(0);
-		while (get_timer(start) < timeout) {
-			if (!(readl(&mac_p->miiaddr) & MII_BUSY))
-				return readl(&mac_p->miidata);
-			udelay(10);
-		};
-	}
+	start = get_timer(0);
+	while (get_timer(start) < timeout) {
+		if (!(readl(&mac_p->miiaddr) & MII_BUSY))
+			return readl(&mac_p->miidata);
+		udelay(10);
+	};
 
 	return -ETIMEDOUT;
 }
@@ -72,48 +51,30 @@ static int dw_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 static int dw_mdio_write(struct mii_dev *bus, int addr, int devad, int reg,
 			u16 val)
 {
+	struct eth_mac_regs *mac_p = bus->priv;
 	ulong start;
+	u16 miiaddr;
 	int ret = -ETIMEDOUT, timeout = CONFIG_MDIO_TIMEOUT;
-	
-	if ((u32)bus->priv == EMC_BASE_ADDR(1)) {
-		phys_addr_t phy_iobase = (phys_addr_t)bus->priv;
-		
-	        writel(val, phy_iobase + MIID);
-	        writel((addr << 8) | reg | PHYBUSY | PHYWR | MDCCR, phy_iobase + MIIDA);
 
-		start = get_timer(0);
-		while (get_timer(start) < timeout) {
-			if (!(readl(phy_iobase + MIIDA) & PHYBUSY)) {
-				ret = 0;
-				break;
-			}
-			udelay(10);
-		};
-	}
-	else {
-		struct eth_mac_regs *mac_p = bus->priv;
-		u16 miiaddr;
+	writel(val, &mac_p->miidata);
+	miiaddr = ((addr << MIIADDRSHIFT) & MII_ADDRMSK) |
+		  ((reg << MIIREGSHIFT) & MII_REGMSK) | MII_WRITE;
 
-		writel(val, &mac_p->miidata);
-		miiaddr = ((addr << MIIADDRSHIFT) & MII_ADDRMSK) |
-			  ((reg << MIIREGSHIFT) & MII_REGMSK) | MII_WRITE;
+	writel(miiaddr | MII_CLKRANGE_150_250M | MII_BUSY, &mac_p->miiaddr);
 
-		writel(miiaddr | MII_CLKRANGE_150_250M | MII_BUSY, &mac_p->miiaddr);
-
-		start = get_timer(0);
-		while (get_timer(start) < timeout) {
-			if (!(readl(&mac_p->miiaddr) & MII_BUSY)) {
-				ret = 0;
-				break;
-			}
-			udelay(10);
-		};
-	}
+	start = get_timer(0);
+	while (get_timer(start) < timeout) {
+		if (!(readl(&mac_p->miiaddr) & MII_BUSY)) {
+			ret = 0;
+			break;
+		}
+		udelay(10);
+	};
 
 	return ret;
 }
 
-static int dw_mdio_init(const char *name, struct eth_mac_regs *mac_regs_p, phys_addr_t phy_iobase)
+static int dw_mdio_init(const char *name, struct eth_mac_regs *mac_regs_p)
 {
 	struct mii_dev *bus = mdio_alloc();
 
@@ -126,13 +87,7 @@ static int dw_mdio_init(const char *name, struct eth_mac_regs *mac_regs_p, phys_
 	bus->write = dw_mdio_write;
 	snprintf(bus->name, sizeof(bus->name), name);
 
-	if (phy_iobase) {
-		bus->priv = (void *)phy_iobase;
-		writel(readl(phy_iobase + MCMDR) | MCMDR_EnMDC, phy_iobase + MCMDR);
-	}
-	else {
-		bus->priv = (void *)mac_regs_p;
-	}
+	bus->priv = (void *)mac_regs_p;
 
 	return mdio_register(bus);
 }
@@ -536,19 +491,11 @@ int designware_initialize(ulong base_addr, u32 interface)
 
 	if (base_addr == GMAC_BASE_ADDR(0))
 	{
-		id=2;       /* ETH2 */
-		if (CLK_GetPll0Freq() == TOC_FREQ) {
-			priv->phy_iobase = EMC_BASE_ADDR(1);
-		}
-	        /* Enable Clock */
-	        CLK_ConfigureEMCClock(1);
-
-	        /* Muxing RMII MDIO */
-	        GCR_Mux_RMII(1);
+        id=2;       /* ETH2 */
 	}
 	else if (base_addr == GMAC_BASE_ADDR(1))
 	{
-		id=3;       /* ETH3 */
+        id=3;       /* ETH3 */
 	}
 	sprintf(dev->name, "ETH%d", id);        /* Trego - Print eth name same as GMAC-HAL */
 	dev->iobase = (int)base_addr;
@@ -569,7 +516,7 @@ int designware_initialize(ulong base_addr, u32 interface)
 
 	priv->interface = interface;
 
-	dw_mdio_init(dev->name, priv->mac_regs_p, priv->phy_iobase);
+	dw_mdio_init(dev->name, priv->mac_regs_p);
 	priv->bus = miiphy_get_dev_by_name(dev->name);
 
 	return dw_phy_init(priv, dev);
@@ -664,10 +611,9 @@ static int designware_eth_probe(struct udevice *dev)
 	debug("%s, iobase=%x, priv=%p\n", __func__, iobase, priv);
 	priv->mac_regs_p = (struct eth_mac_regs *)iobase;
 	priv->dma_regs_p = (struct eth_dma_regs *)(iobase + DW_DMA_BASE_OFFSET);
-	priv->phy_iobase = (CLK_GetPll0Freq() == TOC_FREQ)? EMC_BASE_ADDR(1): 0;
 	priv->interface = pdata->phy_interface;
 
-	dw_mdio_init(dev->name, priv->mac_regs_p, priv->phy_iobase);
+	dw_mdio_init(dev->name, priv->mac_regs_p);
 	priv->bus = miiphy_get_dev_by_name(dev->name);
 
 	ret = dw_phy_init(priv, dev);
