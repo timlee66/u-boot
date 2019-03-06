@@ -174,4 +174,10 @@ config MTK_TIMER
 	  Select this to enable support for the timer found on
 	  MediaTek devices.
 
+config NPCM750_TIMER
+	bool "Nuvoton NPCM750 timer support"
+	depends on TIMER
+	help
+	  Select this to enable an timer for Nuvoton NPCM750 devices.
+
 endmenu
