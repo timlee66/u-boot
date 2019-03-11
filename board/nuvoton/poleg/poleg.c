@@ -45,27 +45,27 @@ int dram_init(void)
 
 	int RAMsize = (readl(&gcr->intcr3) >> 8) & 0x3;
 
-    switch(RAMsize)
-    {
-        case 0:
-			gd->ram_size = 0x08000000; /* 128 MB. */
-			break;
-        case 1:
-			gd->ram_size = 0x10000000; /* 256 MB. */
-			break;
-        case 2:
-        /* 3 and 4 should be 1 GB and 2 GB but as a workaround
-           to correctly load linux we set it as 512 MB         */
-        case 3:
-        case 4:
-			gd->ram_size = 0x20000000; /* 512 MB. */
-			break;
+	switch(RAMsize)
+	{
+		case 0:
+				gd->ram_size = 0x08000000; /* 128 MB. */
+				break;
+		case 1:
+				gd->ram_size = 0x10000000; /* 256 MB. */
+				break;
+		case 2:
+		/* 3 and 4 should be 1 GB and 2 GB but as a workaround
+			to correctly load linux we set it as 512 MB         */
+		case 3:
+		case 4:
+				gd->ram_size = 0x20000000; /* 512 MB. */
+				break;
 
-        default:
-           break;
-    }
+		default:
+			break;
+	}
 
-    return 0;
+	return 0;
 }
 
 #ifdef CONFIG_BOARD_EARLY_INIT_F
@@ -89,6 +89,7 @@ int board_eth_init(bd_t *bis)
 	return 0;
 }
 
+
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
@@ -104,4 +105,3 @@ int checkboard(void)
 	return 0;
 }
 #endif
-
