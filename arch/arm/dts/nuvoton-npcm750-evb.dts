@@ -90,4 +90,16 @@
 		phy-mode = "rgmii";
 	};
 
+	emc0 {
+		compatible = "nuvoton,npcm750-emc";
+		reg = <0xF0825000 0x1000>;
+		phy-mode = "rmii";
+		id = <0>;
+	};
+	emc1 {
+		compatible = "nuvoton,npcm750-emc";
+		reg = <0xF0825000 0x1000>;
+		phy-mode = "rmii";
+		id = <1>;
+	};
 };

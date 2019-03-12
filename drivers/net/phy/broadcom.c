@@ -351,6 +351,27 @@ static int bcm5482_startup(struct phy_device *phydev)
 	return bcm54xx_parse_status(phydev);
 }
 
+static int bcm5221_config(struct phy_device *phydev)
+{
+	genphy_config_aneg(phydev);
+
+	phy_reset(phydev);
+
+	return 0;
+}
+
+static int bcm5221_startup(struct phy_device *phydev)
+{
+	int ret;
+
+	/* Read the Status (2x to make sure link is right) */
+	ret = genphy_update_link(phydev);
+	if (ret)
+		return ret;
+
+	return genphy_parse_link(phydev);
+}
+
 static struct phy_driver BCM5461S_driver = {
 	.name = "Broadcom BCM5461S",
 	.uid = 0x2060c0,
@@ -391,6 +412,16 @@ static struct phy_driver BCM_CYGNUS_driver = {
 	.shutdown = &genphy_shutdown,
 };
 
+static struct phy_driver BCM5221_driver = {
+	.name = "Broadcom BCM5221",
+	.uid = 0x4061e4,
+	.mask = 0xfffff0,
+	.features = PHY_BASIC_FEATURES,
+	.config = &bcm5221_config,
+	.startup = &bcm5221_startup,
+	.shutdown = &genphy_shutdown,
+};
+
 static struct phy_driver BCM54612E_driver = {
 	.name = "Broadcom BCM54612E",
 	.uid = 0x03625e6a,
@@ -407,6 +438,7 @@ int phy_broadcom_init(void)
 	phy_register(&BCM5464S_driver);
 	phy_register(&BCM5461S_driver);
 	phy_register(&BCM_CYGNUS_driver);
+	phy_register(&BCM5221_driver);
 	phy_register(&BCM54612E_driver);
 
 	return 0;
