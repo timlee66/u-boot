@@ -59,41 +59,4 @@
 
 #define CONFIG_SYS_HZ                   1000
 
-#if 0
-#ifdef CONFIG_SYS_USE_SPIFLASH
-#define CONFIG_ENV_IS_IN_SPI_FLASH
-#define CONFIG_ENV_SECT_SIZE            0x1000
-#define CONFIG_SYS_MAX_FLASH_BANKS      1
-#else
-#define CONFIG_ENV_IS_IN_FLASH
-#define CONFIG_SYS_MAX_FLASH_BANKS      1
-#define CONFIG_SYS_MAX_FLASH_SECT       4096
-#endif
-
-/* ETH configuration */
-#define CONFIG_IPADDR                   192.168.234.129
-#define CONFIG_NETMASK                  255.255.0.0
-#define CONFIG_GATEWAYIP                192.168.234.130
-#define CONFIG_SERVERIP                 192.168.234.130
-#define CONFIG_HOSTNAME                 "poleg"
-#define CONFIG_ETH_NPCM750
-#define CONFIG_MII
-#define CONFIG_PHYLIB
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
-#define CONFIG_NET_RANDOM_ETHADDR
-#define CONFIG_PHY_BROADCOM
-#define CONFIG_NETCONSOLE
-
-/* ETH GMAC configuration */
-#define CONFIG_TFTP_BLOCKSIZE 1024
-#define CONFIG_PHY_GIGE
-#define CONFIG_ETH_DESIGNWARE
-#define CONFIG_ETH_GMAC_NPCM750
-
-/* SPI */
-#define CONFIG_ENV_SPI_CS               0
-#define CONFIG_SYS_MAX_FLASH_BANKS      1
-#endif
-
 #endif

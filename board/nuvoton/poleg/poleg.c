@@ -9,6 +9,7 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/gcr.h>
 #include <asm/mach-types.h>
+#include <asm/arch/clock.h>
 #include <common.h>
 #include <dm.h>
 #include <fdtdec.h>
@@ -33,6 +34,27 @@ int board_uart_init(void)
 
 int board_init(void)
 {
+#ifdef CONFIG_ETH_DESIGNWARE
+    struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
+    struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+
+#if 0
+	/* Enable clock for GMAC1/2 module */
+    writel((readl(&clkctl->clken2) | (1 << CLKEN2_GMAC1)), &clkctl->clken2);
+    writel((readl(&clkctl->clken2) | (1 << CLKEN2_GMAC2)), &clkctl->clken2);
+#endif
+    /* Enable RGMII for GMAC1/2 module */
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1SEL)), &gcr->mfsel4);
+    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1MSEL)), &gcr->mfsel4);
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2SEL)), &gcr->mfsel4);
+    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);
+
+    /* IP Software Reset for GMAC1/2 module */
+    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
+#endif
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
 

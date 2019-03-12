@@ -42,6 +42,7 @@ enum {
 #define CLKEN2_GMAC1                28
 #define CLKEN2_USBIF                27
 #define CLKEN2_USBHOST              26
+#define CLKEN2_GMAC2                25
 #define CLKEN2_SDHC                 9
 #define CLKEN2_MMC                  8
 
@@ -129,6 +130,7 @@ enum {
 
 /* IP Software Reset Register 2 (IPSRST2), offset 0x24 */
 #define IPSRST2_GMAC1               28
+#define IPSRST2_GMAC2               25
 #define IPSRST2_USBHOST             26
 #define IPSRST2_SDHC                9
 #define IPSRST2_MMC                 8

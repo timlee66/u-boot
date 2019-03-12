@@ -51,6 +51,35 @@ static void bcm_phy_write_misc(struct phy_device *phydev,
 	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_EXP_DATA, value);
 }
 
+/* Broadcom BCM54612E */
+static int bcm54612e_config(struct phy_device *phydev)
+{
+	u32 reg = 0;
+
+	/* reset the PHY */
+	reg = phy_read(phydev, MDIO_DEVAD_NONE, MII_BMCR);
+	reg |= BMCR_RESET;
+	phy_write(phydev, MDIO_DEVAD_NONE, MII_BMCR, reg);
+	while (phy_read(phydev, MDIO_DEVAD_NONE, MII_BMCR) & BMCR_RESET);
+	/* phy_reset(phydev); */
+
+	/* 125Mhz Clock Output Enable */
+	reg = phy_read(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_EXP_SEL);
+	reg |= 0xD34;
+	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_EXP_SEL, reg);
+
+	reg = phy_read(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_EXP_DATA);
+	reg |= (1 << 1);
+	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_EXP_DATA, reg);
+
+	reg = phy_read(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_EXP_SEL);
+	reg &= 0xfffff000;
+	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_BCM54XX_EXP_SEL, reg);
+
+	genphy_config_aneg(phydev);
+	return 0;
+}
+
 /* Broadcom BCM5461S */
 static int bcm5461_config(struct phy_device *phydev)
 {
@@ -362,12 +391,23 @@ static struct phy_driver BCM_CYGNUS_driver = {
 	.shutdown = &genphy_shutdown,
 };
 
+static struct phy_driver BCM54612E_driver = {
+	.name = "Broadcom BCM54612E",
+	.uid = 0x03625e6a,
+	.mask = 0xfffff0,
+	.features = PHY_GBIT_FEATURES,
+	.config = &bcm54612e_config,
+	.startup = &bcm54xx_startup,
+	.shutdown = &genphy_shutdown,
+};
+
 int phy_broadcom_init(void)
 {
 	phy_register(&BCM5482S_driver);
 	phy_register(&BCM5464S_driver);
 	phy_register(&BCM5461S_driver);
 	phy_register(&BCM_CYGNUS_driver);
+	phy_register(&BCM54612E_driver);
 
 	return 0;
 }

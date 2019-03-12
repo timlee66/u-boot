@@ -79,4 +79,15 @@
 		gpio-port = <6>;
 	};
 
+	gmac0 {
+		compatible = "nuvoton,npcm750-dwmac";
+		reg = <0xF0802000 0x2000>;
+		phy-mode = "rgmii";
+	};
+	gmac1 {
+		compatible = "nuvoton,npcm750-dwmac";
+		reg = <0xF0804000 0x2000>;
+		phy-mode = "rgmii";
+	};
+
 };
