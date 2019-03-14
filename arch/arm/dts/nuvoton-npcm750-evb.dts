@@ -9,11 +9,15 @@
 	#size-cells = <1>;
 
 	chosen {
+		stdout-path = &serial0;
 		tick-timer = &timer0;
 	};
 
 	aliases {
-		console = "/serial@f0004000";
+		serial0 = &serial0;
+		serial1 = &serial1;
+		serial2 = &serial2;
+		serial3 = &serial3;
 		spi0 = "/fiu0@fb000000";
 		mmc0 = "/sdhci0@f0840000";
 		mmc1 = "/sdhci1@f0842000";
@@ -27,7 +31,28 @@
 		u-boot,dm-pre-reloc;
 	};
 
-	serial@f0004000 {
+	serial0: serial0@f0001000 {
+		compatible = "nuvoton,npcm750-uart";
+		reg = <0xf0001000 0x20>;
+		id = <0>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+	serial1: serial0@f0002000 {
+		compatible = "nuvoton,npcm750-uart";
+		reg = <0xf0002000 0x20>;
+		id = <1>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+	serial2: serial0@f0003000 {
+		compatible = "nuvoton,npcm750-uart";
+		reg = <0xf0003000 0x20>;
+		id = <2>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+	serial3: serial3@f0004000 {
 		compatible = "nuvoton,npcm750-uart";
 		reg = <0xf0004000 0x20>;
 		id = <3>;
