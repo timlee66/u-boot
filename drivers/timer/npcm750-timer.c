@@ -49,9 +49,12 @@ void __udelay(unsigned long usec)
 	unsigned long last, now, diff = 0;
 
 	if (!gd->timer) {
-		int i;
-		for (i=0;i<usec;i++);
-		return;
+		int i, ret;
+		ret = dm_timer_init();
+		if (ret) {
+			for (i = 0 ; i < usec; i++);
+			return;
+		}
 	}
 	last = get_timer_data();
 
