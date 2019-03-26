@@ -66,6 +66,13 @@
 		clocks = <&clks CLK_TIMER>;
 	};
 
+	otp@f0189000 {
+		compatible = "nuvoton,npcm750-otp";
+		reg = <0xf0189000 0x1000
+			   0xf018a000 0x1000>;
+		clocks = <&clks CLK_APB4>;
+	};
+
 	fiu0@fb000000 {
 		compatible = "nuvoton,npcm750-fiu0";
 		#address-cells = <1>;
