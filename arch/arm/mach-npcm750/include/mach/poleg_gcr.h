@@ -143,4 +143,14 @@
 #define  INTCR_MFTFEN               1
 #define  INTCR_KCSRST_MODE          0
 
+/* I2C Segment Pin Select Register (I2CSEGSEL) */
+#define I2CSEGSEL_S0DECFG			3
+#define I2CSEGSEL_S4DECFG			17
+
+/* I2C Segment Control Register (I2CSEGCTL) */
+#define I2CSEGCTL_S0DEN				20
+#define I2CSEGCTL_S0DWE				21
+#define I2CSEGCTL_S4DEN				24
+#define I2CSEGCTL_S4DWE				25
+
 #endif
