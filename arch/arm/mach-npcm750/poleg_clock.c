@@ -29,6 +29,7 @@
 #include <clk-uclass.h>
 #include <dt-bindings/clock/npcm750_poleg-clock.h>
 
+#define POLEG_VERSION_A1 0x04A92750
 struct poleg_clk_priv {
 	struct clk_ctl *regs;
 };
@@ -42,6 +43,7 @@ enum pll_clks {
 
 static u32 clk_get_pll_freq(struct clk_ctl *pll_clk, enum pll_clks pll)
 {
+	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 	u32 pllval;
 	u32 fin = EXT_CLOCK_FREQUENCY_KHZ; /* 25KHz */
 	u32 fout, nr, nf, no;
@@ -71,6 +73,8 @@ static u32 clk_get_pll_freq(struct clk_ctl *pll_clk, enum pll_clks pll)
 		((pllval >> PLLCONn_OTDV2) & 0x7);
 
 	fout = ((10 * fin * nf) / (no * nr));
+	if ((pll == PLL_1) && (readl(&gcr->pdid) == POLEG_VERSION_A1))
+		fout /= 2;
 
 	return fout * 100;
 }
@@ -240,6 +244,10 @@ static ulong poleg_get_rate(struct clk *clk)
 	struct poleg_clk_priv *priv = dev_get_priv(clk->dev);
 
 	switch (clk->id) {
+	case CLK_APB2:
+		return poleg_get_cpu_freq(priv->regs) /
+			poleg_get_pll0_apb_divisor(priv->regs, APB2);
+		break;
 	case CLK_APB5:
 		return poleg_get_cpu_freq(priv->regs) /
 			poleg_get_pll0_apb_divisor(priv->regs, APB5);
