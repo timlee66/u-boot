@@ -13,6 +13,7 @@
 
 #define CONFIG_ARCH_CPU_INIT
 #define CONFIG_SKIP_LOWLEVEL_INIT
+#define CONFIG_LAST_STAGE_INIT
 
 #define CONFIG_MACH_TYPE		        MACH_TYPE_NPCMX50
 
@@ -32,7 +33,7 @@
 
 #define CONFIG_SYS_MALLOC_LEN           (CONFIG_ENV_SIZE + 1024*1024)
 
-#define CONFIG_SYS_MAXARGS              16
+#define CONFIG_SYS_MAXARGS              32
 #define CONFIG_SYS_CBSIZE               256
 #define CONFIG_SYS_PBSIZE               (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_PROMPT_HUSH_PS2	    "> "
@@ -58,4 +59,27 @@
 
 #define CONFIG_SYS_HZ                   1000
 
+/* Default environemnt variables */
+#define CONFIG_BOOTCOMMAND "run common_bootargs; run romboot"
+#define CONFIG_SERVERIP                 192.168.0.1
+#define CONFIG_IPADDR                   192.168.0.2
+#define CONFIG_NETMASK                  255.255.255.0
+#define CONFIG_ETHADDR                  "00:00:F7:A0:FF:FC"
+#define CONFIG_HAS_ETH1
+#define CONFIG_ETH1ADDR                 "00:00:F7:A0:FF:FD"
+#define CONFIG_HAS_ETH2
+#define CONFIG_ETH2ADDR                 "00:00:F7:A0:FF:FE"
+#define CONFIG_HAS_ETH3
+#define CONFIG_ETH3ADDR                 "00:00:F7:A0:FF:FF"
+#define CONFIG_EXTRA_ENV_SETTINGS   "uimage_flash_addr=80200000\0"   \
+		"eth_num=0\0"    \
+		"ethact=eth0\0"   \
+		"ethaddr=" CONFIG_ETHADDR "\0"	\
+		"eth1addr=" CONFIG_ETH1ADDR "\0"  \
+		"eth2addr=" CONFIG_ETH2ADDR "\0"  \
+		"eth3addr=" CONFIG_ETH3ADDR "\0"  \
+		"romboot=echo Booting Kernel from flash; echo +++ uimage at 0x${uimage_flash_addr}; " \
+		"echo Using bootargs: ${bootargs};bootm ${uimage_flash_addr}\0" \
+		"common_bootargs=setenv bootargs earlycon=${earlycon} root=/dev/ram console=${console} mem=${mem} ramdisk_size=48000 basemac=${ethaddr}\0"   \
+		"\0"
 #endif
