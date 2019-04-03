@@ -336,7 +336,7 @@ void fuse_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        fuse_majority_rule_ecc_encode                             */
+/* Function:        fuse_program_data                                         */
 /*                                                                            */
 /* Parameters:      bank - Storage Array type [input].                        */
 /*                  word - Byte offset in array [input].                      */
@@ -358,12 +358,29 @@ int fuse_program_data(u32 bank, u32 word, u8 *data, u32 size)
 		return rc;
 
 	for (byte = 0; byte < size; byte++) {
+		u8 val;
+
+		val = data[byte];
+		if (val == 0) // optimization
+			continue;
+
 		rc = npcm750_otp_ProgramByte(arr, word + byte, data[byte]);
 		if (rc != 0)
 			return rc;
+
+		// verify programming of every '1' bit
+		val = 0;
+		npcm750_otp_read_byte((poleg_otp_storage_array)bank, byte, &val);
+		if ((data[byte] & ~val) != 0)
+			return -1;
 	}
 
 	return 0;
+}
+
+int fuse_prog_image(u32 bank, u32 address)
+{
+	return fuse_program_data(bank, 0, (u8*)address, NPCM750_OTP_ARR_BYTE_SIZE);
 }
 
 int fuse_read(u32 bank, u32 word, u32 *val)

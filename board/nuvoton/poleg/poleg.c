@@ -10,12 +10,96 @@
 #include <asm/arch/gcr.h>
 #include <asm/mach-types.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/poleg_otp.h>
 #include <common.h>
 #include <dm.h>
 #include <fdtdec.h>
 #include <clk.h>
+#include <fuse.h>
+#include <spi_flash.h>
+#include <spi.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+
+static int secure_boot_configuration(void)
+{
+#if defined(CONFIG_SPI_FLASH) && defined(SPI_FLASH_BASE_ADDR)
+
+	const u8 tag[SA_TAG_FLASH_IMAGE_SIZE] = SA_TAG_FLASH_IMAGE_VAL;
+	struct spi_flash *flash;
+	struct udevice *udev;
+	u32 addr;
+	int rc;
+
+	rc = spi_flash_probe_bus_cs(CONFIG_SF_DEFAULT_BUS, CONFIG_SF_DEFAULT_CS,
+			CONFIG_SF_DEFAULT_SPEED, CONFIG_SF_DEFAULT_MODE, &udev);
+	if (rc)
+		return rc;
+
+	flash = dev_get_uclass_priv(udev);
+	if (!flash)
+		return -1;
+
+	#define BOOTLOADERS_END             (SPI_FLASH_BASE_ADDR + 0x100000)
+
+	// search for the fuse image tag - should be found only in the first boot
+	for (addr = SPI_FLASH_BASE_ADDR; addr < BOOTLOADERS_END; addr += flash->sector_size) {
+
+		// if found, program the image to the fuse arrays, set the secure boot
+		// bit and erase the image from the flash
+		if (((u32*)(addr + SA_TAG_FLASH_IMAGE_OFFSET))[0] == ((u32*)tag)[0] &&
+			((u32*)(addr + SA_TAG_FLASH_IMAGE_OFFSET))[1] == ((u32*)tag)[1]) {
+
+			u8 fuse_arrays[2 * NPCM750_OTP_ARR_BYTE_SIZE];
+			u32 fustrap_orig;
+
+			printf("%s(): fuse array image was found on flash in address 0x%x\n", __func__, addr);
+
+			memcpy(fuse_arrays, (u8*)addr, sizeof(fuse_arrays));
+
+			fustrap_orig = *(u32*)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET);
+
+			//TODO: Here, randomize 4 AES keys + generate their nibble parity + embed to image
+
+			printf("%s(): program fuse key array from address 0x%x\n", __func__, addr + SA_KEYS_FLASH_IMAGE_OFFSET);
+			rc = fuse_prog_image(NPCM750_KEY_SA, (u32)(fuse_arrays + SA_KEYS_FLASH_IMAGE_OFFSET));
+			if (rc != 0)
+				return rc;
+
+			// clear oSecBoot, will be programmed only after everything is
+			// programmed successfuly
+			fustrap_orig = *(u32*)(addr + SA_FUSE_FLASH_IMAGE_OFFSET);
+			*(u32*)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET) &= ~FUSTRAP_O_SECBOOT;
+
+			printf("%s(): program fuse strap array from address 0x%x\n", __func__, addr + SA_FUSE_FLASH_IMAGE_OFFSET);
+			rc = fuse_prog_image(NPCM750_FUSE_SA, (u32)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET));
+			if (rc != 0)
+				return rc;
+
+			// erase the whole sector
+			printf("%s(): erase the sector of addr 0x%x\n", __func__, addr);
+			rc = spi_flash_erase(flash, addr, flash->erase_size);
+			if (rc != 0)
+				return rc;
+
+			// programm SECBOOT bit if required 
+			if (fustrap_orig & FUSTRAP_O_SECBOOT) {
+				printf("%s(): program secure boot bit to FUSTRAP\n", __func__);
+				rc = fuse_program_data(NPCM750_FUSE_SA, 0, (u8*)&fustrap_orig, sizeof(fustrap_orig));
+			} else {
+				printf("%s(): secure boot bit is not set in the flash image, secure boot will not be enabled\n", __func__);
+			}
+
+			return rc;
+		}
+	}
+	// No fuse image was found in flash, continue with the normal boot flow 
+
+#endif
+
+	return 0;
+}
 
 int board_uart_init(void)
 {
@@ -131,6 +215,7 @@ int checkboard(void)
 #ifdef CONFIG_LAST_STAGE_INIT
 int last_stage_init(void)
 {
+	int rc;
 	char value[32];
 	struct udevice *dev = gd->cur_serial_dev;
 
@@ -151,6 +236,10 @@ int last_stage_init(void)
 		env_set("console", value);
 
 	}
+	
+	rc = secure_boot_configuration();
+	if (rc != 0)
+		return rc;
 
 	return 0;
 }

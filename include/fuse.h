@@ -12,6 +12,15 @@
 #define _FUSE_H_
 
 /*
+ * fuse_prog_image interface (Nuvoton NPCM750's):
+ *   bank:    Fuse bank
+ *   address: Address of the full image (1024 bytes) to program
+ *
+ *   Returns: 0 on success, not 0 on failure
+ */
+int fuse_prog_image(u32 bank, u32 address);
+
+/*
  * Read/Sense/Program/Override interface:
  *   bank:    Fuse bank
  *   word:    Fuse word within the bank

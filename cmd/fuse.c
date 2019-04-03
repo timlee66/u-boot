@@ -44,11 +44,21 @@ static int do_fuse(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
 	const char *op = argc >= 2 ? argv[1] : NULL;
 	int confirmed = argc >= 3 && !strcmp(argv[2], "-y");
-	u32 bank, word, cnt, val;
+	u32 bank, word, cnt, val, address;
 	int ret, i;
 
 	argc -= 2 + confirmed;
 	argv += 2 + confirmed;
+
+	if (!strcmp(op, "image") && argc == 2 &&
+			!strtou32(argv[0], 0, &bank) && !strtou32(argv[1], 16, &address)) {
+
+		ret = fuse_prog_image(bank, address);
+		if (ret)
+			goto err;
+
+		return 0;
+	}
 
 	if (argc < 2 || strtou32(argv[0], 0, &bank) ||
 			strtou32(argv[1], 0, &word))
@@ -141,5 +151,7 @@ U_BOOT_CMD(
 	"fuse prog [-y] <bank> <word> <hexval> [<hexval>...] - program 1 or\n"
 	"    several fuse words, starting at 'word' (PERMANENT)\n"
 	"fuse override <bank> <word> <hexval> [<hexval>...] - override 1 or\n"
-	"    several fuse words, starting at 'word'"
+	"    several fuse words, starting at 'word'\n"
+	"fuse image <bank> <hexaddress> - program the otp image (1024 bytes)\n"
+	"    starting at 'hexaddress'"
 );
