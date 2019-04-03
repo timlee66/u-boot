@@ -57,6 +57,7 @@ static int npcm750_otp_check_inputs(poleg_otp_storage_array arr, u32 word)
 static int npcm750_otp_wait_for_otp_ready(poleg_otp_storage_array arr,
 										  u32 timeout)
 {
+	struct poleg_otp_regs *regs = otp_priv->regs[arr];
 	volatile u32 time = timeout;
 
 	/*------------------------------------------------------------------------*/
@@ -66,16 +67,16 @@ static int npcm750_otp_wait_for_otp_ready(poleg_otp_storage_array arr,
 		return -EINVAL;
 
 	while (--time > 1) {
-		if (otp_priv->regs[arr]->fst & FST_RDY) {
+		if (readl(&regs->fst) & FST_RDY) {
 			/* fuse is ready, clear the status. */
-			otp_priv->regs[arr]->fst |= FST_RDST;
+			writel(readl(&regs->fst) | FST_RDST, &regs->fst);
 
 			return 0;
 		}
 	}
 
 	/* try to clear the status in case it was set */
-	otp_priv->regs[arr]->fst |= FST_RDST;
+	writel(readl(&regs->fst) | FST_RDST, &regs->fst);
 
 	return -EINVAL;
 }
@@ -93,24 +94,26 @@ static int npcm750_otp_wait_for_otp_ready(poleg_otp_storage_array arr,
 static void npcm750_otp_read_byte(poleg_otp_storage_array arr, u32 addr,
 								  u8 *data)
 {
+	struct poleg_otp_regs *regs = otp_priv->regs[arr];
+
 	/* Wait for the Fuse Box Idle */
 	npcm750_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 	/* Configure the byte address in the fuse array for read operation */
-	otp_priv->regs[arr]->faddr = FADDR_VAL(addr, 0);
+	writel(FADDR_VAL(addr, 0), &regs->faddr);
 
 	/* Initiate a read cycle */
-	otp_priv->regs[arr]->fctl = READ_INIT;
+	writel(READ_INIT, &regs->fctl);
 
 	/* Wait for read operation completion */
 	npcm750_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 	/* Read the result */
-	*data = otp_priv->regs[arr]->fdata & FDATA_MASK;
+	*data = readl(&regs->fdata) & FDATA_MASK;
 
 	/* Clean FDATA contents to prevent unauthorized software from reading
 	   sensitive information */
-	otp_priv->regs[arr]->fdata = FDATA_CLEAN_VALUE;
+	writel(FDATA_CLEAN_VALUE, &regs->fdata);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -151,6 +154,7 @@ static bool npcm750_otp_bit_is_programmed(poleg_otp_storage_array  arr,
 static int npcm750_otp_program_bit(poleg_otp_storage_array arr, u32 byteNum,
 								   u8 bitNum)
 {
+	struct poleg_otp_regs *regs = otp_priv->regs[arr];
 	int count;
 	u8 read_data;
 
@@ -162,13 +166,13 @@ static int npcm750_otp_program_bit(poleg_otp_storage_array arr, u32 byteNum,
 		return 0;
 
 	/* Configure the bit address in the fuse array for program operation */
-	otp_priv->regs[arr]->faddr = FADDR_VAL(byteNum, bitNum);
+	writel(FADDR_VAL(byteNum, bitNum), &regs->faddr);
 
 	// program up to MAX_PROGRAM_PULSES
 	for (count = 1; count <= MAX_PROGRAM_PULSES; count++) {
 		/* Initiate a program cycle */
-		otp_priv->regs[arr]->fctl = PROGRAM_ARM;
-		otp_priv->regs[arr]->fctl = PROGRAM_INIT;
+		writel(PROGRAM_ARM, &regs->fctl);
+		writel(PROGRAM_INIT, &regs->fctl);
 
 		/* Wait for program operation completion */
 		npcm750_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
@@ -176,13 +180,13 @@ static int npcm750_otp_program_bit(poleg_otp_storage_array arr, u32 byteNum,
 		// after MIN_PROGRAM_PULSES start verifying the result
 		if (count >= MIN_PROGRAM_PULSES) {
 			/* Initiate a read cycle */
-			otp_priv->regs[arr]->fctl = READ_INIT;
+			writel(READ_INIT, &regs->fctl);
 
 			/* Wait for read operation completion */
 			npcm750_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 			/* Read the result */
-			read_data = otp_priv->regs[arr]->fdata & FDATA_MASK;
+			read_data = readl(&regs->fdata) & FDATA_MASK;
 
 			/* If the bit is set the sequence ended correctly */
 			if (read_data & (1 << bitNum))
@@ -197,7 +201,7 @@ static int npcm750_otp_program_bit(poleg_otp_storage_array arr, u32 byteNum,
 	/* Clean FDATA contents to prevent unauthorized software from reading
 	   sensitive information
 	*/
-	otp_priv->regs[arr]->fdata = FDATA_CLEAN_VALUE;
+	writel(FDATA_CLEAN_VALUE, &regs->fdata);
 
 	return 0;
 }
