@@ -48,7 +48,7 @@ struct npcm750_gcr {
 	unsigned int  srcnt;
 	unsigned int  ressr;
 	unsigned int  rlockr1;
-	unsigned int  flockr2;
+	unsigned int  flockr1;
 	unsigned int  dscnt;
 	unsigned int  mdlr;
 	unsigned char res5[0x18];

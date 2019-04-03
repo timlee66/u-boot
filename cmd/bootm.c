@@ -19,6 +19,11 @@
 #include <linux/ctype.h>
 #include <linux/err.h>
 #include <u-boot/zlib.h>
+#ifdef CONFIG_ARCH_NPCM750
+#include <asm/io.h>
+#include <asm/arch/cpu.h>
+#include <asm/arch/gcr.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -53,6 +58,46 @@ static cmd_tbl_t cmd_bootm_sub[] = {
 	U_BOOT_CMD_MKENT(fake, 0, 1, (void *)BOOTM_STATE_OS_FAKE_GO, "", ""),
 	U_BOOT_CMD_MKENT(go, 0, 1, (void *)BOOTM_STATE_OS_GO, "", ""),
 };
+
+#ifdef CONFIG_ARCH_NPCM750
+
+#define NPCM750_GCR_INTCR2_SELFTEST_PASSED		BIT(11)
+#define NPCM750_GCR_INTCR2_WDC				BIT(21)
+
+#define NPCM750_GCR_FLOCKR1_UPDATE_APPROVE		BIT(28)
+#define NPCM750_GCR_FLOCKR1_UPDATE_APPROVE_LOCK		BIT(29)
+
+static int npcm750_check_selftest (void)
+{
+	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+	int ret = 0;
+	int val = 0;
+
+	if (readl(&gcr->intcr2) & NPCM750_GCR_INTCR2_SELFTEST_PASSED)
+	{
+		val = readl(&gcr->flockr1);
+		val |= NPCM750_GCR_FLOCKR1_UPDATE_APPROVE;
+		writel(val, &gcr->flockr1);
+
+		val = readl(&gcr->intcr2);
+		val &= ~NPCM750_GCR_INTCR2_WDC;
+		writel(val, &gcr->intcr2);
+
+		do_reset(NULL, 0, 0, NULL);
+	}
+	else
+	{
+		val = readl(&gcr->flockr1);
+		val &= ~NPCM750_GCR_FLOCKR1_UPDATE_APPROVE;
+		writel(val, &gcr->flockr1);
+
+		val = readl(&gcr->flockr1);
+		val |= NPCM750_GCR_FLOCKR1_UPDATE_APPROVE_LOCK;
+		writel(val, &gcr->flockr1);
+	}
+	return ret;
+}
+#endif
 
 static int do_bootm_subcommand(cmd_tbl_t *cmdtp, int flag, int argc,
 			char * const argv[])
@@ -90,6 +135,10 @@ static int do_bootm_subcommand(cmd_tbl_t *cmdtp, int flag, int argc,
 
 int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
+#ifdef CONFIG_ARCH_NPCM750
+	npcm750_check_selftest();
+#endif
+
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	static int relocated = 0;
 
