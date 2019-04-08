@@ -21,4 +21,4 @@
 #
 
 obj-y	= reset.o
-obj-$(CONFIG_TARGET_POLEG) += poleg_clock.o
+obj-$(CONFIG_TARGET_POLEG) += poleg_clock.o bootm_os.o
