@@ -30,8 +30,9 @@ static int secure_boot_configuration(void)
 	const u8 tag[SA_TAG_FLASH_IMAGE_SIZE] = SA_TAG_FLASH_IMAGE_VAL;
 	struct spi_flash *flash;
 	struct udevice *udev;
-	u32 addr;
-	int rc;
+	u32 addr, addr_align;
+	int rc , i, offset;
+	u8 *buf = NULL;
 
 	rc = spi_flash_probe_bus_cs(CONFIG_SF_DEFAULT_BUS, CONFIG_SF_DEFAULT_CS,
 			CONFIG_SF_DEFAULT_SPEED, CONFIG_SF_DEFAULT_MODE, &udev);
@@ -62,6 +63,7 @@ static int secure_boot_configuration(void)
 		//TODO: Here, randomize 4 AES keys + generate their nibble parity + embed to image
 
 		printf("%s(): program fuse key array from address 0x%x\n", __func__, addr + SA_KEYS_FLASH_IMAGE_OFFSET);
+
 		rc = fuse_prog_image(NPCM750_KEY_SA, (u32)(fuse_arrays + SA_KEYS_FLASH_IMAGE_OFFSET));
 		if (rc != 0)
 			return rc;
@@ -72,17 +74,41 @@ static int secure_boot_configuration(void)
 		*(u32*)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET) &= ~FUSTRAP_O_SECBOOT;
 
 		printf("%s(): program fuse strap array from address 0x%x\n", __func__, addr + SA_FUSE_FLASH_IMAGE_OFFSET);
+
 		rc = fuse_prog_image(NPCM750_FUSE_SA, (u32)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET));
 		if (rc != 0)
 			return rc;
 
 		// erase the whole sector
-		printf("%s(): erase the sector of addr 0x%x\n", __func__, addr);
-		rc = spi_flash_erase(flash, addr, flash->erase_size);
+		addr_align = addr & ~(u32)(flash->erase_size -1);
+
+		offset = addr - addr_align;
+		printf("%s(): erase the sector of addr 0x%x\n", __func__, addr_align);
+
+		addr_align -= SPI_FLASH_BASE_ADDR;
+
+		buf = (u8 *)malloc(flash->erase_size);
+		if (buf) {
+			spi_flash_read(flash, addr_align, flash->erase_size, buf);
+		} else {
+			printf("%s(): failed to alloc buffer, skip otp program\n", __func__);
+			return -1;
+		}
+
+		for (i = 0 ; i < (SA_TAG_FLASH_IMAGE_OFFSET + SA_TAG_FLASH_IMAGE_SIZE) ; i++)
+			buf[offset + i] = 0xff;
+
+		rc = spi_flash_erase(flash, addr_align, flash->erase_size);
 		if (rc != 0)
 			return rc;
 
-		// programm SECBOOT bit if required 
+		rc = spi_flash_write(flash, addr_align, flash->erase_size, buf);
+		if (rc != 0)
+			return rc;
+
+		free(buf);
+
+		// programm SECBOOT bit if required
 		if (fustrap_orig & FUSTRAP_O_SECBOOT) {
 			printf("%s(): program secure boot bit to FUSTRAP\n", __func__);
 			rc = fuse_program_data(NPCM750_FUSE_SA, 0, (u8*)&fustrap_orig, sizeof(fustrap_orig));
@@ -92,7 +118,7 @@ static int secure_boot_configuration(void)
 
 		return rc;
 	}
-	// No fuse image was found in flash, continue with the normal boot flow 
+	// No fuse image was found in flash, continue with the normal boot flow
 
 #endif
 
