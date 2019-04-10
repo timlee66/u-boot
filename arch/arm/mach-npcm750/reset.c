@@ -25,6 +25,9 @@
 
 void reset_cpu(ulong ignored)
 {
+	/* set WDC to 0*/
+	writel(readl(0xf0800060) & ~(1 << 21), 0xf0800060);
+
 	writel(0x83, 0xf000801c);
     while (1);
 }
