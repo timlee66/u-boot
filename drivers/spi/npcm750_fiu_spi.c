@@ -194,6 +194,8 @@ static int npcm750_fiu_spi_claim_bus(struct udevice *dev)
 		quad_mode = true;
 		break;
 	case 1:
+		cs1_en = true;
+		quad_mode = true;
 	case 2:
 	case 3:
 	case 4:
@@ -318,13 +320,15 @@ static int npcm750_sf_process_cmd(struct udevice *dev, const u8 *rx, u8 *tx)
 	struct npcm750_fiu_spi_priv *priv = dev_get_priv(bus);
 	struct npcm750_fiu_regs *regs = priv->regs;
 	enum npcm750_sf_state oldstate = priv->state;
+	struct dm_spi_slave_platdata *slave_plat =
+			dev_get_parent_platdata(dev);
 
 	priv->cmd = rx[0];
 	/* set device number - DEV_NUM in FIU_UMA_CTS.
 	   Select the chip select to be used in the following
 	   UMA transaction */
 	writel((readl(&regs->uma_cts) & ~(0x03 << FIU_UMA_CTS_DEV_NUM))
-			| (priv->dev_num << FIU_UMA_CTS_DEV_NUM),
+			| ((slave_plat->cs & 0x3) << FIU_UMA_CTS_DEV_NUM),
 			&regs->uma_cts);
 
 	/* set transaction code in FIU_UMA_CODE */
@@ -382,6 +386,8 @@ static int npcm750_fiu_spi_xfer(struct udevice *dev, unsigned int bitlen,
 	struct udevice *bus = dev->parent;
 	struct npcm750_fiu_spi_priv *priv = dev_get_priv(bus);
 	struct npcm750_fiu_regs *regs = priv->regs;
+	struct dm_spi_slave_platdata *slave_plat =
+			dev_get_parent_platdata(dev);
 	const uint8_t *rx = dout;
 	uint8_t *tx = din;
 	int bytes = bitlen / 8;
@@ -458,7 +464,7 @@ static int npcm750_fiu_spi_xfer(struct udevice *dev, unsigned int bitlen,
 
 			writel((readl(&regs->uma_cts) &
 				~(0x03 << FIU_UMA_CTS_DEV_NUM))
-				| (priv->dev_num << FIU_UMA_CTS_DEV_NUM),
+				| ((slave_plat->cs & 0x3) << FIU_UMA_CTS_DEV_NUM),
 				&regs->uma_cts);
 
 			/* set transaction code in FIU_UMA_CODE */
