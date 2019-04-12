@@ -23,6 +23,25 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 
+static bool is_security_enabled(void)
+{
+	u8 val[4];
+	int ret, i;
+
+	// read FUSTRAP.SECBOOT from otp
+	for (i = 0; i < sizeof(val); i++) {
+		ret = fuse_read(NPCM750_FUSE_SA, SA_FUSE_FUSTRAP_OFFSET, (u32*)(val + i));
+		if (ret != 0)
+			return false;
+	}
+
+	// if OSECBOOT in otp is set
+	if (*(u32*)val & SA_FUSE_FUSTRAP_OSECBOOT_MASK)
+		return true;
+
+	return false;
+}
+
 static int secure_boot_configuration(void)
 {
 #if defined(CONFIG_SPI_FLASH) && defined(SPI_FLASH_BASE_ADDR)
@@ -33,6 +52,10 @@ static int secure_boot_configuration(void)
 	u32 addr, addr_align;
 	int rc , i, offset;
 	u8 *buf = NULL;
+
+	// OTP can be programmed only in Basic mode
+	if (is_security_enabled())
+		return 0;
 
 	rc = spi_flash_probe_bus_cs(CONFIG_SF_DEFAULT_BUS, CONFIG_SF_DEFAULT_CS,
 			CONFIG_SF_DEFAULT_SPEED, CONFIG_SF_DEFAULT_MODE, &udev);
