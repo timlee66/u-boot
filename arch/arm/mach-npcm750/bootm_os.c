@@ -27,11 +27,10 @@ static int npcm750_check_selftest (void)
 		val |= NPCM750_GCR_FLOCKR1_UPDATE_APPROVE;
 		writel(val, &gcr->flockr1);
 
-		val = readl(&gcr->intcr2);
-		val &= ~NPCM750_GCR_INTCR2_WDC;
-		writel(val, &gcr->intcr2);
+		/* this will clear INTCR2.WDC */
+		reset_misc();
 
-		do_reset(NULL, 0, 0, NULL);
+		reset_cpu(0);
 	}
 	else
 	{
