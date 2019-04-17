@@ -546,7 +546,7 @@ static const struct dm_spi_ops npcm750_fiu_spi_ops = {
 };
 
 static const struct udevice_id npcm750_fiu_spi_ids[] = {
-	{ .compatible = "nuvoton,npcm750-fiu0" },
+	{ .compatible = "nuvoton,npcm750-fiu" },
 	{ }
 };
 

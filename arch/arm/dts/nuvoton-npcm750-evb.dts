@@ -35,6 +35,7 @@
 		i2c14 = &i2c14;
 		i2c15 = &i2c15;
 		spi0 = "/fiu0@fb000000";
+		spi3 = "/fiu3@c0000000";
 		mmc0 = "/sdhci0@f0840000";
 		mmc1 = "/sdhci1@f0842000";
 		gpio6 = "/gpio6@f0016000";
@@ -90,7 +91,7 @@
 	};
 
 	fiu0@fb000000 {
-		compatible = "nuvoton,npcm750-fiu0";
+		compatible = "nuvoton,npcm750-fiu";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		reg = <0xfb000000 0x1000>;
@@ -100,6 +101,24 @@
 			compatible = "spi-flash";
 			reg = <0>; /* Chip select 0 */
 			memory-map = <0x80000000 0x4000000>;
+		};
+		spi_flash@1 {
+			compatible = "spi-flash";
+			reg = <1>;
+			memory-map = <0x88000000 0x2000000>;
+		};
+	};
+	fiu3@c0000000 {
+		compatible = "nuvoton,npcm750-fiu";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0xc0000000 0x1000>;
+		index = <3>;
+		spi-max-frequency = <50000000>;
+		spi_flash@0 {
+			compatible = "spi-flash";
+			reg = <0>; /* Chip select 0 */
+			memory-map = <0xA0000000 0x2000000>;
 		};
 	};
 

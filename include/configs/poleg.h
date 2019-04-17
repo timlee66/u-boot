@@ -47,9 +47,12 @@
 
 #define CONFIG_STANDALONE_LOAD_ADDR     0x10000000
 
-#define SPI_FLASH_CS_COUNT				2
 #define SPI_FLASH_BASE_ADDR				0x80000000
-#define SPI_FLASH_BANK_SIZE				0x08000000	/* 128MB */
+#define SPI_FLASH_REGION_SIZE			0x08000000	/* 128MB */
+#define SPI0_BASE_ADDR					0x80000000
+#define SPI0_END_ADDR					0x8FFFFFFF
+#define SPI3_BASE_ADDR					0xA0000000
+#define SPI3_END_ADDR					0xBFFFFFFF
 
 /* 16MB Graphics Memory size to hide + 32MB for VCD ECE DVC. */
 #define CONFIG_SYS_MEM_TOP_HIDE   ((16 << 20) + (32 << 20))

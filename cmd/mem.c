@@ -307,6 +307,11 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong	addr, dest, count;
 	int	size;
+#ifdef CONFIG_ARCH_NPCM750
+	ulong flash_base = 0;
+	int bus;
+	int cs;
+#endif
 
 	if (argc != 4)
 		return CMD_RET_USAGE;
@@ -345,32 +350,37 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 0;
 	}
 #endif
-#if defined(CONFIG_SPI_FLASH) && defined(CONFIG_DM_SPI_FLASH)
-	if ((dest >= SPI_FLASH_BASE_ADDR) &&
-		((dest + count*size) < (SPI_FLASH_BASE_ADDR +
-				SPI_FLASH_CS_COUNT * SPI_FLASH_BANK_SIZE) )) {
+#ifdef CONFIG_ARCH_NPCM750
+	if ((dest >= SPI0_BASE_ADDR) &&  (dest < SPI0_END_ADDR)) {
+		bus = 0;
+		cs = (dest - SPI0_BASE_ADDR) / SPI_FLASH_REGION_SIZE;
+		flash_base = SPI0_BASE_ADDR + cs * SPI_FLASH_REGION_SIZE;
+	} else if ((dest >= SPI3_BASE_ADDR) && (dest < SPI3_END_ADDR)) {
+		bus = 3;
+		cs = (dest - SPI3_BASE_ADDR) / SPI_FLASH_REGION_SIZE;
+		flash_base = SPI3_BASE_ADDR + cs * SPI_FLASH_REGION_SIZE;
+	}
+	/* copying to SPI Flash */
+	if (flash_base > 0) {
 		int	ret;
 		char *src, *buf;
 		u32 len, sector_addr, sector_offset;
 		u32 dest_addr, end_addr;
-		u32 chip_base_addr;
 		int chunk_sz;
-		int cs = (dest - SPI_FLASH_BASE_ADDR) / SPI_FLASH_BANK_SIZE;
 
-		if (cs != ((dest + count * size - 1) - SPI_FLASH_BASE_ADDR)
-				/ SPI_FLASH_BANK_SIZE) {
-			printf("Program multiple chips in one cp is not supported!\n");
+		if (((dest + count * size) - flash_base) >= SPI_FLASH_REGION_SIZE ) {
+			printf("Copying to multiple chips is not supported!\n");
 			return 1;
 		}
 
 		src = (char *)addr;
-		printf("Copy %lu bytes from 0x%lx to 0x%lx(cs:%d)\n",
-			count*size, addr, dest, cs);
+		printf("Copy %lu bytes from 0x%lx to 0x%lx(bus:%d cs:%d)\n",
+			count*size, addr, dest, bus, cs);
 
 		if (flash == NULL) {
 			struct udevice *new;
 
-			ret = spi_flash_probe_bus_cs(CONFIG_SF_DEFAULT_BUS, cs,
+			ret = spi_flash_probe_bus_cs(bus, cs,
 					CONFIG_SF_DEFAULT_SPEED, CONFIG_SF_DEFAULT_MODE,
 					&new);
 			if (ret) {
@@ -380,8 +390,7 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			flash = dev_get_uclass_priv(new);
 		}
 		src = (char *)addr;
-		chip_base_addr = SPI_FLASH_BASE_ADDR + cs * SPI_FLASH_BANK_SIZE;
-		dest_addr = dest - chip_base_addr;
+		dest_addr = dest - flash_base;
 		end_addr = dest_addr + count * size;
 		len = count * size;
 		/*
@@ -399,7 +408,7 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			sector_offset = dest_addr % flash->erase_size;
 			chunk_sz = min(len, (flash->erase_size - sector_offset));
 
-			if (memcmp(src, (void *)(dest_addr + chip_base_addr),
+			if (memcmp(src, (void *)(dest_addr + flash_base),
 				chunk_sz) == 0) {
 				printf(".");
 				/* source and target are the same, skip programming */
@@ -413,7 +422,7 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			if (chunk_sz < flash->erase_size) {
 
 				/* read sector to buf */
-				memcpy(buf, (void *)(sector_addr + chip_base_addr),
+				memcpy(buf, (void *)(sector_addr + flash_base),
 					flash->erase_size);
 
 				/* erase sector */
