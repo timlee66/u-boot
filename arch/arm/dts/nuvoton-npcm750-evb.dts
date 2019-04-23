@@ -90,6 +90,12 @@
 		clocks = <&clks CLK_APB4>;
 	};
 
+	rng@f000b000 {
+		compatible = "nuvoton,npcm750-rng";
+		reg = <0xf000b000 0x1000>;
+		clocks = <&clks CLK_APB1>;
+	};
+
 	fiu0@fb000000 {
 		compatible = "nuvoton,npcm750-fiu";
 		#address-cells = <1>;

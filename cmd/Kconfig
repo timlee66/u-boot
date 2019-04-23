@@ -978,6 +978,11 @@ config CMD_REMOTEPROC
 	help
 	  Support for Remote Processor control
 
+config CMD_RNG
+	bool "rng - support for the rng subssystem"
+	help
+	  This allows reading random data
+
 config CMD_SATA
 	bool "sata - Access SATA subsystem"
 	select SATA
