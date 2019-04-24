@@ -142,6 +142,13 @@
 		bus-width = <0x8>;
 	};
 
+	aes@f0858000 {
+		compatible = "nuvoton,npcm750-aes";
+		reg = <0xf0858000 0x1000>;
+		clocks = <&clks CLK_AHB>;
+		clock-names = "clk_ahb";
+	};
+
 	gpio0@f0010000 {
 		compatible = "nuvoton,npcm750-gpio";
 		reg = <0xf0010000 0x1000>;

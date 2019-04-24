@@ -2,4 +2,13 @@ menu "Hardware crypto devices"
 
 source drivers/crypto/fsl/Kconfig
 
+config NPCM750_AES
+	bool "Support the NPCTM750 AES algorithm"
+	select NPCM750_OTP
+	help
+	  This provides a means to encrypt and decrypt data using the NPCM750
+	  AES (Advanced Encryption Standard). This algorithm uses a symetric
+	  key and is widely used as a streaming cipher. This command only
+	  supports AES256-CBC.
+
 endmenu

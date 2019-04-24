@@ -32,5 +32,6 @@
 #define CLK_APB3	    6
 #define CLK_APB4	    7
 #define CLK_APB5	    8
+#define CLK_AHB		    9
 
 #endif

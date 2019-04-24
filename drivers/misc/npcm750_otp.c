@@ -254,7 +254,67 @@ static int npcm750_otp_ProgramByte(poleg_otp_storage_array arr, u32 byteNum,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        fuse_nibble_parity_ecc_encode                             */
+/* Function:        npcm750_otp_is_fuse_array_disabled                        */
+/*                                                                            */
+/* Parameters:      arr - Storage Array type [input].                         */
+/* Returns:         bool                                                      */
+/* Side effects:                                                              */
+/* Description:     Return true if access to the first 2048 bits of the       */
+/*                  specified fuse array is disabled, false if not            */
+/*----------------------------------------------------------------------------*/
+bool npcm750_otp_is_fuse_array_disabled(poleg_otp_storage_array arr)
+{
+	struct poleg_otp_regs *regs = otp_priv->regs[arr];
+
+	return (readl(&regs->fcfg) & FCFG_FDIS) != 0;
+}
+
+/*---------------------------------------------------------------------------------------------------------*/
+/* Function:        npcm750_otp_select_key                                                                 */
+/*                                                                                                         */
+/* Parameters:                                                                                             */
+/*                  key_index - AES key index in the key array (in 128-bit steps) [input]                  */
+/* Returns:         int                                                                                    */
+/* Side effects:                                                                                           */
+/* Description:     Returns 0 on successful selection, -1 otherwise                                        */
+/*---------------------------------------------------------------------------------------------------------*/
+int npcm750_otp_select_key(u8 key_index)
+{
+	struct poleg_otp_regs *regs = otp_priv->regs[NPCM750_KEY_SA];
+	u32 fKeyInd = 0;
+	volatile u32 time = 0xDAEDBEEF;
+
+	if (key_index >= 4)
+        return -1;
+
+	/* Do not destroy ECCDIS bit */
+	fKeyInd = readl(&regs->fustrap_fkeyind);
+
+	/* Configure the key size */
+	fKeyInd &= ~FKEYIND_KSIZE_MASK;
+	fKeyInd |= FKEYIND_KSIZE_256;
+
+	/* Configure the key index (0 to 3) */
+	fKeyInd &= ~FKEYIND_KIND_MASK;
+	fKeyInd |= FKEYIND_KIND_KEY(key_index);
+
+	writel(fKeyInd, &regs->fustrap_fkeyind);
+
+	/*-----------------------------------------------------------------------------------------------------*/
+	/* Wait for selection completetion                                                                     */
+	/*-----------------------------------------------------------------------------------------------------*/
+	while (--time > 1) {
+        if (readl(&regs->fustrap_fkeyind) & FKEYIND_KVAL)
+            return 0;
+
+		udelay(1);
+	}
+
+	return -1;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Function:        npcm750_otp_nibble_parity_ecc_encode                      */
 /*                                                                            */
 /* Parameters:      datain - pointer to decoded data buffer                   */
 /*                  dataout - pointer to encoded data buffer (buffer size     */
@@ -266,7 +326,7 @@ static int npcm750_otp_ProgramByte(poleg_otp_storage_array arr, u32 byteNum,
 /*                  Size specifies the encoded data size.                     */
 /*                  Decodes whole bytes only                                  */
 /*----------------------------------------------------------------------------*/
-void fuse_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
+void npcm750_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 {
 	u32 i;
 	u8 E0, E1, E2, E3;
@@ -298,7 +358,7 @@ void fuse_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        fuse_majority_rule_ecc_encode                             */
+/* Function:        npcm750_otp_majority_rule_ecc_encode                      */
 /*                                                                            */
 /* Parameters:      datain - pointer to decoded data buffer                   */
 /*                  dataout - pointer to encoded data buffer (buffer size     */
@@ -310,7 +370,7 @@ void fuse_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 /*                  Size specifies the encoded data size.                     */
 /*                  Decodes whole bytes only                                  */
 /*----------------------------------------------------------------------------*/
-void fuse_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size)
+void npcm750_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 {
 	u32 byte;
 	u32 bit;

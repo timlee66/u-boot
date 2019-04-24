@@ -39,6 +39,15 @@ struct poleg_otp_regs {
 
 #define FUSTRAP_O_SECBOOT       (1 << 23)
 
+#define FCFG_FDIS               (1 << 31)
+
+#define FKEYIND_KVAL            (1 << 0)
+#define FKEYIND_KSIZE_MASK      (0x00000070)
+#define FKEYIND_KSIZE_128       (0x4 << 4)
+#define FKEYIND_KSIZE_192       (0x5 << 4)
+#define FKEYIND_KSIZE_256       (0x6 << 4)
+#define FKEYIND_KIND_MASK       (0x000c0000)
+#define FKEYIND_KIND_KEY(indx)  ((indx) << 18)
 
 // Program cycle initiation values (sequence of two adjacent writes)
 #define PROGRAM_ARM             0x1
@@ -55,9 +64,10 @@ struct poleg_otp_regs {
 #define MIN_PROGRAM_PULSES               4
 #define MAX_PROGRAM_PULSES               20
 
-
 int  fuse_program_data(u32 bank, u32 word, u8 *data, u32 size);
-void fuse_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size);
-void fuse_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size);
+int  npcm750_otp_select_key(u8 key_index);
+bool npcm750_otp_is_fuse_array_disabled(poleg_otp_storage_array arr);
+void npcm750_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size);
+void npcm750_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size);
 
 #endif
