@@ -31,7 +31,7 @@
 #define CONFIG_ENV_ADDR                 (0x80000000 + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SECT_SIZE            0x1000
 
-#define CONFIG_SYS_MALLOC_LEN           (CONFIG_ENV_SIZE + 1024*1024)
+#define CONFIG_SYS_MALLOC_LEN           (CONFIG_ENV_SIZE + 2048*1024)
 
 #define CONFIG_SYS_MAXARGS              32
 #define CONFIG_SYS_CBSIZE               256
