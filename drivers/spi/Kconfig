@@ -291,6 +291,11 @@ config NPCM750_FIU_SPI
 	help
 	  Flash Interface Unit controller for NPCM750.
 
+config NPCM750_PSPI
+	bool "PSPI driver for NPCM750 SPI"
+	help
+	  PSPI driver for NPCM750
+
 endif # if DM_SPI
 
 config SOFT_SPI

@@ -60,3 +60,4 @@ obj-$(CONFIG_ZYNQ_SPI) += zynq_spi.o
 obj-$(CONFIG_ZYNQ_QSPI) += zynq_qspi.o
 obj-$(CONFIG_ZYNQMP_GQSPI) += zynqmp_gqspi.o
 obj-$(CONFIG_NPCM750_FIU_SPI) += npcm750_fiu_spi.o
+obj-$(CONFIG_NPCM750_PSPI) += npcm750_pspi.o
