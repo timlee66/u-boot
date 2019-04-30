@@ -26,13 +26,27 @@ DECLARE_GLOBAL_DATA_PTR;
 static bool is_security_enabled(void)
 {
 	u32 val = readl(FUSTRAP);
-	if( val & FUSTRAP_O_SECBOOT ){
+
+	if (val & FUSTRAP_O_SECBOOT) {
 		printf("Security is enabled\n");
 		return true;
-	}else{
+	} else {
 		printf("Security is NOT enabled\n");
 		return false;
 	}
+}
+
+static int check_nist_version(void)
+{
+#if (CONFIG_NIST_VERSION_ADDR != 0)
+	volatile u32 uboot_ver = *(u32*)(UBOOT_RAM_IMAGE_ADDR + HEADER_VERSION_OFFSET);
+	volatile u32 nist_ver = *(u32*)(CONFIG_NIST_VERSION_ADDR);
+
+	if (uboot_ver != nist_ver)
+		reset_cpu(0);
+#endif
+
+	return 0;
 }
 
 static int secure_boot_configuration(void)
@@ -45,10 +59,6 @@ static int secure_boot_configuration(void)
 	u32 addr, addr_align;
 	int rc , i, offset;
 	u8 *buf = NULL;
-
-	// OTP can be programmed only in Basic mode
-	if (is_security_enabled())
-		return 0;
 
 	rc = spi_flash_probe_bus_cs(CONFIG_SF_DEFAULT_BUS, CONFIG_SF_DEFAULT_CS,
 			CONFIG_SF_DEFAULT_SPEED, CONFIG_SF_DEFAULT_MODE, &udev);
@@ -276,10 +286,19 @@ int last_stage_init(void)
 		env_set("console", value);
 
 	}
-	
-	rc = secure_boot_configuration();
-	if (rc != 0)
-		return rc;
+
+	if (is_security_enabled()) {
+
+		rc = check_nist_version();
+		if (rc != 0)
+			return rc;
+	} else {
+
+		// OTP can be programmed only in basic mode
+		rc = secure_boot_configuration();
+		if (rc != 0)
+			return rc;
+	}
 
 	return 0;
 }

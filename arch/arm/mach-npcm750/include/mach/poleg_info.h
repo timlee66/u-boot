@@ -11,8 +11,11 @@
 
 #include <spi_flash.h>
 
+#define UBOOT_RAM_IMAGE_ADDR            (0x8000)
+
 #define HEADER_ADDR_OFFSET              (0x140)
 #define HEADER_SIZE_OFFSET              (0x144)
+#define HEADER_VERSION_OFFSET           (0x148)
 
 #define HEADER_SIZE                     (0x200)
 
