@@ -31,6 +31,11 @@
 #define CONFIG_ENV_ADDR                 (0x80000000 + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SECT_SIZE            0x1000
 
+#ifndef CONFIG_SYS_L2CACHE_OFF
+#define CONFIG_SYS_L2_PL310		1
+#define CONFIG_SYS_PL310_BASE	0xF03FC000       /* L2 - Cache Regs Base (4k Space)*/
+#endif
+
 #define CONFIG_SYS_MALLOC_LEN           (CONFIG_ENV_SIZE + 2048*1024)
 
 #define CONFIG_SYS_MAXARGS              32

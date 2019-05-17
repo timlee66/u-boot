@@ -21,5 +21,5 @@
 #
 
 
-obj-y	= cpu.o cache.o
+obj-y	= cpu.o cache.o l2_cache_pl310_init.o l2_cache_pl310.o
 
