@@ -50,13 +50,13 @@ static int gcr_mux_sd(int index)
 				&gcr->mfsel3);
 	} else if (index == NPCMX50_EMMC) {
 		unsigned int id;
-		id = readl(&gcr->pdid) & 0xFFFFFF;
-		if (id == POLEG_Z1) {
+		id = readl(&gcr->pdid);
+		if (id == POLEG_A1) {
 			writel(readl(&gcr->mfsel3) | (1 << MFSEL3_MMCSEL) |
 				(1 << MFSEL3_SMB13SEL) | (1 << MFSEL3_MMC8SEL),
 				&gcr->mfsel3);
 		} else {
-			printf("board NOT support\n");
+			printf("POLEG Z1 NOT supported\n");
 			return -1;
 		}
 	}

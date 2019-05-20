@@ -25,8 +25,7 @@
 
 /* On-Chip POLEG NPCM750 VERSIONS */
 #define POLEG_Z1                    0x00A92750
-#define POLEG_Z2                    0x04A92750
-#define POLEG_A1                    0x10A92750
+#define POLEG_A1                    0x04A92750
 
 /* Multiple Function Pin Select Register 1 (MFSEL1) */
 #define MFSEL1_SIRQSE               31

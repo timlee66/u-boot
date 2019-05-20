@@ -30,13 +30,16 @@ int print_cpuinfo (void)
 	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 	unsigned int id;
 
-	id = readl(&gcr->pdid) & 0xFFFFFF;
+	id = readl(&gcr->pdid);
 
 	printf("CPU: ");
 
 	switch(id) {
 	case POLEG_Z1:
-		printf("NPCM750D @ ");
+		printf("NPCM7XX Z1 is no supported! @ ");
+		break;
+	case POLEG_A1:
+		printf("NPCM7XX A1 @ ");
 		break;
 	default:
 		printf("Unknown\n");
