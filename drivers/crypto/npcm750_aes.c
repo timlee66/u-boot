@@ -20,6 +20,8 @@ struct npcm750_aes_priv {
 
 static struct npcm750_aes_priv *aes_priv;
 
+static u8 fkeyind_to_set = 0xff;
+
 static int second_timeout(u32* addr, u32 bitmask, u32 bitpol)
 {
 	#define ONE_SECOND 0xC00000
@@ -43,20 +45,13 @@ static int second_timeout(u32* addr, u32 bitmask, u32 bitpol)
 
 int npcm750_aes_select_key(u8 fkeyind)
 {
-	struct poleg_aes_regs *regs = aes_priv->regs;
-
 	if (npcm750_otp_is_fuse_array_disabled(NPCM750_KEY_SA)) {
 		printf(" AES key access denied \n");
 		return -EACCES;
 	}
 
-	if (npcm750_otp_select_key(0) != 0) {
-		printf("Unable to select oAESKEY\n");
-		return -EINVAL;
-	}
-
-	/* Sample the new key */
-	writel(readl(&regs->aes_sk) | AES_SK_BIT, &regs->aes_sk);
+	if (fkeyind < 4)
+		fkeyind_to_set = fkeyind;
 
 	return 0;
 }
@@ -128,10 +123,27 @@ static inline void npcm750_aes_load_key(u8 *key)
 	struct poleg_aes_regs *regs = aes_priv->regs;
 	u32* p = (u32 *)key;
 	u32 i;
+	
+	/* The key can be loaded either via the configuration or by using sideband
+	   key port (aes_select_key).
+	   If aes_select_key has been called ('fkeyind_to_set' was set to desired
+	   key index) and no key is specified (key is NULL), we should use the
+	   key index. Otherwise, we write the given key to the registers. */
+	if (!key && fkeyind_to_set < 4) {
 
-	/* Initialization Vector is loaded in 32-bit chunks */
-	for (i = 0; i < (2*SIZE_AES_BLOCK/sizeof(u32)); i++) {
-		writel(p[i], &regs->aes_key_0 + i);
+		npcm750_otp_select_key(fkeyind_to_set);
+
+		/* Sample the new key */
+		writel(readl(&regs->aes_sk) | AES_SK_BIT, &regs->aes_sk);
+
+	} else {
+
+		/* Initialization Vector is loaded in 32-bit chunks */
+		for (i = 0; i < (2*SIZE_AES_BLOCK/sizeof(u32)); i++) {
+			writel(p[i], &regs->aes_key_0 + i);
+		}
+
+		fkeyind_to_set = 0xff;
 	}
 }
 
@@ -247,12 +259,7 @@ void aes_cbc_encrypt_blocks(u8 *key_exp, u8 *iv, u8 *src, u8 *dst, u32 num_aes_b
 
 	npcm750_aes_load_iv(iv);
 
-	/* The key can be loaded either via the configuration (npcm750_aes_load_key)
-	   or by using aes_cryptokey input port (aes_select_key).
-	   To use aes_cryptokey, aes_select_key should be called first, and then
-	   this function should be called when key_exp is NULL. */
-	if (key_exp)
-		npcm750_aes_load_key(key_exp);
+	npcm750_aes_load_key(key_exp);
 
 	npcm750_aes_feed(num_aes_blocks, (u32 *) src, (u32 *) dst);
 }
@@ -264,12 +271,7 @@ void aes_cbc_decrypt_blocks(u8 *key_exp, u8 *iv, u8 *src, u8 *dst, u32 num_aes_b
 
 	npcm750_aes_load_iv(iv);
 
-	/* The key can be loaded either via the configuration (npcm750_aes_load_key)
-	   or by using aes_cryptokey input port (aes_select_key).
-	   To use aes_cryptokey, aes_select_key should be called first, and then
-	   this function should be called when key_exp is NULL. */
-	if (key_exp)
-		npcm750_aes_load_key(key_exp);
+	npcm750_aes_load_key(key_exp);
 
 	npcm750_aes_feed(num_aes_blocks, (u32 *) src, (u32 *) dst);
 }
