@@ -11,4 +11,10 @@ config NPCM750_AES
 	  key and is widely used as a streaming cipher. This command only
 	  supports AES256-CBC.
 
+config NPCM750_SHA
+	bool "Enable NPCM750 cryptographic HW SHA accelerator"
+	help
+	  This option enables support of NPCM750 cryptographic HW SHA accelerator.
+	  It supports SHA1 and SHA256 hashing algorithms.
+
 endmenu

@@ -174,6 +174,13 @@
 		clock-names = "clk_ahb";
 	};
 
+	sha@f085a000 {
+		compatible = "nuvoton,npcm750-sha";
+		reg = <0xf085a000 0x1000>;
+		clocks = <&clks CLK_AHB>;
+		clock-names = "clk_ahb";
+	};
+
 	gpio0@f0010000 {
 		compatible = "nuvoton,npcm750-gpio";
 		reg = <0xf0010000 0x1000>;
