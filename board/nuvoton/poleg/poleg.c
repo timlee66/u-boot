@@ -210,11 +210,11 @@ int dram_init(void)
 				gd->ram_size = 0x10000000; /* 256 MB. */
 				break;
 		case 2:
-		/* 3 and 4 should be 1 GB and 2 GB but as a workaround
-			to correctly load linux we set it as 512 MB         */
+				gd->ram_size = 0x20000000; /* 512 MB. */
+				break;
 		case 3:
 		case 4:
-				gd->ram_size = 0x20000000; /* 512 MB. */
+				gd->ram_size = 0x40000000; /* 1024 MB. */
 				break;
 
 		default:
