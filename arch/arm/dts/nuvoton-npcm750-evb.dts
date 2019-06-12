@@ -48,6 +48,10 @@
 		gpio6 = "/gpio6@f0016000";
 		gpio7 = "/gpio7@f0017000";
 		usb0 = "/usbd0";
+		eth0 = &emc0;
+		eth1 = &emc1;
+		eth2 = &gmac0;
+		eth3 = &gmac1;
 	};
 
 	clks: clock-control@f0801000 {
@@ -261,24 +265,24 @@
 		gpio-port = <7>;
 	};
 
-	gmac0 {
+	gmac0: gmac0@f0802000 {
 		compatible = "nuvoton,npcm750-dwmac";
 		reg = <0xF0802000 0x2000>;
 		phy-mode = "rgmii";
 	};
-	gmac1 {
+	gmac1: gmac1@f0804000 {
 		compatible = "nuvoton,npcm750-dwmac";
 		reg = <0xF0804000 0x2000>;
 		phy-mode = "rgmii";
 	};
 
-	emc0 {
+	emc0: emc0@f0825000 {
 		compatible = "nuvoton,npcm750-emc";
 		reg = <0xF0825000 0x1000>;
 		phy-mode = "rmii";
 		id = <0>;
 	};
-	emc1 {
+	emc1: emc1@f0825000 {
 		compatible = "nuvoton,npcm750-emc";
 		reg = <0xF0825000 0x1000>;
 		phy-mode = "rmii";
