@@ -151,21 +151,6 @@ static int secure_boot_configuration(void)
 	return 0;
 }
 
-int board_uart_init(void)
-{
-	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-
-	/* Mode3 - BMC UART3 connected to Serial Interface 2 */
-	writel(((readl(&gcr->spswc) & ~(0x07)) | 2), &gcr->spswc);
-
-	/* HSI2SEL */
-	writel((readl(&gcr->mfsel1) | (1 << MFSEL1_HSI2SEL)), &gcr->mfsel1);
-
-	/* BSPASEL */
-	writel((readl(&gcr->mfsel4) & ~(1 << MFSEL4_BSPASEL)), &gcr->mfsel4);
-	return 0;
-}
-
 int board_init(void)
 {
 #ifdef CONFIG_ETH_DESIGNWARE
@@ -192,6 +177,24 @@ int board_init(void)
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
 
+#ifdef CONFIG_TARGET_POLEG_RUNBMC
+
+	/* Uart Mode7 - BMC UART3 connected to Serial Interface 2 */
+	writel(((readl(&gcr->spswc) & ~(0x07)) | 6), &gcr->spswc);
+	/* HSI1SEL */
+	writel((readl(&gcr->mfsel1) | (1 << MFSEL1_HSI1SEL)), &gcr->mfsel1);
+
+	/* select DAC2 for VGA output */
+	writel((readl(&gcr->intcr) | 0x4700), &gcr->intcr);
+	/* select PLL1 clock for Graphic System */
+	writel((readl(&clkctl->clksel) | (1 << 16)), &clkctl->clksel);
+
+	/* configure pin function
+	 * select LPC CLKRUN, MMCSEL, MMC8SEL
+	 */
+	writel((readl(&gcr->mfsel3) | (1 << 16) | (1 << 10) | (1 << 11)),
+		&gcr->mfsel3);
+#endif
 	return 0;
 }
 
@@ -227,14 +230,6 @@ int dram_init(void)
 #ifdef CONFIG_BOARD_EARLY_INIT_F
 int board_early_init_f(void)
 {
-	int err;
-
-	err = board_uart_init();
-	if (err) {
-		debug("UART init failed\n");
-		return err;
-	}
-
 	return 0;
 }
 #endif

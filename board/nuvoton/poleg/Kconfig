@@ -16,5 +16,15 @@ config NIST_VERSION_ADDR
 	  The address of the Linux NIST version, which should be identical
 	  to the u-boot version.
 
+choice
+	prompt "Target board select"
+	default TARGET_POLEG_EVB
+config TARGET_POLEG_EVB
+	bool "Poleg EVB"
+
+config TARGET_POLEG_RUNBMC
+	bool "Poleg RunBMC"
+
+endchoice
 
 endif
