@@ -14,6 +14,7 @@
 #define CONFIG_ARCH_CPU_INIT
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_LAST_STAGE_INIT
+#define CONFIG_ENV_OVERWRITE
 
 #define CONFIG_MACH_TYPE		        MACH_TYPE_NPCMX50
 
@@ -84,14 +85,14 @@
 		"stdin=serial\0"   \
 		"stdout=serial\0"   \
 		"stderr=serial\0"    \
-		"ethact=ETH${eth_num}\0"   \
+		"ethact=eth${eth_num}\0"   \
 		"romboot=echo Booting Kernel from flash; echo +++ uimage at 0x${uimage_flash_addr}; " \
 		"echo Using bootargs: ${bootargs};bootm ${uimage_flash_addr}\0" \
 		"autostart=yes\0"   \
 		"eth_num=0\0"    \
 		"common_bootargs=setenv bootargs earlycon=${earlycon} root=/dev/ram console=${console} mem=${mem} ramdisk_size=48000 basemac=${ethaddr}\0"   \
-		"ftp_prog=setenv ethact ETH${eth_num}; dhcp; tftp 10000000 image-bmc; cp.b 10000000 80000000 ${filesize}\0"   \
-		"ftp_run=setenv ethact ETH${eth_num}; dhcp; tftp 10000000 image-bmc; bootm 10200000\0"   \
+		"ftp_prog=setenv ethact eth${eth_num}; dhcp; tftp 10000000 image-bmc; cp.b 10000000 80000000 ${filesize}\0"   \
+		"ftp_run=setenv ethact eth${eth_num}; dhcp; tftp 10000000 image-bmc; bootm 10200000\0"   \
 		"sd_prog=fatload mmc 0 10000000 image-bmc; cp.b 10000000 80000000 ${filesize}\0"  \
 		"sd_run=fatload mmc 0 10000000 image-bmc; bootm 10200000\0"   \
 		"usb_prog=usb start; fatload usb 0 10000000 image-bmc; cp.b 10000000 80000000 ${filesize}\0"    \
