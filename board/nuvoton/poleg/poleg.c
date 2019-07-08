@@ -22,6 +22,56 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_TARGET_POLEG_RUNBMC
+static int board_sd_clk_init(const char *name)
+{
+	struct udevice *clk_dev;
+	struct clk clk;
+	int node, err;
+	const char *path;
+	uint clkd[2]; /* clk_id and clk_no */
+	int clk_offset;
+	int rate;
+
+	node = fdt_path_offset(gd->fdt_blob, "/aliases");
+	if (node < 0)
+		return -FDT_ERR_NOTFOUND;
+
+	path = fdt_getprop(gd->fdt_blob, node, name, NULL);
+	if (!path) {
+		printf("no alias for mmc0\n");
+		return -FDT_ERR_NOTFOUND;
+	}
+
+	node = fdt_path_offset(gd->fdt_blob, path);
+	err = fdtdec_get_int_array(gd->fdt_blob, node, "clocks", clkd,
+			2);
+	if (err)
+		return -FDT_ERR_NOTFOUND;
+
+	rate = fdtdec_get_int(gd->fdt_blob, node, "clock-frequency", 400000);
+
+	clk_offset = fdt_node_offset_by_phandle(gd->fdt_blob, clkd[0]);
+	if (clk_offset < 0)
+		return clk_offset;
+
+	err = uclass_get_device_by_of_offset(UCLASS_CLK, clk_offset, &clk_dev);
+	if (err)
+		return err;
+
+	clk.id = clkd[1];
+	err = clk_request(clk_dev, &clk);
+	if (err < 0)
+		return err;
+
+	err = clk_set_rate(&clk, rate);
+	clk_free(&clk);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+#endif
 
 static bool is_security_enabled(void)
 {
@@ -194,6 +244,8 @@ int board_init(void)
 	 */
 	writel((readl(&gcr->mfsel3) | (1 << 16) | (1 << 10) | (1 << 11)),
 		&gcr->mfsel3);
+
+	board_sd_clk_init("mmc1");
 #endif
 	return 0;
 }

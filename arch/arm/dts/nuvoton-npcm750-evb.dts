@@ -169,6 +169,8 @@
 		reg = <0xf0842000 0x200>;
 		index = <0x1>;
 		bus-width = <0x8>;
+		clocks = <&clks CLK_EMMC>;
+		clock-frequency = <50000000>;
 	};
 
 	aes@f0858000 {
