@@ -311,6 +311,7 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	ulong flash_base = 0;
 	int bus;
 	int cs;
+	int newline;
 #endif
 
 	if (argc != 4)
@@ -403,6 +404,7 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		buf = memalign(ARCH_DMA_MINALIGN, flash->erase_size);
 		printf("Copy %d bytes to flash\n", len);
+		newline = 64;
 
 		while (dest_addr < end_addr) {
 			sector_offset = dest_addr % flash->erase_size;
@@ -411,6 +413,10 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			if (memcmp(src, (void *)(dest_addr + flash_base),
 				chunk_sz) == 0) {
 				printf(".");
+				if (--newline == 0) {
+					printf("\n");
+					newline = 64;
+				}
 				/* source and target are the same, skip programming */
 				dest_addr += chunk_sz;
 				src += chunk_sz;
@@ -439,6 +445,10 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 						sector_addr, ret ? "ERROR" : "OK");
 			} else {
 				printf("#");
+				if (--newline == 0) {
+					printf("\n");
+					newline = 64;
+				}
 				/* erase sector */
 				ret = spi_flash_erase(flash, sector_addr, flash->erase_size);
 				debug("SF: %zu bytes @ %#x Erased: %s\n", (size_t)flash->erase_size,
