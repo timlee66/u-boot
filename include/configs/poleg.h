@@ -27,10 +27,10 @@
 #define CONFIG_SYS_PROMPT               "U-Boot>"
 #endif
 
-#define CONFIG_ENV_SIZE                  0x10000
+#define CONFIG_ENV_SIZE                  0x40000
 #define CONFIG_ENV_OFFSET               (0x100000)
 #define CONFIG_ENV_ADDR                 (0x80000000 + CONFIG_ENV_OFFSET)
-#define CONFIG_ENV_SECT_SIZE            0x1000
+#define CONFIG_ENV_SECT_SIZE            0x4000
 
 #ifndef CONFIG_SYS_L2CACHE_OFF
 #define CONFIG_SYS_L2_PL310		1
