@@ -73,14 +73,14 @@
 		clocks = <&clks CLK_UART>;
 		clock-frequency = <24000000>;
 	};
-	serial1: serial0@f0002000 {
+	serial1: serial1@f0002000 {
 		compatible = "nuvoton,npcm750-uart";
 		reg = <0xf0002000 0x20>;
 		id = <1>;
 		clocks = <&clks CLK_UART>;
 		clock-frequency = <24000000>;
 	};
-	serial2: serial0@f0003000 {
+	serial2: serial2@f0003000 {
 		compatible = "nuvoton,npcm750-uart";
 		reg = <0xf0003000 0x20>;
 		id = <2>;
