@@ -144,4 +144,13 @@ enum {
 #define IPSRST3_USBDEV7             5
 #define IPSRST3_USBDEV0             4
 
+/* Watchdog 0 Reset Control Regoster, offset 0x38 */
+#define WDORCR_GPIO_M0 16
+#define WDORCR_GPIO_M1 17
+#define WDORCR_GPIO_M2 18
+#define WDORCR_GPIO_M3 19
+#define WDORCR_GPIO_M4 20
+#define WDORCR_GPIO_M5 21
+#define WDORCR_GPIO_M6 22
+#define WDORCR_GPIO_M7 23
 #endif
