@@ -49,3 +49,9 @@ int print_cpuinfo (void)
 	return 0;
 }
 
+void s_init(void)
+{
+	/* Invalidate L2 cache in lowlevel_init */
+	v7_outer_cache_inval_all();
+}
+
