@@ -255,6 +255,17 @@ int board_init(void)
 	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc4);
 	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M2), &clkctl->corstc);
 
+   /* don't reset GPIOM5 */
+    writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd0rcr);
+    writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd1rcr);
+    writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd2rcr);
+    writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc1);
+    writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc2);
+    writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc3);
+    writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc4);
+    writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M5), &clkctl->corstc);
+
+
 	board_sd_clk_init("mmc1");
 #endif
 	return 0;
