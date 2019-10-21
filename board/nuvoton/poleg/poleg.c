@@ -245,26 +245,6 @@ int board_init(void)
 	writel((readl(&gcr->mfsel3) | (1 << 16) | (1 << 10) | (1 << 11)),
 		&gcr->mfsel3);
 
-	/* don't reset GPIOM0 */
-	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M0), &clkctl->wd0rcr);
-	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M0), &clkctl->wd1rcr);
-	writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M0), &clkctl->wd2rcr);
-	writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M0), &clkctl->swrstc1);
-	writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M0), &clkctl->swrstc2);
-	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M0), &clkctl->swrstc3);
-	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M0), &clkctl->swrstc4);
-	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M0), &clkctl->corstc);
-
-	/* don't reset GPIOM1 */
-	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M1), &clkctl->wd0rcr);
-	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M1), &clkctl->wd1rcr);
-	writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M1), &clkctl->wd2rcr);
-	writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M1), &clkctl->swrstc1);
-	writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M1), &clkctl->swrstc2);
-	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M1), &clkctl->swrstc3);
-	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M1), &clkctl->swrstc4);
-	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M1), &clkctl->corstc);
-
 	/* don't reset GPIOM2 */
 	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd0rcr);
 	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd1rcr);
@@ -274,56 +254,6 @@ int board_init(void)
 	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc3);
 	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc4);
 	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M2), &clkctl->corstc);
-
-	/* don't reset GPIOM3 */
-	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M3), &clkctl->wd0rcr);
-	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M3), &clkctl->wd1rcr);
-	writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M3), &clkctl->wd2rcr);
-	writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M3), &clkctl->swrstc1);
-	writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M3), &clkctl->swrstc2);
-	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M3), &clkctl->swrstc3);
-	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M3), &clkctl->swrstc4);
-	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M3), &clkctl->corstc);
-
-	/* don't reset GPIOM4 */
-	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M4), &clkctl->wd0rcr);
-	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M4), &clkctl->wd1rcr);
-	writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M4), &clkctl->wd2rcr);
-	writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M4), &clkctl->swrstc1);
-	writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M4), &clkctl->swrstc2);
-	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M4), &clkctl->swrstc3);
-	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M4), &clkctl->swrstc4);
-	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M4), &clkctl->corstc);
-
-	/* don't reset GPIOM5 */
-	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd0rcr);
-	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd1rcr);
-	writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd2rcr);
-	writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc1);
-	writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc2);
-	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc3);
-	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc4);
-	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M5), &clkctl->corstc);
-
-	/* don't reset GPIOM6 */
-	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M6), &clkctl->wd0rcr);
-	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M6), &clkctl->wd1rcr);
-	writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M6), &clkctl->wd2rcr);
-	writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M6), &clkctl->swrstc1);
-	writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M6), &clkctl->swrstc2);
-	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M6), &clkctl->swrstc3);
-	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M6), &clkctl->swrstc4);
-	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M6), &clkctl->corstc);
-
-	/* don't reset GPIOM7 */
-	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M7), &clkctl->wd0rcr);
-	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M7), &clkctl->wd1rcr);
-	writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M7), &clkctl->wd2rcr);
-	writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M7), &clkctl->swrstc1);
-	writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M7), &clkctl->swrstc2);
-	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M7), &clkctl->swrstc3);
-	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M7), &clkctl->swrstc4);
-	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M7), &clkctl->corstc);
 
 	board_sd_clk_init("mmc1");
 #endif
