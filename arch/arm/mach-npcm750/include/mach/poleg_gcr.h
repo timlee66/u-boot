@@ -131,8 +131,6 @@
 #define  INTCR_GFXINT               12
 #define  INTCR_DACOSOVR             10
 #define  INTCR_GFXIFDIS             8
-#define  INTCR_H2RQDIS              9
-#define  INTCR_H2DISPOFF            8
 #define  INTCR_GFXINT2              7
 #define  INTCR_VGAIOEN              6
 #define  INTCR_R1EN                 5
@@ -141,6 +139,37 @@
 #define  INTCR_SMBFEN               2
 #define  INTCR_MFTFEN               1
 #define  INTCR_KCSRST_MODE          0
+
+/* Integration Control Register 3 (INTCR3) */
+#define  INTCR3_PCIRREL             30
+#define  INTCR3_GFXRSTDLY           26
+#define  INTCR3_GFXRDEN             25
+#define  INTCR3_DACSBYOFF           23
+#define  INTCR3_RCCORER             22
+#define  INTCR3_GFX_ORL0            20
+#define  INTCR3_PECIVSEL            19
+#define  INTCR3_PCIEDEM             17
+#define  INTCR3_USBPHYSW            12
+#define  INTCR3_GMMAP               8
+#define  INTCR3_FIU_FIX             6
+#define  INTCR3_GFXACCDIS           4
+#define  INTCR3_HSRDIS              2
+#define  INTCR3_BIOSEN              1
+#define  INTCR3_HHRDIS              0
+
+/* Serial Ports (SPSWC) */
+#define SPSWC_RTSS  7
+#define SPSWC_DTRS  6
+#define SPSWC_DCDI  5
+#define SPSWC_SPMOD 0
+#define SPMOD_MASK 7
+#define SPMOD_MODE1 0
+#define SPMOD_MODE2 1
+#define SPMOD_MODE3 2
+#define SPMOD_MODE4 3
+#define SPMOD_MODE5 4
+#define SPMOD_MODE6 5
+#define SPMOD_MODE7 6
 
 /* I2C Segment Pin Select Register (I2CSEGSEL) */
 #define I2CSEGSEL_S0DECFG			3

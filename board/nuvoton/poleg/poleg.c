@@ -203,6 +203,7 @@ static int secure_boot_configuration(void)
 
 int board_init(void)
 {
+	u32 reg_val = 0;
 #ifdef CONFIG_ETH_DESIGNWARE
     struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
     struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
@@ -230,19 +231,30 @@ int board_init(void)
 #ifdef CONFIG_TARGET_POLEG_RUNBMC
 
 	/* Uart Mode7 - BMC UART3 connected to Serial Interface 2 */
-	writel(((readl(&gcr->spswc) & ~(0x07)) | 6), &gcr->spswc);
+	writel(((readl(&gcr->spswc) & ~(SPMOD_MASK)) | SPMOD_MODE7), &gcr->spswc);
+
 	/* HSI1SEL */
 	writel((readl(&gcr->mfsel1) | (1 << MFSEL1_HSI1SEL)), &gcr->mfsel1);
 
 	/* select DAC2 for VGA output */
-	writel((readl(&gcr->intcr) | 0x4700), &gcr->intcr);
+	reg_val = (1 << INTCR_DACSEL) |
+		(1 << INTCR_DACOSOVR) |
+		(0x3 << INTCR_GFXIFDIS);
+	writel((readl(&gcr->intcr) | reg_val), &gcr->intcr);
+
 	/* select PLL1 clock for Graphic System */
-	writel((readl(&clkctl->clksel) | (1 << 16)), &clkctl->clksel);
+	writel((readl(&clkctl->clksel) | (1 << CLKSEL_GFXCKSEL)), &clkctl->clksel);
+
+	/* set Graphic Reset Delay to fix host stuck */
+	writel((readl(&gcr->intcr3) | (0x7 << INTCR3_GFXRSTDLY) ), &gcr->intcr3);
 
 	/* configure pin function
 	 * select LPC CLKRUN, MMCSEL, MMC8SEL
 	 */
-	writel((readl(&gcr->mfsel3) | (1 << 16) | (1 << 10) | (1 << 11)),
+	writel((readl(&gcr->mfsel3) |
+		(1 << MFSEL3_CLKRUNSEL) |
+		(1 << MFSEL3_MMCSEL) |
+		(1 << MFSEL3_MMC8SEL)),
 		&gcr->mfsel3);
 
 	/* don't reset GPIOM2 */
@@ -264,7 +276,6 @@ int board_init(void)
     writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc3);
     writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc4);
     writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M5), &clkctl->corstc);
-
 
 	board_sd_clk_init("mmc1");
 #endif
