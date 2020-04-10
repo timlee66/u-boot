@@ -22,7 +22,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#ifdef CONFIG_TARGET_POLEG_RUNBMC
 static int board_sd_clk_init(const char *name)
 {
 	struct udevice *clk_dev;
@@ -71,7 +70,6 @@ static int board_sd_clk_init(const char *name)
 
 	return 0;
 }
-#endif
 
 static bool is_security_enabled(void)
 {
@@ -203,82 +201,83 @@ static int secure_boot_configuration(void)
 
 int board_init(void)
 {
+	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
+	int nodeoff;
 	u32 reg_val = 0;
-#ifdef CONFIG_ETH_DESIGNWARE
-    struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
-    struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 
-#if 0
-	/* Enable clock for GMAC1/2 module */
-    writel((readl(&clkctl->clken2) | (1 << CLKEN2_GMAC1)), &clkctl->clken2);
-    writel((readl(&clkctl->clken2) | (1 << CLKEN2_GMAC2)), &clkctl->clken2);
-#endif
-    /* Enable RGMII for GMAC1/2 module */
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1SEL)), &gcr->mfsel4);
-    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1MSEL)), &gcr->mfsel4);
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2SEL)), &gcr->mfsel4);
-    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);
-
-    /* IP Software Reset for GMAC1/2 module */
-    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
-    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
-    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
-    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
-#endif
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
 
-#ifdef CONFIG_TARGET_POLEG_RUNBMC
+	/* Enable RGMII for GMAC1/2 module */
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1SEL)), &gcr->mfsel4);
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1MSEL)), &gcr->mfsel4);
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2SEL)), &gcr->mfsel4);
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);
 
-	/* Uart Mode7 - BMC UART3 connected to Serial Interface 2 */
-	writel(((readl(&gcr->spswc) & ~(SPMOD_MASK)) | SPMOD_MODE7), &gcr->spswc);
+	/* IP Software Reset for GMAC1/2 module */
+	writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
+	writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
+	writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
+	writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
 
-	/* HSI1SEL */
-	writel((readl(&gcr->mfsel1) | (1 << MFSEL1_HSI1SEL)), &gcr->mfsel1);
+	nodeoff = -1;
+	while ((nodeoff = fdt_node_offset_by_compatible(gd->fdt_blob, nodeoff,
+                "npcm750,runbmc")) >= 0) {
+		/* select DAC2 for VGA output */
+		reg_val = (1 << INTCR_DACSEL) |
+			(1 << INTCR_DACOSOVR) |
+			(0x3 << INTCR_GFXIFDIS);
+		writel((readl(&gcr->intcr) | reg_val), &gcr->intcr);
 
-	/* select DAC2 for VGA output */
-	reg_val = (1 << INTCR_DACSEL) |
-		(1 << INTCR_DACOSOVR) |
-		(0x3 << INTCR_GFXIFDIS);
-	writel((readl(&gcr->intcr) | reg_val), &gcr->intcr);
+		/* select PLL1 clock for Graphic System */
+		writel((readl(&clkctl->clksel) | (1 << CLKSEL_GFXCKSEL)), &clkctl->clksel);
 
-	/* select PLL1 clock for Graphic System */
-	writel((readl(&clkctl->clksel) | (1 << CLKSEL_GFXCKSEL)), &clkctl->clksel);
+		/* set Graphic Reset Delay to fix host stuck */
+		writel((readl(&gcr->intcr3) | (0x7 << INTCR3_GFXRSTDLY) ), &gcr->intcr3);
 
-	/* set Graphic Reset Delay to fix host stuck */
-	writel((readl(&gcr->intcr3) | (0x7 << INTCR3_GFXRSTDLY) ), &gcr->intcr3);
+		/* configure pin function
+		* select LPC CLKRUN, MMCSEL, MMC8SEL
+		*/
+		writel((readl(&gcr->mfsel3) |
+			(1 << MFSEL3_CLKRUNSEL) |
+			(1 << MFSEL3_MMCSEL) |
+			(1 << MFSEL3_MMC8SEL)),
+			&gcr->mfsel3);
 
-	/* configure pin function
-	 * select LPC CLKRUN, MMCSEL, MMC8SEL
-	 */
-	writel((readl(&gcr->mfsel3) |
-		(1 << MFSEL3_CLKRUNSEL) |
-		(1 << MFSEL3_MMCSEL) |
-		(1 << MFSEL3_MMC8SEL)),
-		&gcr->mfsel3);
+		board_sd_clk_init("mmc1");
+	}
 
-	/* don't reset GPIOM2 */
-	writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd0rcr);
-	writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd1rcr);
-	writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd2rcr);
-	writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc1);
-	writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc2);
-	writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc3);
-	writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc4);
-	writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M2), &clkctl->corstc);
+	nodeoff = -1;
+	while ((nodeoff = fdt_node_offset_by_compatible(gd->fdt_blob, nodeoff,
+                "quanta,olympus")) >= 0) {
+		/* Uart Mode7 - BMC UART3 connected to Serial Interface 2 */
+		writel(((readl(&gcr->spswc) & ~(SPMOD_MASK)) | SPMOD_MODE7), &gcr->spswc);
 
-   /* don't reset GPIOM5 */
-    writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd0rcr);
-    writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd1rcr);
-    writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd2rcr);
-    writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc1);
-    writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc2);
-    writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc3);
-    writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc4);
-    writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M5), &clkctl->corstc);
+		/* HSI1SEL */
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_HSI1SEL)), &gcr->mfsel1);
 
-	board_sd_clk_init("mmc1");
-#endif
+		/* don't reset GPIOM2 */
+		writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd0rcr);
+		writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd1rcr);
+		writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd2rcr);
+		writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc1);
+		writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc2);
+		writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc3);
+		writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M2), &clkctl->swrstc4);
+		writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M2), &clkctl->corstc);
+
+		/* don't reset GPIOM5 */
+		writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd0rcr);
+		writel(readl(&clkctl->wd1rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd1rcr);
+		writel(readl(&clkctl->wd2rcr) & ~(1 << WDORCR_GPIO_M5), &clkctl->wd2rcr);
+		writel(readl(&clkctl->swrstc1) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc1);
+		writel(readl(&clkctl->swrstc2) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc2);
+		writel(readl(&clkctl->swrstc3) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc3);
+		writel(readl(&clkctl->swrstc4) & ~(1 << WDORCR_GPIO_M5), &clkctl->swrstc4);
+		writel(readl(&clkctl->corstc) & ~(1 << WDORCR_GPIO_M5), &clkctl->corstc);
+	}
+
 	return 0;
 }
 
@@ -310,36 +309,6 @@ int dram_init(void)
 
 	return 0;
 }
-
-#ifdef CONFIG_BOARD_EARLY_INIT_F
-int board_early_init_f(void)
-{
-	return 0;
-}
-#endif
-
-
-int board_eth_init(bd_t *bis)
-{
-	return 0;
-}
-
-
-#ifdef CONFIG_DISPLAY_BOARDINFO
-int checkboard(void)
-{
-	const char *board_info;
-
-	board_info = fdt_getprop(gd->fdt_blob, 0, "model", NULL);
-	printf("Board: %s\n", board_info ? board_info : "unknown");
-#ifdef CONFIG_BOARD_TYPES
-	board_info = get_board_type();
-	if (board_info)
-		printf("Type:  %s\n", board_info);
-#endif
-	return 0;
-}
-#endif
 
 #ifdef CONFIG_LAST_STAGE_INIT
 int last_stage_init(void)
