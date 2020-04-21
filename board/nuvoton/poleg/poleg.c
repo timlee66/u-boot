@@ -209,18 +209,6 @@ int board_init(void)
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
 
-	/* Enable RGMII for GMAC1/2 module */
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1SEL)), &gcr->mfsel4);
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1MSEL)), &gcr->mfsel4);
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2SEL)), &gcr->mfsel4);
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);
-
-	/* IP Software Reset for GMAC1/2 module */
-	writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
-	writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
-	writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
-	writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
-
 	nodeoff = -1;
 	while ((nodeoff = fdt_node_offset_by_compatible(gd->fdt_blob, nodeoff,
                 "npcm750,runbmc")) >= 0) {
@@ -234,16 +222,7 @@ int board_init(void)
 		writel((readl(&clkctl->clksel) | (1 << CLKSEL_GFXCKSEL)), &clkctl->clksel);
 
 		/* set Graphic Reset Delay to fix host stuck */
-		writel((readl(&gcr->intcr3) | (0x7 << INTCR3_GFXRSTDLY) ), &gcr->intcr3);
-
-		/* configure pin function
-		* select LPC CLKRUN, MMCSEL, MMC8SEL
-		*/
-		writel((readl(&gcr->mfsel3) |
-			(1 << MFSEL3_CLKRUNSEL) |
-			(1 << MFSEL3_MMCSEL) |
-			(1 << MFSEL3_MMC8SEL)),
-			&gcr->mfsel3);
+		writel((readl(&gcr->intcr3) | (0x7 << INTCR3_GFXRSTDLY) ), &gcr->intcr3);;
 
 		board_sd_clk_init("mmc1");
 	}
@@ -253,9 +232,6 @@ int board_init(void)
                 "quanta,olympus")) >= 0) {
 		/* Uart Mode7 - BMC UART3 connected to Serial Interface 2 */
 		writel(((readl(&gcr->spswc) & ~(SPMOD_MASK)) | SPMOD_MODE7), &gcr->spswc);
-
-		/* HSI1SEL */
-		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_HSI1SEL)), &gcr->mfsel1);
 
 		/* don't reset GPIOM2 */
 		writel(readl(&clkctl->wd0rcr) & ~(1 << WDORCR_GPIO_M2), &clkctl->wd0rcr);
