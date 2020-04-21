@@ -308,6 +308,13 @@ config ASPEED_AST2500_PINCTRL
 	Generic Pinctrl framework and is compatible with the Linux driver,
 	i.e. it uses the same device tree configuration.
 
+config NUVOTON_NPCM7XX_PINCTRL
+  bool "Nuvoton NPCM7xx pin control driver"
+  depends on DM && PINCTRL_GENERIC && ARCH_NPCM750
+  default y
+  help
+    Support MFSEL control on Nuvoton NPCM7xx SoC.
+
 endif
 
 source "drivers/pinctrl/meson/Kconfig"

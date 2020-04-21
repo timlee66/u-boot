@@ -25,6 +25,7 @@
 
 #define NPCM750_GCR_BA			0xF0800000
 #define NPCM750_CLK_BA			0xF0801000
+#define NPCM750_GPIO_BA			0xF0010000
 
 #ifndef __ASSEMBLY__
 
@@ -37,6 +38,7 @@ static inline unsigned long __attribute__((no_instrument_function)) \
 
 NPCM750_BASE(gcr, GCR_BA)
 NPCM750_BASE(clk, CLK_BA)
+NPCM750_BASE(gpio, GPIO_BA)
 
 #endif
 
