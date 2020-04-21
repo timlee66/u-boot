@@ -49,7 +49,6 @@ void npcm7xx_smb_mux(unsigned int smb_module)
 
 	switch (smb_module) {
 	case 0:
-		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB0SEL)), &gcr->mfsel1);
 		val = readl(&gcr->i2csegsel) & ~(3 << I2CSEGSEL_S0DECFG);
 		writel(val, &gcr->i2csegsel);
 		val = readl(&gcr->i2csegctl) | (1 << I2CSEGCTL_S0DWE) | (1 << I2CSEGCTL_S0DEN);
@@ -57,18 +56,14 @@ void npcm7xx_smb_mux(unsigned int smb_module)
 		break;
 
 	case 1:
-		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB1SEL)), &gcr->mfsel1);
 		break;
 
 	case 2:
-		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB2SEL)), &gcr->mfsel1);
 		break;
 
 	case 3:
-		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB3SEL)), &gcr->mfsel1);
 		break;
 	case 4:
-		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB4SEL)), &gcr->mfsel1);
 		val = readl(&gcr->i2csegsel) & ~(3 << I2CSEGSEL_S4DECFG);
 		writel(val, &gcr->i2csegsel);
 		val = readl(&gcr->i2csegctl) | (1 << I2CSEGCTL_S4DWE) | (1 << I2CSEGCTL_S4DEN);
@@ -76,50 +71,38 @@ void npcm7xx_smb_mux(unsigned int smb_module)
 		break;
 
 	case 5:
-		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB5SEL)), &gcr->mfsel1);
 		break;
 
 	case 6:
-		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB6SEL)), &gcr->mfsel1);
 		break;
 
 	case 7:
-		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB7SEL)), &gcr->mfsel1);
 		break;
 
 	case 8:
-		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SMB8SEL)), &gcr->mfsel1);
 		break;
 
 	case 9:
-		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SMB9SEL)), &gcr->mfsel1);
 		break;
 
 	case 10:
-		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SMB10SEL)), &gcr->mfsel1);
 		break;
 
 	case 11:
-		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SMB11SEL)), &gcr->mfsel1);
 		break;
 
 	case 12:
-		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB12SEL)), &gcr->mfsel1);
 		break;
 
 	case 13:
-		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB13SEL)), &gcr->mfsel1);
 		break;
 
 	case 14:
-		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB14SEL)), &gcr->mfsel1);
 		break;
 
 	case 15:
-		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB15SEL)), &gcr->mfsel1);
 		break;
 	default:
-
 		break;
 	}
 }

@@ -48,23 +48,6 @@ struct npcm750_pspi_priv {
 	enum pspi_dev pspi_dev_num;
 };
 
-static void gcr_mux_pspi(enum pspi_dev dev_num)
-{
-	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-
-	switch (dev_num) {
-	case PSPI1_DEV:
-	default:
-		writel((readl(&gcr->mfsel3) & ~(0x3 << MFSEL3_PSPI1SEL))
-				| (0x2 << MFSEL3_PSPI1SEL), &gcr->mfsel3);
-		break;
-	case PSPI2_DEV:
-		writel(readl(&gcr->mfsel3) | (0x1 << MFSEL3_PSPI2SEL),
-				&gcr->mfsel3);
-		break;
-	}
-}
-
 static void spi_cs_activate(struct udevice *dev)
 {
 	struct udevice *bus = dev->parent;
@@ -255,8 +238,6 @@ static int npcm750_pspi_probe(struct udevice *bus)
 		printf("%s:Probe failed: Failed to get clk!\n", __func__);
 		return ret;
 	}
-
-	gcr_mux_pspi(priv->pspi_dev_num);
 
 	priv->pspi_dev_num = (enum pspi_dev)plat->dev_num;
 	priv->pspi_regs = (struct npcm750_pspi_regs *)plat->regs;

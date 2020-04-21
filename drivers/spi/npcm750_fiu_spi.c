@@ -74,85 +74,6 @@ struct npcm750_fiu_spi_priv {
 	u32 cmd;
 };
 
-static void gcr_muxfiu(enum fiu_moudle_tag dev_num,
-		bool cs0_en, bool cs1_en, bool cs2_en,
-		bool cs3_en, bool quad_mode)
-{
-	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-
-	switch (dev_num) {
-	case FIU_MODULE_0:
-		/* config CS */
-		if (cs0_en)
-			/* nothing to do */;
-		/* config CS1 */
-		if (cs1_en)
-			writel(readl(&gcr->mfsel1) | (1 << MFSEL1_S0CS1SEL),
-				&gcr->mfsel1);
-		/* config CS2 */
-		if (cs2_en)
-			writel(readl(&gcr->mfsel1) | (1 << MFSEL1_S0CS2SEL),
-				&gcr->mfsel1);
-		/* config CS3 */
-		if (cs3_en)
-			writel(readl(&gcr->mfsel1) | (1 << MFSEL1_S0CS3SEL),
-				&gcr->mfsel1);
-		/* select io bus width (1/2/4  <=> single/dual/quad ) */
-		if (quad_mode) {
-			/*  0: GPIO33/SPI0D2 ,1: nSPI0CS2 */
-			writel(readl(&gcr->mfsel1) & ~(1 << MFSEL1_S0CS2SEL),
-				&gcr->mfsel1);
-			writel(readl(&gcr->mfsel1) & ~(1 << MFSEL1_S0CS3SEL),
-				&gcr->mfsel1);
-			writel(readl(&gcr->mfsel4) | (1 << MFSEL4_SP0QSEL),
-				&gcr->mfsel4);
-		}
-		break;
-	case FIU_MODULE_3:
-		/* Select SPI3 */
-		writel(readl(&gcr->mfsel4) | (1 << MFSEL4_SP3SEL),
-			&gcr->mfsel4);
-		/* config CS */
-		if (cs0_en)
-			/* nothing to do */;
-		/* config CS1 */
-		if (cs1_en)
-			writel(readl(&gcr->mfsel4) | (1 << MFSEL4_S3CS1SEL),
-				&gcr->mfsel4);
-		/* Config CS2 */
-		if (cs2_en)
-			writel(readl(&gcr->mfsel4) | (1 << MFSEL4_S3CS2SEL),
-				&gcr->mfsel4);
-		/* Config CS3 */
-		if (cs3_en)
-			writel(readl(&gcr->mfsel4) | (1 << MFSEL4_S3CS3SEL),
-				&gcr->mfsel4);
-		/* select io bus width (1/2/4  <=> single/dual/quad ) */
-		if (quad_mode) {
-			writel(readl(&gcr->mfsel4) & ~(1 << MFSEL4_S3CS2SEL),
-				&gcr->mfsel4);
-			writel(readl(&gcr->mfsel4) & ~(1 << MFSEL4_S3CS3SEL),
-				&gcr->mfsel4);
-			writel(readl(&gcr->mfsel4) | (1 << MFSEL4_SP3QSEL),
-				&gcr->mfsel4);
-		}
-		break;
-	case FIU_MODULE_X:
-		/* config CS */
-		if (cs0_en)
-			/* nothing to do */;
-		/* config CS1 */
-		if (cs1_en)
-			writel(readl(&gcr->mfsel4) | (1 << MFSEL4_SXCS1SEL),
-				&gcr->mfsel4);
-		writel(readl(&gcr->mfsel4) | (1 << MFSEL4_SPXSEL),
-			&gcr->mfsel4);
-		break;
-	default:
-		break;
-	};
-}
-
 static void fiu_spi_cs_activate(struct udevice *dev)
 {
 	struct udevice *bus = dev->parent;
@@ -202,8 +123,6 @@ static int npcm750_fiu_spi_claim_bus(struct udevice *dev)
 		break;
 	};
 
-	/* SPI flash init */
-	gcr_muxfiu(priv->dev_num, cs0_en, cs1_en, cs2_en, cs3_en, quad_mode);
 	return 0;
 }
 

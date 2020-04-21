@@ -40,29 +40,6 @@ struct npcmx50_sdhci_plat {
 DECLARE_GLOBAL_DATA_PTR;
 #endif
 
-/* TODO: move this to GCR driver. */
-static int gcr_mux_sd(int index)
-{
-	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-
-	if (index == NPCMX50_SD) {
-		writel(readl(&gcr->mfsel3) | (1 << MFSEL3_SD1SEL),
-				&gcr->mfsel3);
-	} else if (index == NPCMX50_EMMC) {
-		unsigned int id;
-		id = readl(&gcr->pdid);
-		if (id == POLEG_A1) {
-			writel(readl(&gcr->mfsel3) | (1 << MFSEL3_MMCSEL) |
-				(1 << MFSEL3_SMB13SEL) | (1 << MFSEL3_MMC8SEL),
-				&gcr->mfsel3);
-		} else {
-			printf("POLEG Z1 NOT supported\n");
-			return -1;
-		}
-	}
-
-	return 0;
-}
 
 #ifdef CONFIG_DM_MMC
 static int npcmx50_sdhci_probe(struct udevice *dev)
@@ -71,10 +48,6 @@ static int npcmx50_sdhci_probe(struct udevice *dev)
 	struct mmc_uclass_priv *upriv = dev_get_uclass_priv(dev);
 	struct sdhci_host *host = dev_get_priv(dev);
 	int ret;
-
-	ret = gcr_mux_sd(host->index);
-	if (ret)
-		return ret;
 
 	host->quirks = SDHCI_QUIRK_NO_HISPD_BIT | SDHCI_QUIRK_BROKEN_VOLTAGE |
 			SDHCI_QUIRK_32BIT_DMA_ADDR |

@@ -396,18 +396,10 @@ static int npcm750_eth_probe(struct udevice *dev)
 	priv->interface = pdata->phy_interface;
 	priv->max_speed = pdata->max_speed;
 
-	/* Enable clock for EMC1 module */
-    writel((readl(&clkctl->clken1) | (1 << CLKEN1_EMC1)), &clkctl->clken1);
-
-    /* Enable RMII for EMC1 module */
-	writel((readl(&gcr->mfsel3) | (1 << MFSEL3_RMII1SEL)), &gcr->mfsel3);
-    writel((readl(&gcr->mfsel1) | (1 << MFSEL1_R1MDSEL)), &gcr->mfsel1);
-    writel((readl(&gcr->mfsel1) | (1 << MFSEL1_R1ERRSEL)), &gcr->mfsel1);
-    writel((readl(&gcr->intcr)  | (1 << INTCR_R1EN)), &gcr->intcr);
-
-    /* IP Software Reset for EMC1 module */
-    writel(readl(&clkctl->ipsrst1) | (1 << IPSRST1_EMC1), &clkctl->ipsrst1);
-    writel(readl(&clkctl->ipsrst1) & ~(1 << IPSRST1_EMC1), &clkctl->ipsrst1);
+	if (priv->idx == 0) {
+		/* Enable RMII for EMC1 module */
+		writel((readl(&gcr->intcr)  | (1 << INTCR_R1EN)), &gcr->intcr);
+	}
 
 	npcm750_mdio_init(dev->name, priv);
 	priv->bus = miiphy_get_dev_by_name(dev->name);
