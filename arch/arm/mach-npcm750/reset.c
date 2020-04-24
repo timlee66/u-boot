@@ -22,6 +22,10 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/poleg_rst.h>
+#include <asm/arch/gcr.h>
+#include <asm/arch/poleg_info.h>
+#include <asm/arch/cpu.h>
 
 void reset_cpu(ulong ignored)
 {
@@ -33,4 +37,29 @@ void reset_misc(void)
 {
 	printf("clear WDC\n");
 	writel(readl(0xf0800060) & ~(1 << 21), 0xf0800060);
+}
+
+enum reset_type npcm7xx_reset_reason(void)
+{
+	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+	enum reset_type type = UNKNOWN;
+    u32 value = readl(&gcr->ressr);
+
+	if (value == 0)
+		value = ~readl(&gcr->intcr2);
+
+	value &= RESSR_MASK;
+
+	if (value & PORST)
+		type = PORST;
+	if (value & CORST)
+		type = CORST;
+	if (value & WD0RST)
+		type = WD0RST;
+	if (value & WD1RST)
+		type = WD1RST;
+	if (value & WD2RST)
+		type = WD2RST;
+
+	return type;
 }
