@@ -1315,6 +1315,7 @@ static int npcm7xx_pinmux_set(struct udevice *dev,
 
 #define PIN_CONFIG_PERSIST_STATE (PIN_CONFIG_END + 1)
 #define PIN_CONFIG_POLARITY_STATE (PIN_CONFIG_END + 2)
+#define PIN_CONFIG_EVENT_CLEAR (PIN_CONFIG_END + 3)
 
 static const struct pinconf_param npcm7xx_conf_params[] = {
 	{ "bias-disable", PIN_CONFIG_BIAS_DISABLE, 0 },
@@ -1333,6 +1334,7 @@ static const struct pinconf_param npcm7xx_conf_params[] = {
 	{ "active-low", PIN_CONFIG_POLARITY_STATE, 1 },
 	{ "drive-strength", PIN_CONFIG_DRIVE_STRENGTH, 0 },
 	{ "slew-rate", PIN_CONFIG_SLEW_RATE, 0},
+	{ "event-clear", PIN_CONFIG_EVENT_CLEAR, 0},
 };
 
 static bool is_gpio_persist(struct udevice *dev, enum reset_type type, u8 bank)
@@ -1471,6 +1473,14 @@ static int npcm7xx_pinconf_set(struct udevice *dev, unsigned int pin,
 	u32 base = priv->gpio_base + (0x1000 * bank);
 
 	npcm7xx_setfunc(dev, (const int *)&pin, 1, fn_gpio);
+
+	/* To prevent unexpected IRQ trap at verctor 00 in linux kernel */
+	if (param == PIN_CONFIG_EVENT_CLEAR) {
+		dev_dbg(dev, "set pin %d event clear \n", pin);
+		clrbits_le32(base + NPCM7XX_GP_N_EVEN, BIT(gpio));
+		setbits_le32(base + NPCM7XX_GP_N_EVST, BIT(gpio));
+		return err;
+	}
 
 	if (is_gpio_persist(dev, npcm7xx_reset_reason(), bank))
 		return err;
