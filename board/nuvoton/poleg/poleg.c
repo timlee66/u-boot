@@ -241,7 +241,7 @@ int dram_init(void)
 {
 	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 
-	int RAMsize = (readl(&gcr->intcr3) >> 8) & 0x3;
+	int RAMsize = (readl(&gcr->intcr3) >> 8) & 0x7;
 
 	switch(RAMsize)
 	{
@@ -255,8 +255,10 @@ int dram_init(void)
 				gd->ram_size = 0x20000000; /* 512 MB. */
 				break;
 		case 3:
-		case 4:
 				gd->ram_size = 0x40000000; /* 1024 MB. */
+				break;
+		case 4:
+				gd->ram_size = 0x80000000; /* 2048 MB. */
 				break;
 
 		default:
