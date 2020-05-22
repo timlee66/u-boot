@@ -61,8 +61,10 @@
 #define SPI3_BASE_ADDR					0xA0000000
 #define SPI3_END_ADDR					0xBFFFFFFF
 
+#ifndef CONFIG_SYS_MEM_TOP_HIDE
 /* 16MB Graphics Memory size to hide + 32MB for VCD ECE DVC. */
 #define CONFIG_SYS_MEM_TOP_HIDE   ((16 << 20) + (32 << 20))
+#endif
 #define PHYS_SDRAM_1			        CONFIG_SYS_SDRAM_BASE
 
 #define CONFIG_BAUDRATE                 115200

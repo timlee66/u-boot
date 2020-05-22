@@ -12,6 +12,9 @@ endchoice
 config SYS_SOC
 	default "npcm750"
 
+config SYS_MEM_TOP_HIDE
+	hex "Reserved TOP memory"
+	default 0x03000000
 
 source "board/nuvoton/poleg/Kconfig"
 
