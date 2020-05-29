@@ -1504,6 +1504,7 @@ static int npcm7xx_pinconf_set(struct udevice *dev, unsigned int pin,
 	case PIN_CONFIG_INPUT_ENABLE:
 		dev_dbg(dev, "set pin %d input enable \n", pin);
 		setbits_le32(base + NPCM7XX_GP_N_OEC, BIT(gpio));
+		setbits_le32(base + NPCM7XX_GP_N_IEM, BIT(gpio));
 		break;
 	case PIN_CONFIG_OUTPUT_ENABLE:
 		dev_dbg(dev, "set pin %d output enable \n", pin);
