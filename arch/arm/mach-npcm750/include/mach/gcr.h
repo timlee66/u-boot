@@ -42,7 +42,9 @@ struct npcm750_gcr {
 	unsigned int  intsr;
 	unsigned char res3[0xc];
 	unsigned int  hifcr;
-	unsigned char res4[0xc];
+	unsigned int  sd1irv1;
+	unsigned int  sd1irv2;
+	unsigned char res4[0x4];
 	unsigned int  intcr2;
 	unsigned int  mfsel3;
 	unsigned int  srcnt;
@@ -57,7 +59,9 @@ struct npcm750_gcr {
 	unsigned char res6[0xc];
 	unsigned int  vsintr;
 	unsigned int  mfsel4;
-	unsigned char res7[0x10];
+	unsigned int  sd2irv1;
+	unsigned int  sd2irv2;
+	unsigned char res7[0x8];
 	unsigned int  cpbpntr;
 	unsigned char res8[0x8];
 	unsigned int  cpctl;
