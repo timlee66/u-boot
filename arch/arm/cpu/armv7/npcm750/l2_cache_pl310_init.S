@@ -39,12 +39,11 @@ ENTRY(l2_pl310_init)
 		@ 1 cycle RAM write access latency
 		@ 2 cycles RAM read access latency
 		@ 1 cycle RAM setup latency
-		/*LDR     r1, =0x00000010	@ Altera uses read latency 1, but 0 seems to work */
 		LDR     r1, =0x00000000
 		STR     r1, [r0,#0x10C]		@ data ram control reg at offset 0x108
 
-		@Cache maintenance - invalidate by way (0xff) - base offset 0x77C
-		LDR     r1, =0xFF
+		@Cache maintenance - invalidate 16 ways (0xffff) - base offset 0x77C
+		LDR     r1, =0xFFFF
 		STR     r1, [r0,#0x77C]		@ invalidate by way register at offset 0x77C
 	poll_invalidate:
 		LDR     r1, [r0,#0x77C]		@ invalidate by way register at offset 0x77C
