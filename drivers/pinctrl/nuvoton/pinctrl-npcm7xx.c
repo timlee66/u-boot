@@ -1244,23 +1244,24 @@ static void npcm7xx_setfunc(struct udevice *dev, const int *pin,
 	for (i = 0 ; i < pin_number ; i++) {
 		cfg = &pincfgs[pin[i]];
 		if (mode == fn_gpio || cfg->fn0 == mode || cfg->fn1 == mode || cfg->fn2 == mode) {
-			if (cfg->reg0)
+			if (cfg->reg0) {
 				if (cfg->fn0 == mode)
 					setbits_le32(ctrl_reg + cfg->reg0, BIT(cfg->bit0));
 				else
 					clrbits_le32(ctrl_reg + cfg->reg0, BIT(cfg->bit0));
-
-			if (cfg->reg1)
+                        }
+			if (cfg->reg1) {
 				if (cfg->fn1 == mode)
 					setbits_le32(ctrl_reg + cfg->reg1, BIT(cfg->bit1));
 				else
 					clrbits_le32(ctrl_reg + cfg->reg1, BIT(cfg->bit1));
-
-			if (cfg->reg2)
+                        }
+			if (cfg->reg2) {
 				if (cfg->fn2 == mode)
 					setbits_le32(ctrl_reg + cfg->reg2, BIT(cfg->bit2));
 				else
 					clrbits_le32(ctrl_reg + cfg->reg2, BIT(cfg->bit2));
+			}
 		}
 	}
 }

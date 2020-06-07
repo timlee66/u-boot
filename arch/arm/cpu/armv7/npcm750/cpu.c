@@ -24,6 +24,7 @@
 #include <asm/io.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/gcr.h>
+#include <asm/armv7.h>
 
 int print_cpuinfo (void)
 {

@@ -100,29 +100,6 @@ static int npcm750_fiu_spi_set_mode(struct udevice *bus, uint mode)
 
 static int npcm750_fiu_spi_claim_bus(struct udevice *dev)
 {
-	struct udevice *bus = dev->parent;
-	struct npcm750_fiu_spi_priv *priv = dev_get_priv(bus);
-	struct dm_spi_slave_platdata *slave_plat =
-			dev_get_parent_platdata(dev);
-	bool cs0_en, cs1_en, cs2_en, cs3_en, quad_mode;
-
-	cs0_en = cs1_en = cs2_en = cs3_en = quad_mode = false;
-
-	switch (slave_plat->cs) {
-	case 0:
-	default:
-		cs0_en = true;
-		quad_mode = true;
-		break;
-	case 1:
-		cs1_en = true;
-		quad_mode = true;
-	case 2:
-	case 3:
-	case 4:
-		break;
-	};
-
 	return 0;
 }
 

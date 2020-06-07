@@ -386,7 +386,6 @@ static int npcm750_eth_probe(struct udevice *dev)
 	u32 iobase = pdata->iobase;
 	int ret;
 
-    struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
     struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 
 	memset(priv, 0, sizeof(struct npcm750_eth_dev));
