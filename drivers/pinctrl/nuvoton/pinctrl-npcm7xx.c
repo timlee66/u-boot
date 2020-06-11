@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2020 Nuvoton Technology Corp.
- * Author: Tomer Maimon <tomer.maimon@nuvoton.com>
  * Author: Joseph Liu <kwliu@nuvoton.com>
+ * Author: Tomer Maimon <tomer.maimon@nuvoton.com>
  */
 
 #include <common.h>
@@ -1338,6 +1338,34 @@ static const struct pinconf_param npcm7xx_conf_params[] = {
 	{ "event-clear", PIN_CONFIG_EVENT_CLEAR, 0},
 };
 
+static bool is_gpio_persist(struct udevice *dev, enum reset_type type, u8 bank)
+{
+	struct npcm7xx_pinctrl_priv *priv = dev_get_priv(dev);
+	u32 base = priv->clk_base;
+
+	u8 offset = bank + GPIOX_MODULE_RESET;
+	u32 mask = 1 << offset;
+
+	dev_dbg(dev, "reboot reason: 0x%x \n", type);
+
+	switch ((int)type) {
+		case (PORST):
+			return false;
+		case (CORST):
+			return !((readl(base + NPCM7XX_RST_CORSTC) & mask) >> offset);
+		case (WD0RST):
+			return !((readl(base + NPCM7XX_RST_WD0RCR) & mask) >> offset);
+		case (WD1RST):
+			return !((readl(base + NPCM7XX_RST_WD1RCR) & mask) >> offset);
+		case (WD2RST):
+			return !((readl(base + NPCM7XX_RST_WD2RCR) & mask) >> offset);
+		default:
+			return false;
+			break;
+	}
+
+}
+
 static int npcm7xx_gpio_reset_persist(struct udevice *dev, unsigned int banknum, int enable)
 {
 	struct npcm7xx_pinctrl_priv *priv = dev_get_priv(dev);
@@ -1447,13 +1475,18 @@ static int npcm7xx_pinconf_set(struct udevice *dev, unsigned int pin,
 
 	npcm7xx_setfunc(dev, (const int *)&pin, 1, fn_gpio);
 
-	switch (param) {
 	/* To prevent unexpected IRQ trap at verctor 00 in linux kernel */
-	case PIN_CONFIG_EVENT_CLEAR:
+	if (param == PIN_CONFIG_EVENT_CLEAR) {
 		dev_dbg(dev, "set pin %d event clear \n", pin);
 		clrbits_le32(base + NPCM7XX_GP_N_EVEN, BIT(gpio));
 		setbits_le32(base + NPCM7XX_GP_N_EVST, BIT(gpio));
-		break;
+		return err;
+	}
+
+	if (is_gpio_persist(dev, npcm7xx_reset_reason(), bank))
+		return err;
+
+	switch (param) {
 	case PIN_CONFIG_BIAS_DISABLE:
 		dev_dbg(dev, "set pin %d bias dsiable \n", pin);
 		clrbits_le32(base + NPCM7XX_GP_N_PU, BIT(gpio));
