@@ -1505,9 +1505,9 @@ static int npcm7xx_pinconf_set(struct udevice *dev, unsigned int pin,
 	case PIN_CONFIG_POLARITY_STATE:
 		dev_dbg(dev, "set pin %d active %d \n", pin, arg);
 		if (arg)
-			clrbits_le32(base + NPCM7XX_GP_N_POL, BIT(gpio));
-		else
 			setbits_le32(base + NPCM7XX_GP_N_POL, BIT(gpio));
+		else
+			clrbits_le32(base + NPCM7XX_GP_N_POL, BIT(gpio));
 		break;
 	case PIN_CONFIG_DRIVE_STRENGTH:
 		dev_dbg(dev, "set pin %d driver strength %d \n", pin, arg);
