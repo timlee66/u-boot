@@ -80,7 +80,7 @@ static int do_stdalonetst(cmd_tbl_t *cmdtp, int flag, int argc, char * const arg
 		if (!strncmp(argv[1], "exec", 4))
 			test_bin_number = simple_strtoul(argv[2], NULL, 16);
 
-		if( test_bin_number > i || test_bin_number <= 1 )
+		if( test_bin_number > i || test_bin_number <= 0 )
 		{
 			printf("%s(): Only %d Standalone Test exist\n", __func__, i);
 			return CMD_RET_FAILURE;
