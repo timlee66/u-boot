@@ -1482,11 +1482,13 @@ static int npcm7xx_pinconf_set(struct udevice *dev, unsigned int pin,
 		setbits_le32(base + NPCM7XX_GP_N_EVST, BIT(gpio));
 		return err;
 	}
+
 	// allow set persist state disable
-	if (param == PIN_CONFIG_PERSIST_STATE && arg == 0) {
+	if (param == PIN_CONFIG_PERSIST_STATE) {
 		npcm7xx_gpio_reset_persist(dev, bank, arg);
 		return err;
 	}
+
 	if (is_gpio_persist(dev, npcm7xx_reset_reason(), bank))
 		return err;
 
