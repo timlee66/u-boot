@@ -215,6 +215,76 @@ static int npcm_smb_send_stop(struct npcm_i2c_bus *bus, int timeout)
 	return err;
 }
 
+static void npcm_smb_reset(struct npcm_i2c_bus *bus)
+{
+	struct npcm750_smb_regs *reg = bus->reg;
+
+	printf("npcm_smb_reset: module %d\n", bus->module_num);
+	/* disable & enable SMB moudle */
+	writeb(readb(&reg->ctl2) & ~SMBCTL2_ENABLE, &reg->ctl2);
+	writeb(readb(&reg->ctl2) | SMBCTL2_ENABLE, &reg->ctl2);
+
+	/* clear BB and status */
+	writeb(SMBCST_BB, &reg->cst);
+	writeb(0xff, &reg->st);
+
+	/* select bank 1 */
+	writeb(readb(&reg->ctl3) | SMBCTL3_BNK_SEL, &reg->ctl3);
+	/* Clear all fifo bits */
+	writeb(SMBFIF_CTS_CLR_FIFO, &reg->bank1.fif_cts);
+
+	/* select bank 0 */
+	writeb(readb(&reg->ctl3) & ~SMBCTL3_BNK_SEL, &reg->ctl3);
+	/* clear EOB bit */
+	writeb(SMBCST3_EO_BUSY, &reg->bank0.cst3);
+	/* single byte mode */
+	writeb(readb(&reg->bank0.fif_ctl) & ~SMBFIF_CTL_FIFO_EN, &reg->bank0.fif_ctl);
+
+	/* set POLL mode */
+	writeb(0, &reg->ctl1);
+}
+
+static void npcm_smb_recovery(struct npcm_i2c_bus *bus, u32 addr)
+{
+	u8 val;
+	int iter = 27;
+	struct npcm750_smb_regs *reg = bus->reg;
+	int err;
+
+	val = readb(&reg->ctl3);
+	/* Skip recovery, bus not stucked */
+	if ((val & SMBCTL3_SCL_LVL) && (val & SMBCTL3_SDA_LVL))
+		return;
+
+	printf("Performing I2C bus %d recovery...\n", bus->module_num);
+	/* SCL/SDA are not releaed, perform recovery */
+	while (1) {
+		/* toggle SCL line */
+		writeb(SMBCST_TGSCL, &reg->cst);
+
+		udelay(20);
+		val = readb(&reg->ctl3);
+		if (val & SMBCTL3_SDA_LVL)
+			break;
+		if (iter-- == 0)
+			break;
+	}
+
+	if (val & SMBCTL3_SDA_LVL) {
+		writeb((u8)((addr << 1) & 0xff), &reg->sda);
+		err = npcm_smb_send_start(bus, 1000);
+		if (!err) {
+			udelay(20);
+			npcm_smb_send_stop(bus, 0);
+			udelay(200);
+			printf("I2C bus %d recovery completed\n", bus->module_num);
+		} else
+			printf("%s: send START err %d\n", __func__, err);
+	} else
+		printf("Fail to recover I2C bus %d\n", bus->module_num);
+	npcm_smb_reset(bus);
+}
+
 static int npcm_smb_send_address(struct npcm_i2c_bus *bus, u8 addr,
 		int stall)
 {
@@ -467,6 +537,8 @@ static int npcm_smb_xfer(struct udevice *dev,
 	if (bus->started && npcm_smb_send_stop(bus, 1000) != 0)
 		printf("error generating STOP\n");
 
+	if (err)
+		npcm_smb_recovery(bus, msg->addr);
 	return ret;
 }
 

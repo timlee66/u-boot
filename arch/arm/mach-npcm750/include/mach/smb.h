@@ -12,10 +12,15 @@
 /* SMBCTL2 */
 #define SMBCTL2_ENABLE		BIT(0)
 
+/* SMBCTL3 */
+#define SMBCTL3_SCL_LVL		BIT(7)
+#define SMBCTL3_SDA_LVL		BIT(6)
+
 /* SMBCST */
 #define SMBCST_BB		BIT(1)
+#define SMBCST_TGSCL	BIT(5)
 
-/* SBMST */
+/* SMBST */
 #define SMBST_XMIT		BIT(0)
 #define SMBST_MASTER	BIT(1)
 #define SMBST_STASTR	BIT(3)
@@ -23,6 +28,11 @@
 #define SMBST_BER		BIT(5)
 #define SMBST_SDAST		BIT(6)
 
+/* SMBCST3 in bank0 */
+#define SMBCST3_EO_BUSY	BIT(7)
+
+/* SMBFIF_CTS in bank1 */
+#define SMBFIF_CTS_CLR_FIFO	BIT(6)
 
 #define SMBFIF_CTL_FIFO_EN	BIT(4)
 #define SMBCTL3_BNK_SEL		BIT(5)
