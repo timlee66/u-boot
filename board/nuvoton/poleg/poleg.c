@@ -12,6 +12,7 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/poleg_otp.h>
 #include <asm/arch/poleg_info.h>
+#include <asm/arch/poleg_espi.h>
 #include <common.h>
 #include <dm.h>
 #include <fdtdec.h>
@@ -205,6 +206,7 @@ int board_init(void)
 	struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
 	int nodeoff;
 	u32 reg_val = 0;
+	u32 espi_ch_supp;
 
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
@@ -232,6 +234,15 @@ int board_init(void)
                 "quanta,olympus")) >= 0) {
 		/* Uart Mode7 - BMC UART3 connected to Serial Interface 2 */
 		writel(((readl(&gcr->spswc) & ~(SPMOD_MASK)) | SPMOD_MODE7), &gcr->spswc);
+	}
+
+	if (readl(&gcr->mfsel4) & (1 << MFSEL4_ESPISEL)) {
+		espi_ch_supp = fdtdec_get_config_int(gd->fdt_blob, "espi-channel-support", 0);
+		if (espi_ch_supp > 0) {
+			reg_val = readl(NPCM750_ESPI_BA + ESPICFG);
+			writel(reg_val | ((espi_ch_supp & ESPICFG_CHNSUPP_MASK) << ESPICFG_CHNSUPP_SHFT),
+					NPCM750_ESPI_BA + ESPICFG);
+		}
 	}
 
 	return 0;
