@@ -41,7 +41,7 @@ enum fiu_moudle_tag {
 };
 
 
-struct npcm750_fiu_regs {
+struct npcmX50_fiu_regs {
 	unsigned int    drd_cfg;
 	unsigned int    dwr_cfg;
 	unsigned int    uma_cfg;

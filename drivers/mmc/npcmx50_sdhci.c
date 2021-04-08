@@ -28,8 +28,13 @@
 #include <asm/arch/gcr.h>
 #include <asm/arch/clock.h>
 
+#if defined (CONFIG_TARGET_ARBEL)
+#define NPCMX50_EMMC        0
+#define NPCMX50_SD         -1    // SD card not existed in Arbel
+#elif defined (CONFIG_TARGET_POLEG)
 #define NPCMX50_SD          0
 #define NPCMX50_EMMC        1
+#endif
 
 #ifdef CONFIG_DM_MMC
 struct npcmx50_sdhci_plat {
@@ -40,6 +45,53 @@ struct npcmx50_sdhci_plat {
 DECLARE_GLOBAL_DATA_PTR;
 #endif
 
+static int npcmx50_sdhci_init(int index)
+{
+#if defined (CONFIG_TARGET_ARBEL)
+	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm850_get_base_clk();
+#elif defined (CONFIG_TARGET_POLEG)
+	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
+#endif
+
+	if (index == NPCMX50_SD) {
+#if defined (CONFIG_TARGET_POLEG)
+		writel(readl(&gcr->mfsel3) | (1 << MFSEL3_SD1SEL), &gcr->mfsel3);
+#endif
+		writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_SDHC), &clkctl->ipsrst2);
+		writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_SDHC), &clkctl->ipsrst2);
+	}
+	else if (index == NPCMX50_EMMC) {
+
+#if defined (CONFIG_TARGET_ARBEL)
+		writel(readl(&gcr->flockr2) & ~(1 << FLOCKR2_MMCRST), &gcr->flockr2);
+		writel(readl(&gcr->flockr2) | (1 << FLOCKR2_MMCRST), &gcr->flockr2);
+#ifdef _NPCM850_EXT_SD_
+		writel(readl((volatile uint32_t *)(0xf0800efc)) | (1 << 6), (volatile uint32_t *)(0xf0800efc));
+		printf("BIT6=1 SD  SCRCHPAD63=0x%x  \n", *(volatile uint32_t *)(0xf0800efc));
+#else
+		writel(readl((volatile uint32_t *)(0xf0800efc)) & ~(1 << 6), (volatile uint32_t *)(0xf0800efc));
+		printf("BIT6=0 eMMC  SCRCHPAD63=0x%x  \n", *(volatile uint32_t *)(0xf0800efc));
+#endif		
+#endif
+
+#if defined (CONFIG_TARGET_ARBEL)
+#ifdef _NPCM850_EXT_SD_
+		writel((readl(&gcr->mfsel3) & ~(1 << MFSEL3_MMCCDSEL) ) | (1 << MFSEL3_MMCSEL), &gcr->mfsel3);
+#else
+		writel((readl(&gcr->mfsel3) & ~(1 << MFSEL3_MMCCDSEL) ) | (1 << MFSEL3_MMCSEL) | (1 << MFSEL3_MMC8SEL), &gcr->mfsel3);
+#endif
+#elif defined (CONFIG_TARGET_POLEG)
+		writel((readl(&gcr->mfsel3) & ~(1 << MFSEL3_MMCCDSEL) ) | (1 << MFSEL3_MMCSEL) | (1 << MFSEL3_MMC8SEL), &gcr->mfsel3);
+		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_MMCRSEL)), &gcr->mfsel4);		
+#endif
+
+		writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_MMC), &clkctl->ipsrst2);
+		writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_MMC), &clkctl->ipsrst2);
+	}
+	return 0;
+}
 
 #ifdef CONFIG_DM_MMC
 static int npcmx50_sdhci_probe(struct udevice *dev)
@@ -49,10 +101,33 @@ static int npcmx50_sdhci_probe(struct udevice *dev)
 	struct sdhci_host *host = dev_get_priv(dev);
 	int ret;
 
-	host->quirks = SDHCI_QUIRK_NO_HISPD_BIT | SDHCI_QUIRK_BROKEN_VOLTAGE |
-			SDHCI_QUIRK_32BIT_DMA_ADDR |
-			SDHCI_QUIRK_WAIT_SEND_CMD | SDHCI_QUIRK_USE_WIDE8;
+	ret = npcmx50_sdhci_init(host->index);
+	if (ret)
+		return ret;
+
+
+	host->quirks = SDHCI_QUIRK_BROKEN_R1B | SDHCI_QUIRK_WAIT_SEND_CMD |
+	               SDHCI_QUIRK_32BIT_DMA_ADDR | SDHCI_QUIRK_USE_WIDE8;
+
 	host->voltages = MMC_VDD_32_33 | MMC_VDD_33_34 | MMC_VDD_165_195;
+
+#if defined (CONFIG_TARGET_POLEG)
+	if (host->index == NPCMX50_SD)
+#endif		
+	{
+#if defined (CONFIG_TARGET_POLEG) || defined (_NPCM850_EXT_SD_)
+		unsigned int status;
+
+		sdhci_writeb(host, SDHCI_CTRL_CD_TEST_INS | SDHCI_CTRL_CD_TEST,
+			SDHCI_HOST_CONTROL);
+
+		status = sdhci_readl(host, SDHCI_PRESENT_STATE);
+		while ((!(status & SDHCI_CARD_PRESENT)) ||
+		    (!(status & SDHCI_CARD_STATE_STABLE)) ||
+		    (!(status & SDHCI_CARD_DETECT_PIN_LEVEL)))
+			status = sdhci_readl(host, SDHCI_PRESENT_STATE);
+#endif
+	}
 
 	host->version = sdhci_readw(host, SDHCI_HOST_VERSION);
 	if (host->bus_width == 4)
@@ -81,8 +156,12 @@ static int npcmx50_ofdata_to_platdata(struct udevice *dev)
 
 	host->name = strdup(dev->name);
 	host->ioaddr = (void *)dev_read_addr(dev);
+#ifdef _NPCM850_EXT_SD_
+	host->bus_width = 4;
+#else
 	host->bus_width = fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
 			"bus-width", 4);
+#endif
 	host->index = fdtdec_get_uint(gd->fdt_blob, dev_of_offset(dev), "index", 0);
 	host->clock = fdtdec_get_uint(gd->fdt_blob, dev_of_offset(dev),
 			"clock-frequency", 400000);

@@ -33,22 +33,27 @@ enum {
 	SMB_ERR_BUF_FULL,
 };
 
-struct npcm_i2c_bus {
+struct npcmX50_i2c_bus {
 	struct udevice			*dev;
-	struct npcm750_smb_regs *reg;
+	struct npcmX50_smb_regs *reg;
 	int	module_num;
 	u32 apb_clk;
 	u32 freq;
 	int started;
 };
 
-void npcm7xx_smb_mux(unsigned int smb_module)
+void npcmX50_smb_mux(unsigned int smb_module)
 {
+#if defined (CONFIG_TARGET_ARBEL)
+	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+#elif defined (CONFIG_TARGET_POLEG)
 	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+#endif
 	u32 val;
 
 	switch (smb_module) {
 	case 0:
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB0SEL)), &gcr->mfsel1);
 		val = readl(&gcr->i2csegsel) & ~(3 << I2CSEGSEL_S0DECFG);
 		writel(val, &gcr->i2csegsel);
 		val = readl(&gcr->i2csegctl) | (1 << I2CSEGCTL_S0DWE) | (1 << I2CSEGCTL_S0DEN);
@@ -56,14 +61,18 @@ void npcm7xx_smb_mux(unsigned int smb_module)
 		break;
 
 	case 1:
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB1SEL)), &gcr->mfsel1);
 		break;
 
 	case 2:
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB2SEL)), &gcr->mfsel1);
 		break;
 
 	case 3:
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB3SEL)), &gcr->mfsel1);
 		break;
 	case 4:
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB4SEL)), &gcr->mfsel1);
 		val = readl(&gcr->i2csegsel) & ~(3 << I2CSEGSEL_S4DECFG);
 		writel(val, &gcr->i2csegsel);
 		val = readl(&gcr->i2csegctl) | (1 << I2CSEGCTL_S4DWE) | (1 << I2CSEGCTL_S4DEN);
@@ -71,45 +80,57 @@ void npcm7xx_smb_mux(unsigned int smb_module)
 		break;
 
 	case 5:
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_SMB5SEL)), &gcr->mfsel1);
 		break;
 
 	case 6:
+		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB6SEL)), &gcr->mfsel1);
 		break;
 
 	case 7:
+		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB7SEL)), &gcr->mfsel1);
 		break;
 
 	case 8:
+		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SMB8SEL)), &gcr->mfsel1);
 		break;
 
 	case 9:
+		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SMB9SEL)), &gcr->mfsel1);
 		break;
 
 	case 10:
+		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SMB10SEL)), &gcr->mfsel1);
 		break;
 
 	case 11:
+		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SMB11SEL)), &gcr->mfsel1);
 		break;
 
 	case 12:
+		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB12SEL)), &gcr->mfsel1);
 		break;
 
 	case 13:
+		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB13SEL)), &gcr->mfsel1);
 		break;
 
 	case 14:
+		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB14SEL)), &gcr->mfsel1);
 		break;
 
 	case 15:
+		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_SMB15SEL)), &gcr->mfsel1);
 		break;
 	default:
+
 		break;
 	}
 }
 
-static void npcm_dump_regs(struct npcm_i2c_bus *bus)
+static void npcm_dump_regs(struct npcmX50_i2c_bus *bus)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 
 	printf("\n");
 	printf("SMBST=0x%x\n", readb(&reg->st));
@@ -118,9 +139,9 @@ static void npcm_dump_regs(struct npcm_i2c_bus *bus)
 	printf("\n");
 }
 
-static int npcm_smb_wait_nack(struct npcm_i2c_bus *bus, int timeout)
+static int npcm_smb_wait_nack(struct npcmX50_i2c_bus *bus, int timeout)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	int err = SMB_ERR_TIMEOUT;
 
 	while (--timeout > 0) {
@@ -133,9 +154,9 @@ static int npcm_smb_wait_nack(struct npcm_i2c_bus *bus, int timeout)
 	return err;
 }
 
-static int npcm_smb_check_sda(struct npcm_i2c_bus *bus)
+static int npcm_smb_check_sda(struct npcmX50_i2c_bus *bus)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	int timeout = 10000;
 	int err = SMB_ERR_TIMEOUT;
 	u8 val;
@@ -164,9 +185,9 @@ static int npcm_smb_check_sda(struct npcm_i2c_bus *bus)
 	return err;
 }
 
-static int npcm_smb_send_start(struct npcm_i2c_bus *bus, int timeout)
+static int npcm_smb_send_start(struct npcmX50_i2c_bus *bus, int timeout)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	int err = SMB_ERR_TIMEOUT;
 	debug("START\n");
 
@@ -187,9 +208,9 @@ static int npcm_smb_send_start(struct npcm_i2c_bus *bus, int timeout)
 	return err;
 }
 
-static int npcm_smb_send_stop(struct npcm_i2c_bus *bus, int timeout)
+static int npcm_smb_send_stop(struct npcmX50_i2c_bus *bus, int timeout)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	int err = SMB_ERR_TIMEOUT;
 
 	debug("STOP\n");
@@ -215,80 +236,10 @@ static int npcm_smb_send_stop(struct npcm_i2c_bus *bus, int timeout)
 	return err;
 }
 
-static void npcm_smb_reset(struct npcm_i2c_bus *bus)
-{
-	struct npcm750_smb_regs *reg = bus->reg;
-
-	printf("npcm_smb_reset: module %d\n", bus->module_num);
-	/* disable & enable SMB moudle */
-	writeb(readb(&reg->ctl2) & ~SMBCTL2_ENABLE, &reg->ctl2);
-	writeb(readb(&reg->ctl2) | SMBCTL2_ENABLE, &reg->ctl2);
-
-	/* clear BB and status */
-	writeb(SMBCST_BB, &reg->cst);
-	writeb(0xff, &reg->st);
-
-	/* select bank 1 */
-	writeb(readb(&reg->ctl3) | SMBCTL3_BNK_SEL, &reg->ctl3);
-	/* Clear all fifo bits */
-	writeb(SMBFIF_CTS_CLR_FIFO, &reg->bank1.fif_cts);
-
-	/* select bank 0 */
-	writeb(readb(&reg->ctl3) & ~SMBCTL3_BNK_SEL, &reg->ctl3);
-	/* clear EOB bit */
-	writeb(SMBCST3_EO_BUSY, &reg->bank0.cst3);
-	/* single byte mode */
-	writeb(readb(&reg->bank0.fif_ctl) & ~SMBFIF_CTL_FIFO_EN, &reg->bank0.fif_ctl);
-
-	/* set POLL mode */
-	writeb(0, &reg->ctl1);
-}
-
-static void npcm_smb_recovery(struct npcm_i2c_bus *bus, u32 addr)
-{
-	u8 val;
-	int iter = 27;
-	struct npcm750_smb_regs *reg = bus->reg;
-	int err;
-
-	val = readb(&reg->ctl3);
-	/* Skip recovery, bus not stucked */
-	if ((val & SMBCTL3_SCL_LVL) && (val & SMBCTL3_SDA_LVL))
-		return;
-
-	printf("Performing I2C bus %d recovery...\n", bus->module_num);
-	/* SCL/SDA are not releaed, perform recovery */
-	while (1) {
-		/* toggle SCL line */
-		writeb(SMBCST_TGSCL, &reg->cst);
-
-		udelay(20);
-		val = readb(&reg->ctl3);
-		if (val & SMBCTL3_SDA_LVL)
-			break;
-		if (iter-- == 0)
-			break;
-	}
-
-	if (val & SMBCTL3_SDA_LVL) {
-		writeb((u8)((addr << 1) & 0xff), &reg->sda);
-		err = npcm_smb_send_start(bus, 1000);
-		if (!err) {
-			udelay(20);
-			npcm_smb_send_stop(bus, 0);
-			udelay(200);
-			printf("I2C bus %d recovery completed\n", bus->module_num);
-		} else
-			printf("%s: send START err %d\n", __func__, err);
-	} else
-		printf("Fail to recover I2C bus %d\n", bus->module_num);
-	npcm_smb_reset(bus);
-}
-
-static int npcm_smb_send_address(struct npcm_i2c_bus *bus, u8 addr,
+static int npcm_smb_send_address(struct npcmX50_i2c_bus *bus, u8 addr,
 		int stall)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	u8 val;
 	int timeout = 1000;
 #if 0
@@ -336,9 +287,9 @@ static int npcm_smb_send_address(struct npcm_i2c_bus *bus, u8 addr,
 	return 0;
 }
 
-static int npcm_smb_read_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
+static int npcm_smb_read_bytes(struct npcmX50_i2c_bus *bus, u8 *data, int len)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	int i;
 	int err = 0;
 
@@ -403,9 +354,9 @@ static int npcm_smb_read_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 	return err;
 }
 
-static int npcm_smb_send_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
+static int npcm_smb_send_bytes(struct npcmX50_i2c_bus *bus, u8 *data, int len)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	u8 val;
 	int i;
 	int err = 0;
@@ -433,10 +384,10 @@ static int npcm_smb_send_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 	return err;
 }
 
-static int npcm_smb_read(struct npcm_i2c_bus *bus, u32 addr, u8 *data,
+static int npcm_smb_read(struct npcmX50_i2c_bus *bus, u32 addr, u8 *data,
 			      u32 len)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	int err, stall ;
 	debug("i2c_read: slave addr 0x%x, %u bytes\n", addr, len);
 
@@ -468,10 +419,10 @@ static int npcm_smb_read(struct npcm_i2c_bus *bus, u32 addr, u8 *data,
 	return err;
 }
 
-static int npcm_smb_write(struct npcm_i2c_bus *bus, u32 addr, u8 *data,
+static int npcm_smb_write(struct npcmX50_i2c_bus *bus, u32 addr, u8 *data,
 			      u32 len)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	int err, stall;
 
 	debug("smb_write: slave addr 0x%x, %u bytes\n", addr, len);
@@ -508,8 +459,8 @@ static int npcm_smb_write(struct npcm_i2c_bus *bus, u32 addr, u8 *data,
 static int npcm_smb_xfer(struct udevice *dev,
 			      struct i2c_msg *msg, int nmsgs)
 {
-	struct npcm_i2c_bus *bus = dev_get_priv(dev);
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_i2c_bus *bus = dev_get_priv(dev);
+	struct npcmX50_smb_regs *reg = bus->reg;
 	int ret = 0, err = 0;
 
 	if (nmsgs < 1 || nmsgs > 2) {
@@ -537,14 +488,12 @@ static int npcm_smb_xfer(struct udevice *dev,
 	if (bus->started && npcm_smb_send_stop(bus, 1000) != 0)
 		printf("error generating STOP\n");
 
-	if (err)
-		npcm_smb_recovery(bus, msg->addr);
 	return ret;
 }
 
-static int npcm_smb_init_clk(struct npcm_i2c_bus *bus, u32 bus_freq)
+static int npcm_smb_init_clk(struct npcmX50_i2c_bus *bus, u32 bus_freq)
 {
-	struct npcm750_smb_regs *reg = bus->reg;
+	struct npcmX50_smb_regs *reg = bus->reg;
 	u16  sclfrq	= 0;
 	u8   hldt		= 7;
 	u32  source_clock_freq;
@@ -592,7 +541,7 @@ static int npcm_smb_set_bus_speed(struct udevice *dev,
 						unsigned int speed)
 {
 	int ret;
-	struct npcm_i2c_bus *bus = dev_get_priv(dev);
+	struct npcmX50_i2c_bus *bus = dev_get_priv(dev);
 
 	ret = npcm_smb_init_clk(bus, bus->freq);
 
@@ -601,8 +550,8 @@ static int npcm_smb_set_bus_speed(struct udevice *dev,
 
 static int npcm_smb_probe(struct udevice *dev)
 {
-	struct npcm_i2c_bus *bus = dev_get_priv(dev);
-	struct npcm750_smb_regs *reg;
+	struct npcmX50_i2c_bus *bus = dev_get_priv(dev);
+	struct npcmX50_smb_regs *reg;
 	struct clk clk;
 	int ret;
 
@@ -619,12 +568,12 @@ static int npcm_smb_probe(struct udevice *dev)
 	clk_free(&clk);
 
 	bus->module_num = dev->seq;
-	bus->reg = (struct npcm750_smb_regs *)dev_read_addr_ptr(dev);
+	bus->reg = (struct npcmX50_smb_regs *)dev_read_addr_ptr(dev);
 	bus->freq = dev_read_u32_default(dev, "clock-frequency", 100000);
 	bus->started = 0;
 	reg = bus->reg;
 
-	npcm7xx_smb_mux(bus->module_num);
+	npcmX50_smb_mux(bus->module_num);
 	if (npcm_smb_init_clk(bus, bus->freq) != 0) {
 		printf("%s: init_clk failed\n", __func__);
 		return -EINVAL;
@@ -642,7 +591,7 @@ static int npcm_smb_probe(struct udevice *dev)
 	writeb(0, &reg->ctl1);
 
 	printf("I2C bus%d ready. speed=%d, base=0x%x, apb=%u\n",
-		bus->module_num, bus->freq, (u32)bus->reg, bus->apb_clk);
+		bus->module_num, bus->freq, (u32)(uintptr_t)bus->reg, bus->apb_clk);
 
 	return 0;
 }
@@ -653,16 +602,16 @@ static const struct dm_i2c_ops nuvoton_i2c_ops = {
 };
 
 static const struct udevice_id nuvoton_i2c_of_match[] = {
-	{ .compatible = "nuvoton,npcm750-i2c-bus" },
+	{ .compatible = "nuvoton,npcmX50-i2c-bus" },
 	{}
 };
 
-U_BOOT_DRIVER(npcm750_i2c_bus) = {
-	.name = "npcm750-i2c",
+U_BOOT_DRIVER(npcmX50_i2c_bus) = {
+	.name = "npcmX50-i2c",
 	.id = UCLASS_I2C,
 	.of_match = nuvoton_i2c_of_match,
 	.probe = npcm_smb_probe,
-	.priv_auto_alloc_size = sizeof(struct npcm_i2c_bus),
+	.priv_auto_alloc_size = sizeof(struct npcmX50_i2c_bus),
 	.ops = &nuvoton_i2c_ops,
 };
 

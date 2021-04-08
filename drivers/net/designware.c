@@ -23,6 +23,17 @@
 #include <power/regulator.h>
 #include "designware.h"
 
+#ifdef CONFIG_TARGET_ARBEL
+#include <asm/io.h>
+
+//#define debug printf
+
+#define SR_MII_CTRL_SS6_BIT6  6
+#define SR_MII_CTRL_ANEN_BIT12  12
+#define SR_MII_CTRL_SS13_BIT13  13
+#define SR_MII_STS_LINKUP_BIT2  2
+#endif
+
 static int dw_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 {
 #ifdef CONFIG_DM_ETH
@@ -234,6 +245,10 @@ static int _dw_write_hwaddr(struct dw_eth_dev *priv, u8 *mac_id)
 static int dw_adjust_link(struct dw_eth_dev *priv, struct eth_mac_regs *mac_p,
 			  struct phy_device *phydev)
 {
+#ifdef CONFIG_TARGET_ARBEL
+	unsigned int start;
+	char *phy_speed;
+#endif
 	u32 conf = readl(&mac_p->conf) | FRAMEBURSTENABLE | DISABLERXOWN;
 
 	if (!phydev->link) {
@@ -257,6 +272,71 @@ static int dw_adjust_link(struct dw_eth_dev *priv, struct eth_mac_regs *mac_p,
 	printf("Speed: %d, %s duplex%s\n", phydev->speed,
 	       (phydev->duplex) ? "full" : "half",
 	       (phydev->port == PORT_FIBRE) ? ", fiber mode" : "");
+	debug("dw_adjust_link readl(&mac_p->conf) = 0x%x \n",readl(&mac_p->conf));
+		   
+#ifdef CONFIG_TARGET_ARBEL
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+		phy_speed = env_get("physpeed");
+		phydev->speed = simple_strtoul(phy_speed, NULL, 10);
+		
+		if( phydev->interface == PHY_INTERFACE_MODE_MII)
+		{
+			phydev->duplex = DUPLEX_FULL;
+		}
+		if( phydev->interface == PHY_INTERFACE_MODE_RGMII)
+		{	
+			phydev->duplex = DUPLEX_FULL;
+		}
+		if( phydev->interface == PHY_INTERFACE_MODE_SGMII)
+		{
+			phydev->duplex = DUPLEX_FULL;
+		}
+#endif	
+		if( phydev->interface == PHY_INTERFACE_MODE_SGMII)
+		{
+			writew(0x1F00, 0xF07801FE);           /* Get access to 0x3E... (SR_MII_STS) */
+			/* Clear SGMII PHY default auto neg. */
+			writew(readw(0xF0780000) & ~(1 << SR_MII_CTRL_ANEN_BIT12), 0xF0780000);
+
+            switch (phydev->speed) {
+			    case SPEED_1000:
+				/* Set SGMII PHY 10/100/1000   SS6=1  */
+				writew(readw(0xF0780000) | (1 << SR_MII_CTRL_SS6_BIT6), 0xF0780000);
+				/* Set SGMII PHY 10/100/1000   SS13=0 */
+				writew(readw(0xF0780000) & ~(1 << SR_MII_CTRL_SS13_BIT13), 0xF0780000);	
+				break;
+			    case SPEED_100:
+				/* Set SGMII PHY 10/100/1000   SS6=0  */
+				writew(readw(0xF0780000) & ~(1 << SR_MII_CTRL_SS6_BIT6), 0xF0780000);
+				/* Set SGMII PHY 10/100/1000   SS13=1 */
+				writew(readw(0xF0780000) | (1 << SR_MII_CTRL_SS13_BIT13), 0xF0780000);	
+				break;
+			    case SPEED_10:
+				/* Set SGMII PHY 10/100/1000   SS6=0  */
+				writew(readw(0xF0780000) & ~(1 << SR_MII_CTRL_SS6_BIT6), 0xF0780000);
+				/* Set SGMII PHY 10/100/1000   SS13=0 */
+				writew(readw(0xF0780000) & ~(1 << SR_MII_CTRL_SS13_BIT13), 0xF0780000);	
+				break;
+			    default:
+				break;
+			}
+
+			start = get_timer(0);
+			printf("SGMII PHY Wait for link up \n");
+        	/* SGMII PHY Wait for link up */
+			while (!(readw(0xF0780002) & (1 << SR_MII_STS_LINKUP_BIT2))) 
+			{
+				if (get_timer(start) >= 3*CONFIG_SYS_HZ) 
+				{
+					printf("PHY link up timeout\n");
+					return -ETIMEDOUT;
+				}
+
+				mdelay(1);
+			};
+			printf("SGMII PHY Wait for link up done \n");			
+		}
+#endif
 
 	return 0;
 }
@@ -278,6 +358,9 @@ int designware_eth_init(struct dw_eth_dev *priv, u8 *enetaddr)
 	struct eth_dma_regs *dma_p = priv->dma_regs_p;
 	unsigned int start;
 	int ret;
+#ifdef CONFIG_TARGET_ARBEL
+	char * is_loopback;
+#endif
 
 	writel(readl(&dma_p->busmode) | DMAMAC_SRST, &dma_p->busmode);
 
@@ -289,8 +372,18 @@ int designware_eth_init(struct dw_eth_dev *priv, u8 *enetaddr)
 		writel(readl(&mac_p->conf) | MII_PORTSELECT, &mac_p->conf);
 	else
 		writel(readl(&mac_p->conf) & ~MII_PORTSELECT, &mac_p->conf);
-
+#ifdef CONFIG_TARGET_ARBEL
+	is_loopback = env_get("gmacloopb");
+	if (simple_strtoul(is_loopback, NULL, 10))
+	{		
+		writel(readl(&mac_p->conf) | (1 << 12), &mac_p->conf);   //  gmac internal loopback !!!!!!
+		printf("GMAC Loop-Back On!\n");
+	}
+#endif
 	start = get_timer(0);
+#ifdef CONFIG_TARGET_ARBEL
+	printf("DMAMAC_SRST wait\n");
+#endif	
 	while (readl(&dma_p->busmode) & DMAMAC_SRST) {
 		if (get_timer(start) >= CONFIG_MACRESET_TIMEOUT) {
 			printf("DMA reset timeout\n");
@@ -299,7 +392,9 @@ int designware_eth_init(struct dw_eth_dev *priv, u8 *enetaddr)
 
 		mdelay(100);
 	};
-
+#ifdef CONFIG_TARGET_ARBEL
+	printf("DMAMAC_SRST wait done\n");	
+#endif
 	/*
 	 * Soft reset above clears HW address registers.
 	 * So we have to set it here once again.
@@ -841,7 +936,7 @@ static const struct udevice_id designware_eth_ids[] = {
 	{ .compatible = "amlogic,meson-gxbb-dwmac" },
 	{ .compatible = "amlogic,meson-axg-dwmac" },
 	{ .compatible = "st,stm32-dwmac" },
-	{ .compatible = "nuvoton,npcm750-dwmac" },
+	{ .compatible = "nuvoton,npcmX50-dwmac" },
 	{ }
 };
 

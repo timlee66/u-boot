@@ -90,19 +90,19 @@ static void npcm750_tx_descs_init(struct npcm750_eth_dev *priv)
 	u8 *txbuffs = &priv->txbuffs[0];
 	u32 idx;
 
-	writel((u32)desc_table_p, &reg->txdlsa);
+	writel((u32)(uintptr_t)desc_table_p, &reg->txdlsa);
 	priv->curr_txd = desc_table_p;
 
 	for (idx = 0; idx < CONFIG_TX_DESCR_NUM; idx++) {
 		desc_p = &desc_table_p[idx];
-		desc_p->buffer = (u32)&txbuffs[idx * PKTSIZE_ALIGN];
+		desc_p->buffer = (u32)(uintptr_t)&txbuffs[idx * PKTSIZE_ALIGN];
 		desc_p->sl = 0;
 		desc_p->mode = 0;
 		desc_p->mode = TX_OWEN_CPU | PADDINGMODE | CRCMODE | MACTXINTEN;
 		if (idx < (CONFIG_TX_DESCR_NUM - 1))
-			desc_p->next = (u32)&desc_table_p[idx + 1];
+			desc_p->next = (u32)(uintptr_t)&desc_table_p[idx + 1];
 		else
-			desc_p->next = (u32)&priv->tdesc[0];
+			desc_p->next = (u32)(uintptr_t)&priv->tdesc[0];
 	}
 	flush_dcache_range((ulong)&desc_table_p[0],
 		(ulong)&desc_table_p[CONFIG_TX_DESCR_NUM]);
@@ -118,17 +118,17 @@ static void npcm750_rx_descs_init(struct npcm750_eth_dev *priv)
 	flush_dcache_range((ulong)priv->rxbuffs[0],
 		(ulong)priv->rxbuffs[CONFIG_RX_DESCR_NUM]);
 
-	writel((u32)desc_table_p, &reg->rxdlsa);
+	writel((u32)(uintptr_t)desc_table_p, &reg->rxdlsa);
 	priv->curr_rxd = desc_table_p;
 
 	for (idx = 0; idx < CONFIG_RX_DESCR_NUM; idx++) {
 		desc_p = &desc_table_p[idx];
 		desc_p->sl = RX_OWEN_DMA;
-		desc_p->buffer = (u32)&rxbuffs[idx * PKTSIZE_ALIGN];
+		desc_p->buffer = (u32)(uintptr_t)&rxbuffs[idx * PKTSIZE_ALIGN];
 		if (idx < (CONFIG_RX_DESCR_NUM - 1))
-			desc_p->next = (u32)&desc_table_p[idx + 1];
+			desc_p->next = (u32)(uintptr_t)&desc_table_p[idx + 1];
 		else
-			desc_p->next = (u32)&priv->rdesc[0];
+			desc_p->next = (u32)(uintptr_t)&priv->rdesc[0];
 	}
 	flush_dcache_range((ulong)&desc_table_p[0],
 		(ulong)&desc_table_p[CONFIG_RX_DESCR_NUM]);
@@ -198,13 +198,15 @@ static void npcm750_adjust_link(struct emc_regs *reg,
 static int npcm750_phy_init(struct npcm750_eth_dev *priv, void *dev)
 {
 	struct phy_device *phydev;
-	int ret;
-	u32 address = 0x0;
+	int mask = -1, ret;
 
-	phydev = phy_connect(priv->bus, address, dev, priv->interface);
+	phydev = phy_find_by_mask(priv->bus, mask, priv->interface);
 	if (!phydev)
 		return -ENODEV;
 
+	phy_connect_dev(phydev, dev);
+
+	phydev->supported &= PHY_GBIT_FEATURES;
 	if (priv->max_speed) {
 		ret = phy_set_supported(phydev, priv->max_speed);
 		if (ret)
@@ -264,10 +266,10 @@ static int npcm750_eth_send(struct udevice *dev, void *packet, int length)
 	invalidate_dcache_range((ulong)desc_p, (ulong)(desc_p+1));
 	/* Check if the descriptor is owned by CPU */
 	if (desc_p->mode & TX_OWEN_DMA) {
-		next_desc_p = (struct npcm750_txbd *)desc_p->next;
+		next_desc_p = (struct npcm750_txbd *)(uintptr_t)desc_p->next;
 
         while ((next_desc_p != desc_p) && (next_desc_p->mode & TX_OWEN_DMA)) {
-            next_desc_p = (struct npcm750_txbd *)next_desc_p->next;
+            next_desc_p = (struct npcm750_txbd *)(uintptr_t)next_desc_p->next;
         }
 
         if (next_desc_p == desc_p) {
@@ -280,7 +282,7 @@ static int npcm750_eth_send(struct udevice *dev, void *packet, int length)
 		desc_p = next_desc_p;
 	}
 
-	memcpy((void *)desc_p->buffer, packet, length);
+	memcpy((void *)(uintptr_t)desc_p->buffer, packet, length);
 	flush_dcache_range((ulong)desc_p->buffer,
 		(ulong)desc_p->buffer + roundup(length, ARCH_DMA_MINALIGN));
 	desc_p->sl = 0;
@@ -291,7 +293,7 @@ static int npcm750_eth_send(struct udevice *dev, void *packet, int length)
 	if (!(readl(&reg->mcmdr) & MCMDR_TXON)) {
 		writel(readl(&reg->mcmdr) | MCMDR_TXON, &reg->mcmdr);
 	}
-	priv->curr_txd = (struct npcm750_txbd *)priv->curr_txd->next;
+	priv->curr_txd = (struct npcm750_txbd *)(uintptr_t)priv->curr_txd->next;
 
 	writel(0, &reg->tsdr);
 	return 0;
@@ -308,9 +310,9 @@ static int npcm750_eth_recv(struct udevice *dev, int flags, uchar **packetp)
 	invalidate_dcache_range((ulong)desc_p, (ulong)(desc_p+1));
 
 	if ((desc_p->sl & RX_STAT_OWNER) == RX_OWEN_DMA) {
-		next_desc_p = (struct npcm750_rxbd *)desc_p->next;
+		next_desc_p = (struct npcm750_rxbd *)(uintptr_t)desc_p->next;
 		while ((next_desc_p != desc_p) && ((next_desc_p->sl & RX_STAT_OWNER) == RX_OWEN_CPU)) {
-			next_desc_p = (struct npcm750_rxbd *)next_desc_p->next;
+			next_desc_p = (struct npcm750_rxbd *)(uintptr_t)next_desc_p->next;
 		}
 
 		if (next_desc_p == desc_p) {
@@ -328,7 +330,7 @@ static int npcm750_eth_recv(struct udevice *dev, int flags, uchar **packetp)
 			length = desc_p->sl & RX_STAT_RBC;
 			invalidate_dcache_range((ulong)desc_p->buffer,
 				(ulong)(desc_p->buffer + roundup(length, ARCH_DMA_MINALIGN)));
-			*packetp = (u8 *)(u32)desc_p->buffer;
+			*packetp = (u8 *)(uintptr_t)desc_p->buffer;
 			priv->curr_rxd = desc_p;
 		}
 	}
@@ -347,7 +349,7 @@ static int npcm750_eth_free_pkt(struct udevice *dev, uchar *packet, int length)
 	 */
 	desc_p->sl |= RX_OWEN_DMA;
 	flush_dcache_range((ulong)desc_p, (ulong)(desc_p + 1));
-	priv->curr_rxd = (struct npcm750_rxbd *)priv->curr_rxd->next;
+	priv->curr_rxd = (struct npcm750_rxbd *)(uintptr_t)priv->curr_rxd->next;
 	writel(0, &reg->rsdr);
 
 	return 0;
@@ -360,8 +362,8 @@ static void npcm750_eth_stop(struct udevice *dev)
 
 	writel(readl(&reg->mcmdr) & ~MCMDR_TXON, &reg->mcmdr);
 	writel(readl(&reg->mcmdr) & ~MCMDR_RXON, &reg->mcmdr);
-	priv->curr_txd= (struct npcm750_txbd *)readl(&reg->txdlsa);
-	priv->curr_rxd= (struct npcm750_rxbd *)readl(&reg->rxdlsa);
+	priv->curr_txd= (struct npcm750_txbd *)(uintptr_t)readl(&reg->txdlsa);
+	priv->curr_rxd= (struct npcm750_rxbd *)(uintptr_t)readl(&reg->rxdlsa);
 	phy_shutdown(priv->phydev);
 }
 
@@ -386,18 +388,44 @@ static int npcm750_eth_probe(struct udevice *dev)
 	u32 iobase = pdata->iobase;
 	int ret;
 
+    struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
     struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 
 	memset(priv, 0, sizeof(struct npcm750_eth_dev));
 	priv->idx = fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
 					"id", dev->seq);
-	priv->emc_regs_p = (struct emc_regs *)iobase;
+	priv->emc_regs_p = (struct emc_regs *)(uintptr_t)iobase;
 	priv->interface = pdata->phy_interface;
 	priv->max_speed = pdata->max_speed;
 
 	if (priv->idx == 0) {
+    	/* Enable clock for EMC1 module */
+    	writel((readl(&clkctl->clken1) | (1 << CLKEN1_EMC1)), &clkctl->clken1);
+#if 1
 		/* Enable RMII for EMC1 module */
+		writel((readl(&gcr->mfsel3) | (1 << MFSEL3_RMII1SEL)), &gcr->mfsel3);
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_R1MDSEL)), &gcr->mfsel1);
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_R1ERRSEL)), &gcr->mfsel1);
+#endif
 		writel((readl(&gcr->intcr)  | (1 << INTCR_R1EN)), &gcr->intcr);
+
+		/* IP Software Reset for EMC1 module */
+		writel(readl(&clkctl->ipsrst1) | (1 << IPSRST1_EMC1), &clkctl->ipsrst1);
+		writel(readl(&clkctl->ipsrst1) & ~(1 << IPSRST1_EMC1), &clkctl->ipsrst1);
+	}
+	else if (priv->idx == 1)
+	{
+		/* Enable clock for EMC2 module */
+		writel((readl(&clkctl->clken1) | (1 << CLKEN1_EMC2)), &clkctl->clken1);
+#if 1
+		/* Enable RMII for EMC2 module */
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_RMII2SEL)), &gcr->mfsel1);
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_R2MDSEL)), &gcr->mfsel1);
+		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_R2ERRSEL)), &gcr->mfsel1);
+#endif
+		/* IP Software Reset for EMC2 module */
+		writel(readl(&clkctl->ipsrst1) | (1 << IPSRST1_EMC2), &clkctl->ipsrst1);
+		writel(readl(&clkctl->ipsrst1) & ~(1 << IPSRST1_EMC2), &clkctl->ipsrst1);
 	}
 
 	npcm750_mdio_init(dev->name, priv);

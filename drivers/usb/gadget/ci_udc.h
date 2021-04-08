@@ -6,7 +6,7 @@
 #ifndef __GADGET__CI_UDC_H__
 #define __GADGET__CI_UDC_H__
 
-#define NUM_ENDPOINTS		6
+#define NUM_ENDPOINTS		7
 
 #ifdef CONFIG_CI_UDC_HAS_HOSTPC
 struct ci_udc {

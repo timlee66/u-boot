@@ -1405,6 +1405,21 @@ config ARCH_NPCM750
 	help
 	  Support for Poleg BMC SoC family developed by Nuvoton Inc.
 
+config ARCH_NPCM850
+	bool "Support npcm850"
+	select ARM64
+	select ARMV8_MULTIENTRY if NPCMX50_CORE0 || NPCMX50_CORE1 || NPCMX50_CORE2 || NPCMX50_CORE3
+	select ARMV8_SET_SMPEN
+	select OF_CONTROL
+	select DM
+	imply CMD_DM
+#	select SYS_ICACHE_OFF
+#	select SYS_DCACHE_OFF
+#	select NPCM850_DBG_TIMER
+	select NPCM850_DBG_INTERRUPTS
+	help
+	  Support for Arbel BMC SoC family developed by Nuvoton Inc.
+
 endchoice
 
 config TI_SECURE_DEVICE
@@ -1516,6 +1531,12 @@ source "arch/arm/cpu/armv8/Kconfig"
 source "arch/arm/mach-imx/Kconfig"
 
 source "arch/arm/mach-npcm750/Kconfig"
+
+source "arch/arm/mach-npcm850/Kconfig"
+
+source "arch/arm/cpu/armv7/npcm750/Kconfig"
+
+source "arch/arm/cpu/armv8/npcm850/Kconfig"
 
 source "board/bosch/shc/Kconfig"
 source "board/CarMediaLab/flea3/Kconfig"

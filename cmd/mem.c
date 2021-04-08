@@ -21,8 +21,10 @@
 #include <watchdog.h>
 #include <asm/io.h>
 #include <linux/compiler.h>
+#if (defined (CONFIG_ARCH_NPCM750) || defined (CONFIG_ARCH_NPCM850)) && defined (CONFIG_DM_SPI_FLASH)
 #include <spi.h>
 #include <spi_flash.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -41,7 +43,6 @@ static ulong	mm_last_addr, mm_last_size;
 
 static	ulong	base_address = 0;
 
-static struct spi_flash *flash;
 /* Memory Display
  *
  * Syntax:
@@ -307,7 +308,8 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong	addr, dest, count;
 	int	size;
-#ifdef CONFIG_ARCH_NPCM750
+#if (defined (CONFIG_ARCH_NPCM750) || defined (CONFIG_ARCH_NPCM850)) && defined (CONFIG_DM_SPI_FLASH)
+	struct spi_flash *flash;
 	ulong flash_base = 0;
 	int bus;
 	int cs;
@@ -351,12 +353,20 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 0;
 	}
 #endif
-#ifdef CONFIG_ARCH_NPCM750
+#if (defined (CONFIG_ARCH_NPCM750) || defined (CONFIG_ARCH_NPCM850)) && defined (CONFIG_DM_SPI_FLASH)
 	if ((dest >= SPI0_BASE_ADDR) &&  (dest < SPI0_END_ADDR)) {
 		bus = 0;
 		cs = (dest - SPI0_BASE_ADDR) / SPI_FLASH_REGION_SIZE;
 		flash_base = SPI0_BASE_ADDR + cs * SPI_FLASH_REGION_SIZE;
-	} else if ((dest >= SPI3_BASE_ADDR) && (dest < SPI3_END_ADDR)) {
+	}
+#ifdef CONFIG_ARCH_NPCM850
+	else if ((dest >= SPI1_BASE_ADDR) && (dest < SPI1_END_ADDR)) {
+		bus = 1;
+		cs = (dest - SPI1_BASE_ADDR) / SPI1_FLASH_REGION_SIZE;
+		flash_base = SPI1_BASE_ADDR + cs * SPI1_FLASH_REGION_SIZE;
+	}
+#endif
+	else if ((dest >= SPI3_BASE_ADDR) && (dest < SPI3_END_ADDR)) {
 		bus = 3;
 		cs = (dest - SPI3_BASE_ADDR) / SPI_FLASH_REGION_SIZE;
 		flash_base = SPI3_BASE_ADDR + cs * SPI_FLASH_REGION_SIZE;
@@ -367,9 +377,17 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		char *src, *buf;
 		u32 len, sector_addr, sector_offset;
 		u32 dest_addr, end_addr;
-		int chunk_sz;
+		int chunk_sz, spi_flash_region_size;
+		struct udevice *new;
+		
+		if ((bus == 0) || (bus == 3))
+			spi_flash_region_size = SPI_FLASH_REGION_SIZE;
+#ifdef CONFIG_ARCH_NPCM850		
+		else
+			spi_flash_region_size = SPI1_FLASH_REGION_SIZE;
+#endif
 
-		if (((dest + count * size) - flash_base) >= SPI_FLASH_REGION_SIZE ) {
+		if (((dest + count * size) - flash_base) >= spi_flash_region_size ) {
 			printf("Copying to multiple chips is not supported!\n");
 			return 1;
 		}
@@ -378,18 +396,14 @@ static int do_mem_cp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		printf("Copy %lu bytes from 0x%lx to 0x%lx(bus:%d cs:%d)\n",
 			count*size, addr, dest, bus, cs);
 
-		if (flash == NULL) {
-			struct udevice *new;
-
-			ret = spi_flash_probe_bus_cs(bus, cs,
+		ret = spi_flash_probe_bus_cs(bus, cs,
 					CONFIG_SF_DEFAULT_SPEED, CONFIG_SF_DEFAULT_MODE,
 					&new);
-			if (ret) {
-				return ret;
-			}
+		if (ret) 
+			return ret;
+				
+		flash = dev_get_uclass_priv(new);
 
-			flash = dev_get_uclass_priv(new);
-		}
 		src = (char *)addr;
 		dest_addr = dest - flash_base;
 		end_addr = dest_addr + count * size;

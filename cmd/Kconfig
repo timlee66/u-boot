@@ -1,16 +1,5 @@
 menu "Command line interface"
 
-config CMD_NUC_TST
-	bool "mfgtest"
-	default y
-	help
-	  Run MFG test.
-
-config CMD_NUC_TST_HEADER_LOG
-	bool "save mfgtest log in header"
-	help
-	  Save MFG test log in Header.
-
 config CMDLINE
 	bool "Support U-Boot commands"
 	default y
@@ -541,11 +530,6 @@ config CMD_MEMORY
 	    base - print or set address offset
 	    loop - initialize loop on address range
 
-config CMD_GFX
-        bool "gfx"
-        help
-          gfx test commands.
-
 config CMD_MEMTEST
 	bool "memtest"
 	help
@@ -862,11 +846,6 @@ config CMD_LOADS
 	default y
 	help
 	  Load an S-Record file over serial line
-
-config CMD_MCU
-	bool "mcu"
-	help
-	  Nuvonton Runbmc MCU firmware update utility.
 
 config CMD_MMC
 	bool "mmc"
@@ -1561,7 +1540,7 @@ endmenu
 menu "Security commands"
 config CMD_AES
 	bool "Enable the 'aes' command"
-	select NPCM750_AES
+	select AES if !ARCH_NPCM850 && !ARCH_NPCM750
 	help
 	  This provides a means to encrypt and decrypt data using the AES
 	  (Advanced Encryption Standard). This algorithm uses a symetric key
@@ -1928,3 +1907,6 @@ config CMD_UBIFS
 	  UBIFS is a file system for flash devices which works on top of UBI.
 
 endmenu
+
+
+source "cmd/nuvoton/Kconfig"

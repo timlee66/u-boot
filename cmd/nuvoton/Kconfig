@@ -1,0 +1,47 @@
+
+config CMD_NUC_TST
+	bool "mfgtest"
+	default y
+	help
+	  Run MFG test.
+
+config CMD_NUC_TST_HEADER_LOG
+	bool "save mfgtest log in header"
+	help
+	  Save MFG test log in Header.
+
+config CMD_GFX
+	bool "gfx"
+	help
+	  gfx test commands.
+
+config CMD_MCU
+	bool "mcu"
+	help
+	  Nuvonton Runbmc MCU firmware update utility.
+
+config CMD_FPU
+	bool "fpu - floting Point SIMD+FPU test"
+	select CC_OPTIMIZE_LIBS_FOR_SPEED
+	help
+	  builtin fpu test 
+	  
+config CMD_CACHE_PERF
+	bool "Caches performence test"
+	help
+	  Nuvoton Caches performence test 
+
+config CMD_DDR_ECC
+	bool "command for verifying DDR features"
+	depends on ARCH_NPCM850
+	help
+	   Support for testing ddr on Nuvoton platforms. This command
+	   supports memory verification, memory comapre and ecc
+	   verification if supported.
+	   
+config CMD_NPCM_REGINFO
+	bool "reginfo"
+	depends on ARCH_NPCM850
+	help
+	  NPCM Register dump
+	  

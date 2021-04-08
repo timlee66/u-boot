@@ -10,8 +10,8 @@
 #include <asm/arch/gcr.h>
 #include <asm/mach-types.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/poleg_otp.h>
-#include <asm/arch/poleg_info.h>
+#include <asm/arch/otp.h>
+#include <asm/arch/info.h>
 #include <asm/arch/poleg_espi.h>
 #include <common.h>
 #include <dm.h>
@@ -23,7 +23,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static int board_sd_clk_init(const char *name)
+static int board_mmc_clk_init(const char *name)
 {
 	struct udevice *clk_dev;
 	struct clk clk;
@@ -72,6 +72,7 @@ static int board_sd_clk_init(const char *name)
 	return 0;
 }
 
+#ifdef CONFIG_LAST_STAGE_INIT
 static bool is_security_enabled(void)
 {
 	u32 val = readl(FUSTRAP);
@@ -126,7 +127,7 @@ static int secure_boot_configuration(void)
 	if (((u32*)(addr + SA_TAG_FLASH_IMAGE_OFFSET))[0] == ((u32*)tag)[0] &&
 		((u32*)(addr + SA_TAG_FLASH_IMAGE_OFFSET))[1] == ((u32*)tag)[1]) {
 
-		u8 fuse_arrays[2 * NPCM750_OTP_ARR_BYTE_SIZE];
+		u8 fuse_arrays[2 * NPCMX50_OTP_ARR_BYTE_SIZE];
 		u32 fustrap_orig;
 
 		printf("%s(): fuse array image was found on flash in address 0x%x\n", __func__, addr);
@@ -139,7 +140,7 @@ static int secure_boot_configuration(void)
 
 		printf("%s(): program fuse key array from address 0x%x\n", __func__, addr + SA_KEYS_FLASH_IMAGE_OFFSET);
 
-		rc = fuse_prog_image(NPCM750_KEY_SA, (u32)(fuse_arrays + SA_KEYS_FLASH_IMAGE_OFFSET));
+		rc = fuse_prog_image(NPCMX50_KEY_SA, (u32)(fuse_arrays + SA_KEYS_FLASH_IMAGE_OFFSET));
 		if (rc != 0)
 			return rc;
 
@@ -150,7 +151,7 @@ static int secure_boot_configuration(void)
 
 		printf("%s(): program fuse strap array from address 0x%x\n", __func__, addr + SA_FUSE_FLASH_IMAGE_OFFSET);
 
-		rc = fuse_prog_image(NPCM750_FUSE_SA, (u32)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET));
+		rc = fuse_prog_image(NPCMX50_FUSE_SA, (u32)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET));
 		if (rc != 0)
 			return rc;
 
@@ -186,7 +187,7 @@ static int secure_boot_configuration(void)
 		// programm SECBOOT bit if required
 		if (fustrap_orig & FUSTRAP_O_SECBOOT) {
 			printf("%s(): program secure boot bit to FUSTRAP\n", __func__);
-			rc = fuse_program_data(NPCM750_FUSE_SA, 0, (u8*)&fustrap_orig, sizeof(fustrap_orig));
+			rc = fuse_program_data(NPCMX50_FUSE_SA, 0, (u8*)&fustrap_orig, sizeof(fustrap_orig));
 		} else {
 			printf("%s(): secure boot bit is not set in the flash image, secure boot will not be enabled\n", __func__);
 		}
@@ -199,6 +200,7 @@ static int secure_boot_configuration(void)
 
 	return 0;
 }
+#endif
 
 int board_init(void)
 {
@@ -226,7 +228,7 @@ int board_init(void)
 		/* set Graphic Reset Delay to fix host stuck */
 		writel((readl(&gcr->intcr3) | (0x7 << INTCR3_GFXRSTDLY) ), &gcr->intcr3);;
 
-		board_sd_clk_init("mmc1");
+		board_mmc_clk_init("mmc1");
 	}
 
 	nodeoff = -1;
@@ -252,7 +254,7 @@ int dram_init(void)
 {
 	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 
-	int RAMsize = (readl(&gcr->intcr3) >> 8) & 0x7;
+	int RAMsize = (readl(&gcr->intcr3) >> INTCR3_GMMAP) & 0x7;
 
 	switch(RAMsize)
 	{
@@ -266,15 +268,45 @@ int dram_init(void)
 				gd->ram_size = 0x20000000; /* 512 MB. */
 				break;
 		case 3:
-				gd->ram_size = 0x40000000; /* 1024 MB. */
+				gd->ram_size = 0x40000000; /* 1 GB. */
 				break;
 		case 4:
-				gd->ram_size = 0x80000000; /* 2048 MB. */
+				gd->ram_size = 0x80000000; /* 2 GB. */
 				break;
 
 		default:
 			break;
 	}
+#ifdef CONFIG_NPCMX50_CORE0
+	gd->ram_size = 0x20000000; /* 512 MB. */
+#endif
+
+#ifdef CONFIG_NPCMX50_CORE1
+	gd->ram_size = 0x10000000; /* 256 MB. */
+#endif
+	
+	return 0;
+}
+
+int board_eth_init(bd_t *bis)
+{
+#ifdef CONFIG_ETH_DESIGNWARE
+    struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
+    struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+
+
+    /* Enable RGMII for GMAC1/2 module */
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1SEL)), &gcr->mfsel4);
+    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1MSEL)), &gcr->mfsel4);
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2SEL)), &gcr->mfsel4);
+    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);
+
+    /* IP Software Reset for GMAC1/2 module */
+    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
+#endif
 
 	return 0;
 }

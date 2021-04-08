@@ -63,4 +63,4 @@ obj-$(CONFIG_TWL4030_LED) += twl4030_led.o
 obj-$(CONFIG_VEXPRESS_CONFIG) += vexpress_config.o
 obj-$(CONFIG_WINBOND_W83627) += winbond_w83627.o
 obj-$(CONFIG_JZ4780_EFUSE) += jz4780_efuse.o
-obj-$(CONFIG_NPCM750_OTP) += npcm750_otp.o
+obj-$(CONFIG_NPCMX50_OTP) += npcmX50_otp.o

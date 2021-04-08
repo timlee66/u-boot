@@ -18,6 +18,8 @@ obj-$(CONFIG_USB_OHCI_EP93XX) += ohci-ep93xx.o
 obj-$(CONFIG_USB_OHCI_SUNXI) += ohci-sunxi.o
 obj-$(CONFIG_USB_OHCI_LPC32XX) += ohci-lpc32xx.o
 obj-$(CONFIG_USB_OHCI_GENERIC) += ohci-generic.o
+obj-$(CONFIG_USB_OHCI_NPCM7XX) += ohci-npcm7xx.o
+obj-$(CONFIG_USB_OHCI_NPCM8XX) += ohci-npcm8xx.o
 
 # echi
 obj-$(CONFIG_USB_EHCI_HCD) += ehci-hcd.o
@@ -43,7 +45,8 @@ obj-$(CONFIG_USB_EHCI_VCT) += ehci-vct.o
 obj-$(CONFIG_USB_EHCI_VF) += ehci-vf.o
 obj-$(CONFIG_USB_EHCI_RMOBILE) += ehci-rmobile.o
 obj-$(CONFIG_USB_EHCI_ZYNQ) += ehci-zynq.o
-obj-$(CONFIG_USB_EHCI_NPCM7XX) += ehci-npcm7xx.o
+obj-$(CONFIG_USB_EHCI_NPCM7XX) += ehci-npcm7xx-host.o ehci-npcm7xx-usbd.o
+obj-$(CONFIG_USB_EHCI_NPCM8XX) += ehci-npcm8xx-host.o ehci-npcm8xx-usbd.o
 
 # xhci
 obj-$(CONFIG_USB_XHCI_HCD) += xhci.o xhci-mem.o xhci-ring.o

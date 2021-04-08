@@ -2,9 +2,9 @@
 #define _POLEG_OTP_H_
 
 typedef enum {
-	NPCM750_KEY_SA    = 0,
-	NPCM750_FUSE_SA   = 1,
-	NPCM750_NUM_OF_SA = 2
+	NPCMX50_KEY_SA    = 0,
+	NPCMX50_FUSE_SA   = 1,
+	NPCMX50_NUM_OF_SA = 2
 } poleg_otp_storage_array;
 
 // arrray images in flash, to program during fisrt boot (offsets in sector)
@@ -63,14 +63,14 @@ struct poleg_otp_regs {
 #define FDATA_CLEAN_VALUE       0x01
 
 
-#define NPCM750_OTP_ARR_BYTE_SIZE        1024
+#define NPCMX50_OTP_ARR_BYTE_SIZE        1024
 #define MIN_PROGRAM_PULSES               4
 #define MAX_PROGRAM_PULSES               20
 
 int  fuse_program_data(u32 bank, u32 word, u8 *data, u32 size);
-int  npcm750_otp_select_key(u8 key_index);
-bool npcm750_otp_is_fuse_array_disabled(poleg_otp_storage_array arr);
-void npcm750_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size);
-void npcm750_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size);
+int  npcmX50_otp_select_key(u8 key_index);
+bool npcmX50_otp_is_fuse_array_disabled(poleg_otp_storage_array arr);
+void npcmX50_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size);
+void npcmX50_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size);
 
 #endif

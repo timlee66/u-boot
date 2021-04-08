@@ -118,11 +118,17 @@ static const struct usb_ep ci_ep_init[5] = {
 	[1] = {
 		.maxpacket	= 512,
 		.name		= "ep1in-bulk",
+//		.name		= "ep2in-bulk",
+//		.name		= "ep3in-bulk",
+//		.name		= "ep4in-bulk",
 		.ops		= &ci_ep_ops,
 	},
 	[2] = {
 		.maxpacket	= 512,
 		.name		= "ep2out-bulk",
+//		.name		= "ep5in-bulk",
+//		.name		= "ep6in-bulk",
+//		.name		= "ep7in-bulk",
 		.ops		= &ci_ep_ops,
 	},
 	[3] = {

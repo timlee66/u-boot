@@ -208,8 +208,29 @@ config USB_EHCI_NPCM7XX
 	---help---
 	  Enable support for Poleg on-chip EHCI USB controller
 
+config USB_EHCI_NPCM8XX
+	bool "Support for Arbel on-chip EHCI USB controller"
+	depends on ARCH_NPCM850
+	default n
+	---help---
+	  Enable support for Arbel on-chip EHCI USB controller
+
 endif # USB_EHCI_HCD
 
+config USB_OHCI_NPCM7XX
+	bool "Support for Poleg on-chip OHCI USB controller"
+	depends on ARCH_NPCM750
+	default n
+	---help---
+	  Enable support for Poleg on-chip OHCI USB controller
+
+config USB_OHCI_NPCM8XX
+	bool "Support for Arbel on-chip OHCI USB controller"
+	depends on ARCH_NPCM850
+	default n
+	---help---
+	  Enable support for Arbel on-chip OHCI USB controller
+	  	  
 config USB_OHCI_HCD
 	bool "OHCI HCD (USB 1.1) support"
 	---help---

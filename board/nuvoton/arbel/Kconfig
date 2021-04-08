@@ -1,0 +1,18 @@
+if TARGET_ARBEL
+
+config SYS_BOARD
+	default "arbel"
+
+config SYS_VENDOR
+	default "nuvoton"
+
+config SYS_CONFIG_NAME
+	default "arbel"
+
+config NIST_VERSION_ADDR
+	hex "Linux NIST version address"
+	default 0x0
+	help
+	  The address of the Linux NIST version, which should be identical
+	  to the u-boot version.
+endif

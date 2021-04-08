@@ -1,0 +1,322 @@
+/dts-v1/;
+#include "nuvoton-common-npcm8xx.dtsi"
+#include "nuvoton-npcm850-pincfg.dtsi"
+
+
+#define _PALLADIUM13_
+#define _PALLADIUM02_
+
+
+
+#define USB_EHCI_HOST1
+//#define USB_EHCI_HOST2
+
+//#define USB_OHCI_HOST1
+//#define USB_OHCI_HOST2
+
+/ {
+	model = "Nuvoton npcm850 Development Board";
+	compatible = "nuvoton,arbel", "nuvoton,npcm850";
+
+	chosen {
+		stdout-path = &serial0;
+	};
+
+	aliases {
+		serial0 = &serial0;
+	//	serial1 = &serial1;
+	//	serial2 = &serial2;
+	//	serial3 = &serial3;
+	//	serial4 = &serial4;
+	//	serial5 = &serial5;
+	//	serial6 = &serial6;
+		i2c0 = &i2c0;
+		i2c1 = &i2c1;
+		i2c2 = &i2c2;
+		i2c3 = &i2c3;
+		i2c4 = &i2c4;
+		i2c5 = &i2c5;
+		i2c6 = &i2c6;
+		i2c7 = &i2c7;
+		i2c8 = &i2c8;
+		i2c9 = &i2c9;
+		i2c10 = &i2c10;
+		i2c11 = &i2c11;
+		i2c12 = &i2c12;
+		i2c13 = &i2c13;
+		i2c14 = &i2c14;
+		i2c15 = &i2c15;
+		spi0 = &fiu0;
+		spi1 = &fiu1;
+		spi3 = &fiu3;
+		spi4 = &fiux;
+		spi5 = &pspi;
+#ifdef _PALLADIUM02_
+		mmc0 = &sdhci0;
+#endif
+		gpio0 = &gpio0;
+		gpio1 = &gpio1;
+		gpio2 = &gpio2;
+		gpio3 = &gpio3;
+		gpio4 = &gpio4;
+		gpio5 = &gpio5;
+		gpio6 = &gpio6;
+		gpio7 = &gpio7;
+		usb0 = &usbd0;
+		eth0 = &gmac0;
+		eth1 = &gmac1;
+		eth2 = &gmac2;
+		eth3 = &gmac3;
+	};
+
+	fiu0: fiu0@fb000000 {
+		status = "okay";
+		spi_flash@0 {
+			status = "okay";
+		};
+		spi_flash@1 {
+			status = "okay";
+		};
+	};
+
+	fiu1: fiu1@fb002000 {
+		status = "okay";
+		spi_flash@0 {
+			status = "okay";
+		};
+		spi_flash@1 {
+			status = "okay";
+		};
+		spi_flash@2 {
+			status = "okay";
+		};
+		spi_flash@3 {
+			status = "okay";
+		};
+	};
+
+	fiu3: fiu3@c0000000 {
+		status = "okay";
+		spi_flash@0 {
+			status = "okay";
+		};
+		spi_flash@1 {
+			status = "okay";
+		};
+		spi_flash@2 {
+			status = "okay";
+		};
+		spi_flash@3 {
+			status = "okay";
+		};
+	};
+
+	fiux: fiux@fb001000 {
+		status = "okay";
+		spi_flash@0 {
+			status = "okay";
+		};
+		spi_flash@1 {
+			status = "okay";
+		};	
+	};
+	
+	pspi: pspi@f0201000 {
+		status = "okay";
+	};
+
+
+#ifdef _PALLADIUM02_
+	sdhci0: sdhci0@f0842000 {
+		status = "okay";
+	};
+#endif
+
+	otp: otp@f0189000 {
+		status = "okay";
+	};
+
+	rng: rng@f000b000 {
+		status = "okay";
+	};
+
+	aes: aes@f0858000 {
+		status = "okay";
+	};
+
+	sha: sha@f085a000 {
+		status = "okay";
+	};
+
+#ifdef _PALLADIUM13_
+	gmac0: gmac0 {   /* GMAC1- SGMII */
+		status = "okay";
+	};
+
+	gmac1: gmac1 {   /* GMAC2- RGMII or RMII3 */
+		status = "okay";
+	};
+
+	gmac2: gmac2 {   /* GMAC3- RMII1 */
+		status = "okay";
+	};
+
+	gmac3: gmac3 {   /* GMAC4- RMII2 */
+		status = "okay";
+	};
+#endif
+
+#ifdef _PALLADIUM02_
+	usbd0: usbd0@f0830100 {
+		status = "okay";
+	};
+#endif
+#ifdef _PALLADIUM13_
+#ifdef USB_EHCI_HOST1
+	ehci1: ehci1 {
+		status = "okay";
+	};
+#endif	
+#ifdef USB_EHCI_HOST2
+	ehci2: ehci2 {
+		status = "okay";
+	};
+#endif
+
+#ifdef USB_OHCI_HOST1
+	ohci1: ohci1 {
+		status = "okay";
+	};
+#endif
+#ifdef USB_OHCI_HOST2
+	ohci2: ohci2 {
+		status = "okay";
+	};
+#endif
+#endif	
+	i2c0: i2c-bus@f0080000 {
+		status = "okay";
+	};
+
+	i2c1: i2c-bus@f0081000 {
+		status = "okay";
+	};
+
+	i2c2: i2c-bus@f0082000 {
+		status = "okay";
+	};
+
+	i2c3: i2c-bus@f0083000 {
+		status = "okay";
+	};
+
+	i2c4: i2c-bus@f0084000 {
+		status = "okay";
+	};
+
+	i2c5: i2c-bus@f0085000 {
+		status = "okay";
+	};
+
+	i2c6: i2c-bus@f0086000 {
+		status = "okay";
+	};
+
+	i2c7: i2c-bus@f0087000 {
+		status = "okay";
+	};
+
+	i2c8: i2c-bus@f0088000 {
+		status = "okay";
+	};
+
+	i2c9: i2c-bus@f0089000 {
+		status = "okay";
+	};
+
+	i2c10: i2c-bus@f008a000 {
+		status = "okay";
+	};
+
+	i2c11: i2c-bus@f008b000 {
+		status = "okay";
+	};
+
+	i2c12: i2c-bus@f008c000 {
+		status = "okay";
+	};
+
+	i2c13: i2c-bus@f008d000 {
+		status = "okay";
+	};
+
+	i2c14: i2c-bus@f008e000 {
+		status = "okay";
+	};
+
+	i2c15: i2c-bus@f008f000 {
+		status = "okay";
+	};
+	
+	pinctrl: pinctrl@f0800000 {
+		pinctrl-names = "default";
+		pinctrl-0 = <   
+				&clkout_pins
+#if 0
+				&gpi36_pins
+				&gpi35_pins
+				&gpio153_pins
+				&gpio71_pins
+				&gpio76_pins
+				&gpio77_pins
+				&gpio202_pins
+				&tp_gpio0_pins
+				&tp_gpio1_pins
+				&jm1_pins
+				&j2j3_pins
+				&gpio141ol_pins		
+				&gpio72_pins		
+				&gpio70o_pins		
+				&gpio17_pins
+				&gpio18_pins		/* Disable PD before pspi */
+				&gpio19_pins		/* Disable PD before pspi */
+				&gpio68o_pins
+				&gpio69o_pins
+				&gpio61o_pins
+				&gpio98o_pins
+				&gpio99o_pins
+				&gpio196o_pins
+				&gpio16o_pins           /* Disable PU before TP_GPIO2 */
+				&tp_gpio2_pins
+				&bmcuart0a_pins
+				&bmcuart1_pins
+				&hsi2a_pins
+				&tp_uart_pins
+				&bu5_pins
+				&bu4_pins
+				&bu2_pins
+				&gpio73_pins		
+				&gpio74_pins		
+				&gpio75_pins		
+				&gpio218_pins		
+				&gpio219_pins		
+				&gpio4_pins		
+				&gpio5_pins		
+				&gpio6_pins		
+				&gpio7_pins		
+				&gpio47_pins		
+				&gpio100_pins		
+				&gpio101_pins		
+				&gpio120ol_pins	
+				&gpio190o_pins
+				&gpio162o_pins
+				&gpio94o_pins
+				&gpio93o_pins
+				&gpio155_pins		
+				&gpio231_pins		
+				&gpio194_pins		
+				&gpio195_pins
+#endif	
+			    >;
+	};
+};

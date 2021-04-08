@@ -335,13 +335,13 @@ config IHS_FPGA
 	  by the devices. This driver supports both CON and CPU variants of the
 	  devices, depending on the device tree entry.
 
-config NPCM750_OTP
-	bool "BMC NPCM750 On-Chip OTP Memory Support"
-	depends on ARM && ARCH_NPCM750
+config NPCMX50_OTP
+	bool "BMC NPCMX50 On-Chip OTP Memory Support"
+	depends on (ARM && (ARCH_NPCM750 || ARCH_NPCM850))
 	default n
 	help
-	  Support NPCM750 BMC OTP memory (fuse).
+	  Support NPCMX50 BMC OTP memory (fuse).
 	  To compile this driver as a module, choose M here: the module
-	  will be called npcm750_otp.
+	  will be called npcmX50_otp.
 
 endmenu

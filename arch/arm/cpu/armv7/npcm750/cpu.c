@@ -29,11 +29,15 @@
 int print_cpuinfo (void)
 {
 	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-	unsigned int id, mdlr;
+	unsigned int id = 0;
+	unsigned int cpuid = 0;
+	unsigned int mdlr = 0;
 
+	__asm__ __volatile__("mrc p15, 0, %0, c0, c0, 5":"=r"(cpuid));
+	
 	mdlr = readl(&gcr->mdlr);
-
-	printf("CPU: ");
+		
+	printf("CPU-%d: ", cpuid & 0xf);
 
 	switch(mdlr) {
 	case POLEG_NPCM750:
@@ -66,9 +70,27 @@ int print_cpuinfo (void)
 	return 0;
 }
 
+#ifndef CONFIG_SYS_DCACHE_OFF
 void s_init(void)
 {
 	/* Invalidate L2 cache in lowlevel_init */
 	v7_outer_cache_inval_all();
 }
+#endif	/* CONFIG_SYS_DCACHE_OFF */
 
+u32 cpu_pos_mask(void)
+{
+	return 0xF;
+}
+
+u32 cpu_mask(void)
+{
+	return 0xF;
+}
+/*
+ * Return the number of cores on this SOC.
+ */
+int cpu_numcores(void)
+{
+	return hweight32(cpu_mask());
+}

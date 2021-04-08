@@ -1,7 +1,7 @@
 #ifndef _POLEG_TIMER_H_
 #define _POLEG_TIMER_H_
 
-struct poleg_gptimer_regs {
+struct npcmX50_gptimer_regs {
 	unsigned int tcsr0;
 	unsigned int tcsr1;
 	unsigned int ticr0;

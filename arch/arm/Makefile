@@ -14,12 +14,23 @@ arch-$(CONFIG_CPU_SA1100)	=-march=armv4
 arch-$(CONFIG_CPU_PXA)		=
 arch-$(CONFIG_CPU_ARM1136)	=-march=armv5
 arch-$(CONFIG_CPU_ARM1176)	=-march=armv5t
+ifeq ($(CONFIG_ARCH_NPCM750)$(CONFIG_CMD_FPU),yy)
+arch-$(CONFIG_CPU_V7A)		=$(call cc-option, -march=armv7-a+neon-vfpv3, \
+				 $(call cc-option, -march=armv7))
+else
 arch-$(CONFIG_CPU_V7A)		=$(call cc-option, -march=armv7-a, \
 				 $(call cc-option, -march=armv7))
+endif
 arch-$(CONFIG_CPU_V7M)		=-march=armv7-m
 arch-$(CONFIG_CPU_V7R)		=-march=armv7-r
 arch-$(CONFIG_ARM64)		=-march=armv8-a
-
+ifeq ($(CONFIG_ARCH_NPCM850)$(CONFIG_CMD_FPU),yy)
+# enabled by default fpu+simd for 4 domain Palladium 
+arch-$(CONFIG_ARCH_NPCM850)	=-march=armv8-a
+else
+# disable fpu+simd for 2 domain Palladium 
+arch-$(CONFIG_ARCH_NPCM850)	=-march=armv8-a+nofp
+endif
 # On Tegra systems we must build SPL for the armv4 core on the device
 # but otherwise we can use the value in CONFIG_SYS_ARM_ARCH
 ifeq ($(CONFIG_SPL_BUILD)$(CONFIG_TEGRA),yy)
@@ -84,6 +95,7 @@ machine-$(CONFIG_ARCH_ZYNQ)		+= zynq
 machine-$(CONFIG_ARCH_VERSAL)		+= versal
 machine-$(CONFIG_ARCH_ZYNQMP_R5)	+= zynqmp-r5
 machine-$(CONFIG_ARCH_NPCM750)		+= npcm750
+machine-$(CONFIG_ARCH_NPCM850)		+= npcm850
 
 machdirs := $(patsubst %,arch/arm/mach-%/,$(machine-y))
 

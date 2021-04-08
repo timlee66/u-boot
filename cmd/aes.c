@@ -47,10 +47,10 @@ static int do_aes(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	dst_addr = simple_strtoul(argv[5], NULL, 16);
 	len = simple_strtoul(argv[6], NULL, 16);
 
-	key_ptr = (uint8_t *)key_addr;
-	iv_ptr = (uint8_t *)iv_addr;
-	src_ptr = (uint8_t *)src_addr;
-	dst_ptr = (uint8_t *)dst_addr;
+	key_ptr = (uint8_t *)(uintptr_t)key_addr;
+	iv_ptr = (uint8_t *)(uintptr_t)iv_addr;
+	src_ptr = (uint8_t *)(uintptr_t)src_addr;
+	dst_ptr = (uint8_t *)(uintptr_t)dst_addr;
 
 	/* First we expand the key. */
 	aes_expand_key(key_ptr, key_exp);

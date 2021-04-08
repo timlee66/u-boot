@@ -1,5 +1,48 @@
 menu "Boot timing"
 
+config NPCM850_DBG_TIMER
+	bool "Support Timer test"
+	help
+	  Support Timer test.
+
+config NPCM850_DBG_INTERRUPTS
+	bool "Support Interrupts"
+	help
+	  Support Interrupts.
+
+config NPCMX50_CORE0
+	bool "MULTI CORE0"
+	select SYS_L2CACHE_OFF if ARCH_NPCM750
+	select SYS_ICACHE_OFF
+	select SYS_DCACHE_OFF
+	help
+	  Multi Core 0.
+	  
+config NPCMX50_CORE1
+	bool "MULTI CORE1"
+	select DISABLE_CONSOLE
+	select SYS_L2CACHE_OFF if ARCH_NPCM750
+	select SYS_ICACHE_OFF
+	select SYS_DCACHE_OFF
+	help
+	  Multi Core 1.
+
+config NPCMX50_CORE2
+	bool "MULTI CORE2"
+	select DISABLE_CONSOLE
+	select SYS_ICACHE_OFF
+	select SYS_DCACHE_OFF
+	help
+	  Multi Core 2.
+	  
+config NPCMX50_CORE3
+	bool "MULTI CORE3"
+	select DISABLE_CONSOLE
+	select SYS_ICACHE_OFF
+	select SYS_DCACHE_OFF
+	help
+	  Multi Core 3.
+	  
 config BOOTSTAGE
 	bool "Boot timing and reporting"
 	help
@@ -185,7 +228,8 @@ endmenu
 
 config BOOTDELAY
 	int "delay in seconds before automatically booting"
-	default 2
+	default 0 if NPCMX50_CORE0 || NPCMX50_CORE1 || NPCMX50_CORE2 || NPCMX50_CORE3
+	default 2 if !NPCMX50_CORE0 && !NPCMX50_CORE1 && !NPCMX50_CORE2 && !NPCMX50_CORE3
 	depends on AUTOBOOT
 	help
 	  Delay before automatically running bootcmd;

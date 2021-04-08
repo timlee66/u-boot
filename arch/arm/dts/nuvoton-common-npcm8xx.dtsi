@@ -1,0 +1,691 @@
+//#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/clock/npcm850_arbel-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+#include "nuvoton-npcm8xx-pinctrl.dtsi"
+
+//#define GMAC_EXTERNAL_CLK
+#define GMAC1_SGMII
+#define GMAC2_RGMII
+//#define GMAC2_RMII3
+#define GMAC3_RMII1
+#define GMAC4_RMII2
+
+/ {
+
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+
+	clks: clock-control@f0801000 {
+		compatible = "nuvoton,npcm850-clock";
+		#clock-cells = <1>;
+		reg = <0x0 0xf0801000 0x0 0x70>;
+		u-boot,dm-pre-reloc;
+	};
+
+	serial0: serial0@f0000000 {
+		compatible = "nuvoton,npcmX50-uart";
+		reg = <0x0 0xf0000000 0x0 0x20>;
+		id = <0>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+#if 0
+	serial1: serial1@f0001000 {
+		compatible = "nuvoton,npcmX50-uart";
+		reg = <0x0 0xf0001000 0x0 0x20>;
+		id = <1>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+
+	serial2: serial2@f0002000 {
+		compatible = "nuvoton,npcmX50-uart";
+		reg = <0x0 0xf0002000 0x0 0x20>;
+		id = <2>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+
+	serial3: serial3@f0003000 {
+		compatible = "nuvoton,npcmX50-uart";
+		reg = <0x0 0xf0003000 0x0 0x20>;
+		id = <3>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+
+	serial4: serial4@f0004000 {
+		compatible = "nuvoton,npcmX50-uart";
+		reg = <0x0 0xf0004000 0x0 0x20>;
+		id = <4>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+
+	serial5: serial5@f0005000 {
+		compatible = "nuvoton,npcmX50-uart";
+		reg = <0x0 0xf0005000 0x0 0x20>;
+		id = <5>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+
+	serial6: serial6@f0006000 {
+		compatible = "nuvoton,npcmX50-uart";
+		reg = <0x0 0xf0006000 0x0 0x20>;
+		id = <6>;
+		clocks = <&clks CLK_UART>;
+		clock-frequency = <24000000>;
+	};
+#endif
+
+	timer0: timer@f0008000 {
+		compatible = "nuvoton,npcmX50-timer";
+		reg = <0x0 0xF0008000 0x0 0x100>;
+		clocks = <&clks CLK_TIMER>;
+	};
+
+	fiu0: fiu0@fb000000 {
+		compatible = "nuvoton,npcmX50-fiu";
+		reg = <0x0 0xfb000000 0x0 0x1000>;
+		index = <0>;
+		spi-max-frequency = <66000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi0cs1_pins>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		spi_flash@0 {
+			compatible = "spi-flash";
+			reg = <0>; /* CS 0 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0x80000000 0x0 0x02000000>;    /* 32MB */
+#endif
+#ifdef CONFIG_TARGET_ARBEL_EVB
+			memory-map = <0x0 0x80000000 0x0 0x00400000>;    /* 4MB */
+#endif
+#ifdef CONFIG_TARGET_ARBEL_SVB
+			memory-map = <0x0 0x80000000 0x0 0x02000000>;    /* 32MB */
+#endif
+		};
+
+		spi_flash@1 {
+			compatible = "spi-flash";
+			reg = <1>;  /* CS 1 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0x88000000 0x0 0x00080000>;    /* 512KB */
+#endif
+#ifdef CONFIG_TARGET_ARBEL_EVB
+			memory-map = <0x0 0x88000000 0x0 0x04000000>;    /* 64MB */
+#endif
+#ifdef CONFIG_TARGET_ARBEL_SVB
+			memory-map = <0x0 0x88000000 0x0 0x02000000>;    /* 32MB */
+#endif
+		};
+	};
+
+	fiu1: fiu1@fb002000 {
+		compatible = "nuvoton,npcmX50-fiu";
+		reg = <0x0 0xfb002000 0x0 0x1000>;
+		index = <1>;
+		spi-max-frequency = <50000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi1_pins &spi1cs1_pins &spi1cs2_pins &spi1cs3_pins>;
+		status = "disabled";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		spi_flash@0 {
+			compatible = "spi-flash";
+			reg = <0>; /* CS 0 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0x90000000 0x0 0x00080000>;    /* 512KB */
+#endif
+#ifdef CONFIG_TARGET_ARBEL_EVB
+			memory-map = <0x0 0x90000000 0x0 0x00400000>;    /* 4MB */
+#endif
+#ifdef CONFIG_TARGET_ARBEL_SVB
+			memory-map = <0x0 0x90000000 0x0 0x01000000>;    /* 16MB */
+#endif
+		};
+		
+		spi_flash@1 {
+			compatible = "spi-flash";
+			reg = <1>; /* CS 1 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0x91000000 0x0 0x00080000>;    /* 512KB */
+#else
+			memory-map = <0x0 0x91000000 0x0 0x01000000>;    /* 16MB */
+#endif
+		};
+		
+		spi_flash@2 {
+			compatible = "spi-flash";
+			reg = <2>; /* CS 2 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0x92000000 0x0 0x00080000>;    /* 512KB */
+#else
+			memory-map = <0x0 0x92000000 0x0 0x01000000>;    /* 16MB */
+#endif
+		};
+		
+		spi_flash@3 {
+			compatible = "spi-flash";
+			reg = <3>; /* CS 3 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0x93000000 0x0 0x00080000>;    /* 512KB */
+#else
+			memory-map = <0x0 0x93000000 0x0 0x01000000>;    /* 16MB */
+#endif
+		};
+	};
+
+	fiu3: fiu3@c0000000 {
+		compatible = "nuvoton,npcmX50-fiu";
+		reg = <0x0 0xc0000000 0x0 0x1000>;
+		index = <3>;
+		spi-max-frequency = <50000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi3_pins &spi3cs1_pins &spi3cs2_pins &spi3cs3_pins>;
+		status = "disabled";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		spi_flash@0 {
+			compatible = "spi-flash";
+			reg = <0>; /* CS 0 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0xA0000000 0x0 0x00080000>;    /* 512KB */
+#endif
+#ifdef CONFIG_TARGET_ARBEL_EVB
+			memory-map = <0x0 0xA0000000 0x0 0x04000000>;    /* 64MB */
+#endif
+#ifdef CONFIG_TARGET_ARBEL_SVB
+			memory-map = <0x0 0xA0000000 0x0 0x01000000>;    /* 16MB */
+#endif
+		};
+		spi_flash@1 {
+			compatible = "spi-flash";
+			reg = <1>; /* CS 1 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0xA8000000 0x0 0x00080000>;    /* 512KB */
+#else
+			memory-map = <0x0 0xA8000000 0x0 0x01000000>;    /* 16MB */
+#endif
+		};
+		spi_flash@2 {
+			compatible = "spi-flash";
+			reg = <2>; /* CS 2 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0xB0000000 0x0 0x00080000>;    /* 512KB */
+#else
+			memory-map = <0x0 0xB0000000 0x0 0x01000000>;    /* 16MB */
+#endif
+		};
+		spi_flash@3 {
+			compatible = "spi-flash";
+			reg = <3>; /* CS 3 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0xB8000000 0x0 0x00080000>;    /* 512KB */
+#else
+			memory-map = <0x0 0xB8000000 0x0 0x01000000>;    /* 16MB */
+#endif
+		};
+	};
+
+	fiux: fiux@fb001000 {
+		compatible = "nuvoton,npcmX50-fiu";
+		reg = <0x0 0xfb001000 0x0 0x1000>;
+		index = <4>;
+		spi-max-frequency = <50000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&spix_pins &spixcs1_pins>;
+		status = "disabled";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		spi_flash@0 {
+			compatible = "spi-flash";
+			reg = <0>; /* CS 0 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0xF8000000 0x0 0x00080000>;    /* 512KB */
+#else
+			memory-map = <0x0 0xF8000000 0x0 0x00800000>;    /* 8MB */
+#endif
+		};
+
+		spi_flash@1 {
+			compatible = "spi-flash";
+			reg = <1>; /* CS 1 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+			memory-map = <0x0 0xF9000000 0x0 0x00080000>;    /* 512KB */
+#else
+			memory-map = <0x0 0xF9000000 0x0 0x00800000>;    /* 8MB */
+#endif
+		};
+	};
+
+	pspi: pspi@f0201000 {
+		compatible = "nuvoton,npcmX50-pspi";
+		reg = <0x0 0xf0201000 0x0 0x1000>;
+		index = <0>;
+		spi-max-frequency = <20000000>;
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+		cs-gpios = <&gpio2 17 GPIO_ACTIVE_HIGH>;   /* GPIO81 */
+#else
+#ifdef CONFIG_TARGET_ARBEL_SVB
+		cs-gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;    /* GPIO20 CS to PSPI on SVB */
+#else
+		cs-gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;    /* GPIO68 CS to MAX9939 */
+//		cs-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;    /* GPIO69 CS to CPLD */
+#endif
+#endif
+		clocks = <&clks CLK_APB5>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pspi_pins>;
+		status = "disabled";
+	};
+
+	sdhci0: sdhci0@f0842000 {
+		compatible = "nuvoton,npcmx50-sdhci-eMMC";
+		reg = <0x0 0xf0842000 0x0 0x2000>;
+		index = <0x0>;
+		bus-width = <0x8>;
+		clocks = <&clks CLK_EMMC>;
+		clock-frequency = <50000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mmc_pins
+			&mmc8_pins>;
+		status = "disabled";
+	};
+
+	otp: otp@f0189000 {
+		compatible = "nuvoton,npcmX50-otp";
+		reg = <0x0 0xf0189000 0x0 0x1000 0x0 0xf018a000 0x0 0x1000>;
+		clocks = <&clks CLK_APB4>;
+		status = "disabled";
+	};
+
+	rng: rng@f000b000 {
+		compatible = "nuvoton,npcmX50-rng";
+		reg = <0x0 0xf000b000 0x0 0x1000>;
+		clocks = <&clks CLK_APB1>;
+		status = "disabled";
+	};
+
+	aes: aes@f0858000 {
+		compatible = "nuvoton,npcmX50-aes";
+		reg = <0x0 0xf0858000 0x0 0x1000>;
+		clocks = <&clks CLK_AHB>;
+		clock-names = "clk_ahb";
+		status = "disabled";
+	};
+
+	sha: sha@f085a000 {
+		compatible = "nuvoton,npcm750-sha";
+		reg = <0x0 0xf085a000 0x0 0x1000>;
+		clocks = <&clks CLK_AHB>;
+		clock-names = "clk_ahb";
+		status = "disabled";
+	};
+
+	gpio0: gpio0@f0010000 {
+		compatible = "nuvoton,npcmX50-gpio";
+		reg = <0x0 0xf0010000 0x0 0x1000>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-bank-name = "gpio0";
+		gpio-count = <32>;
+		gpio-port = <0>;
+	};
+
+	gpio1: gpio1@f0011000 {
+		compatible = "nuvoton,npcmX50-gpio";
+		reg = <0x0 0xf0011000 0x0 0x1000>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-bank-name = "gpio1";
+		gpio-count = <32>;
+		gpio-port = <1>;
+	};
+
+	gpio2: gpio2@f0012000 {
+		compatible = "nuvoton,npcmX50-gpio";
+		reg = <0x0 0xf0012000 0x0 0x1000>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-bank-name = "gpio2";
+		gpio-count = <32>;
+		gpio-port = <2>;
+	};
+
+	gpio3: gpio3@f0013000 {
+		compatible = "nuvoton,npcmX50-gpio";
+		reg = <0x0 0xf0013000 0x0 0x1000>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-bank-name = "gpio3";
+		gpio-count = <32>;
+		gpio-port = <3>;
+	};
+
+	gpio4: gpio4@f0014000 {
+		compatible = "nuvoton,npcmX50-gpio";
+		reg = <0x0 0xf0014000 0x0 0x1000>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-bank-name = "gpio4";
+		gpio-count = <32>;
+		gpio-port = <4>;
+	};
+
+	gpio5: gpio5@f0015000 {
+		compatible = "nuvoton,npcmX50-gpio";
+		reg = <0x0 0xf0015000 0x0 0x1000>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-bank-name = "gpio5";
+		gpio-count = <32>;
+		gpio-port = <5>;
+	};
+
+	gpio6: gpio6@f0016000 {
+		compatible = "nuvoton,npcmX50-gpio";
+		reg = <0x0 0xf0016000 0x0 0x1000>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-bank-name = "gpio6";
+		gpio-count = <32>;
+		gpio-port = <6>;
+	};
+
+	gpio7: gpio7@f0017000 {
+		compatible = "nuvoton,npcmX50-gpio";
+		reg = <0x0 0xf0017000 0x0 0x1000>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-bank-name = "gpio7";
+		gpio-count = <32>;
+		gpio-port = <7>;
+	};
+#ifdef GMAC1_SGMII
+	gmac1: gmac1 {
+		compatible = "nuvoton,npcmX50-dwmac";
+		reg = <0x0 0xF0802000 0x0 0x2000>;
+		phy-mode = "sgmii";
+		pinctrl-names = "default";
+		pinctrl-0 = <&sg1mdio_pins>;
+		snps,reset-active-low;
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+		snps,reset-delays-us = <0 10 1000>;
+#else
+		snps,reset-delays-us = <0 10000 1000000>;
+#endif
+		snps,reset-gpio = <&gpio5 30 GPIO_ACTIVE_LOW>;    /* gpio190 */
+		status = "disabled";
+	};
+#endif
+
+#if defined GMAC2_RGMII || defined GMAC2_RMII3
+
+	gmac2: gmac2 {
+		compatible = "nuvoton,npcmX50-dwmac";
+		reg = <0x0 0xF0804000 0x0 0x2000>;
+#ifdef GMAC2_RGMII
+		phy-mode = "rgmii";
+		pinctrl-names = "default";
+		pinctrl-0 = <&rg2_pins
+#ifdef GMAC_EXTERNAL_CLK
+			     &rg2refck_pins
+#endif	
+			     &rg2mdio_pins>;
+#else   /* GMAC2_RMII3 */			     
+		phy-mode = "mii";
+		pinctrl-names = "default";
+		pinctrl-0 = <&rmii3_pins &r3rxer_pins>;
+#endif			     
+		snps,reset-active-low;
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+		snps,reset-delays-us = <0 10 1000>;
+#else
+		snps,reset-delays-us = <0 10000 1000000>;
+#endif
+		snps,reset-gpio = <&gpio5 2 GPIO_ACTIVE_LOW>;    /* gpio162 */
+		status = "disabled";
+	};
+#endif
+	
+#ifdef GMAC3_RMII1
+	gmac3: gmac3 {  /* GMAC3_RMII1 */
+		compatible = "nuvoton,npcmX50-dwmac";
+		reg = <0x0 0xF0806000 0x0 0x2000>;
+		phy-mode = "mii";
+		pinctrl-names = "default";
+		pinctrl-0 = <&r1_pins
+			/*   &r1err_pins  */   /* Work around */
+			     &r1md_pins>;
+		snps,reset-active-low;
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+		snps,reset-delays-us = <0 10 1000>;
+#else
+		snps,reset-delays-us = <0 10000 1000000>;
+#endif
+		snps,reset-gpio = <&gpio2 30 GPIO_ACTIVE_LOW>;    /* gpio94 */
+		status = "disabled";
+	};
+#endif
+
+#ifdef GMAC4_RMII2
+	gmac4: gmac4 {  /* GMAC4_RMII2 */
+		compatible = "nuvoton,npcmX50-dwmac";
+		reg = <0x0 0xF0808000 0x0 0x2000>;
+		phy-mode = "mii";
+		pinctrl-names = "default";
+		pinctrl-0 = <&r2_pins
+			/*   &r2err_pins  */   /* Work around */
+			     &r2md_pins>;
+		snps,reset-active-low;
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+		snps,reset-delays-us = <0 10 1000>;
+#else
+		snps,reset-delays-us = <0 10000 1000000>;
+#endif
+		snps,reset-gpio = <&gpio2 29 GPIO_ACTIVE_LOW>;    /* gpio93 */
+		status = "disabled";
+	};
+#endif
+	usbd0: usbd0@f0830100 {
+		compatible = "nuvoton,npcm8xx-ehci-usbd";
+		/* change the base address according the device you want to test */
+		reg = <0x0 0xF0830100 0x0 0x200>;
+		usbphy = <1>;      /* USBD settups:  Phy1(0-9) or Phy2(9)  or Phy3(8) */
+		usbdev = <0>;
+		status = "disabled";
+	};
+
+	ehci1: ehci1 {
+		compatible = "nuvoton,npcm8xx-ehci-host";
+		reg = <0x0 0xF0828100 0x0 0x100>;
+		status = "disabled";
+	};
+
+	ehci2: ehci2 {
+		compatible = "nuvoton,npcm8xx-ehci-host";
+		reg = <0x0 0xF082A100 0x0 0x100>;
+		status = "disabled";
+	};
+
+	ohci1: ohci1 {
+		compatible = "nuvoton,npcm8xx-ohci";
+		reg = <0x0 0xF0829000 0x0 0x1000>;
+		status = "disabled";
+	};
+
+	ohci2: ohci2 {
+		compatible = "nuvoton,npcm8xx-ohci";
+		reg = <0x0 0xF082B000 0x0 0x1000>;
+		status = "disabled";
+	};
+
+	i2c0: i2c-bus@f0080000 {
+		reg = <0x0 0xf0080000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb0_pins>;
+		status = "disabled";
+	};
+
+	i2c1: i2c-bus@f0081000 {
+		reg = <0x0 0xf0081000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb1_pins>;
+		status = "disabled";
+	};
+
+	i2c2: i2c-bus@f0082000 {
+		reg = <0x0 0xf0082000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb2_pins>;
+		status = "disabled";
+	};
+
+	i2c3: i2c-bus@f0083000 {
+		reg = <0x0 0xf0083000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb3_pins>;
+		status = "disabled";
+	};
+
+	i2c4: i2c-bus@f0084000 {
+		reg = <0x0 0xf0084000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb4_pins>;
+		status = "disabled";
+	};
+
+	i2c5: i2c-bus@f0085000 {
+		reg = <0x0 0xf0085000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb5_pins>;
+		status = "disabled";
+	};
+
+	i2c6: i2c-bus@f0086000 {
+		reg = <0x0 0xf0086000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb6_pins>;
+		status = "disabled";
+	};
+
+	i2c7: i2c-bus@f0087000 {
+		reg = <0x0 0xf0087000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb7_pins>;
+		status = "disabled";
+	};
+
+	i2c8: i2c-bus@f0088000 {
+		reg = <0x0 0xf0088000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb8_pins>;
+		status = "disabled";
+	};
+
+	i2c9: i2c-bus@f0089000 {
+		reg = <0x0 0xf0089000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb9_pins>;
+		status = "disabled";
+	};
+
+	i2c10: i2c-bus@f008a000 {
+		reg = <0x0 0xf008a000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb10_pins>;
+		status = "disabled";
+	};
+
+	i2c11: i2c-bus@f008b000 {
+		reg = <0x0 0xf008b000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb11_pins>;
+		status = "disabled";
+	};
+
+	i2c12: i2c-bus@f008c000 {
+		reg = <0x0 0xf008c000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb12_pins>;
+		status = "disabled";
+	};
+
+	i2c13: i2c-bus@f008d000 {
+		reg = <0x0 0xf008d000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb13_pins>;
+		status = "disabled";
+	};
+
+	i2c14: i2c-bus@f008e000 {
+		reg = <0x0 0xf008e000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb14_pins>;
+		status = "disabled";
+	};
+
+	i2c15: i2c-bus@f008f000 {
+		reg = <0x0 0xf008f000 0x0 0x1000>;
+		compatible = "nuvoton,npcmX50-i2c-bus";
+		clocks = <&clks CLK_APB2>;
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&smb15_pins>;
+		status = "disabled";
+	};
+
+	pinctrl: pinctrl@f0800000 {
+		compatible = "nuvoton,npcm8xx-pinctrl";
+	};
+
+};

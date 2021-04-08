@@ -778,7 +778,7 @@ config SYS_SDMR
 	depends on MPC8XX_CONS
 	default 0
 
-config POLEG_SERIAL
+config NPCMX50_SERIAL
 	bool "NUVOTON on-chip USB-UART"
 	help
 	  Support debug output via SI2

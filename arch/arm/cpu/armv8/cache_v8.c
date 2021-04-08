@@ -654,10 +654,11 @@ void mmu_change_region_attr(phys_addr_t addr, size_t siz, u64 attrs)
  * running however really wants to have dcache and the MMU active. Check that
  * everything is sane and give the developer a hint if it isn't.
  */
+#ifndef CONFIG_TARGET_ARBEL
 #ifndef CONFIG_SPL_BUILD
 #error Please describe your MMU layout in CONFIG_SYS_MEM_MAP and enable dcache.
 #endif
-
+#endif
 void invalidate_dcache_all(void)
 {
 }

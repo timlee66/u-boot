@@ -706,9 +706,14 @@ static struct phy_device *create_phy_by_mask(struct mii_dev *bus,
 	while (phy_mask) {
 		int addr = ffs(phy_mask) - 1;
 		int r = get_phy_id(bus, addr, devad, &phy_id);
+//		phy_id = 0;   /* Force ID */
+//		printf("phy_id=0x%x r=%d \n", phy_id,r);
 		/* If the PHY ID is mostly f's, we didn't find anything */
 		if (r == 0 && (phy_id & 0x1fffffff) != 0x1fffffff)
+		{
+			printf("\nFound phy_id=0x%08x addr=0x%02x ", phy_id, addr);
 			return phy_device_create(bus, addr, phy_id, interface);
+		}
 		phy_mask &= ~(1 << addr);
 	}
 	return NULL;

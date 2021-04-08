@@ -118,48 +118,48 @@ static int poleg_uart_init_clk(struct clk_ctl *uart_clk)
 	return 0;
 }
 
-enum sd_num {
-	SD1_DEV,
-	SD2_DEV,
+enum mmc_num {
+	SD_DEV,
+	EMMC_DEV,
 };
 
-static u32 poleg_sd_configure_clk(struct clk_ctl *sd_clk,
-					ulong rate, enum sd_num sdnum)
+static u32 poleg_mmc_configure_clk(struct clk_ctl *mmc_clk,
+					ulong rate, enum mmc_num mmcnum)
 {
 	u32 pll0_freq, divider, sdhci_clk;
 	volatile unsigned int i;
 
-	if (sdnum == SD1_DEV) {
-		writel(readl(&sd_clk->clken2) | (1 << CLKEN2_SDHC),
-			&sd_clk->clken2);
-	} else if (sdnum == SD2_DEV) {
-		writel(readl(&sd_clk->clken2) | (1 << CLKEN2_MMC),
-			&sd_clk->clken2);
+	if (mmcnum == SD_DEV) {
+		writel(readl(&mmc_clk->clken2) | (1 << CLKEN2_SDHC),
+			&mmc_clk->clken2);
+	} else if (mmcnum == EMMC_DEV) {
+		writel(readl(&mmc_clk->clken2) | (1 << CLKEN2_MMC),
+			&mmc_clk->clken2);
 	}
 
 	/* To acquire PLL0 frequency. */
-	pll0_freq = clk_get_pll_freq(sd_clk, PLL_0);
+	pll0_freq = clk_get_pll_freq(mmc_clk, PLL_0);
 
 	/* Calculate rounded up divider to produce closest to
 	   target output clock  */
 	divider = (pll0_freq % rate == 0) ? (pll0_freq / rate) :
 						(pll0_freq / rate) + 1;
 
-	if (sdnum == SD1_DEV) {
-		writel((readl(&sd_clk->clkdiv2) & ~(0xf << CLKDIV2_SD1CKDIV))
+	if (mmcnum == SD_DEV) {
+		writel((readl(&mmc_clk->clkdiv2) & ~(0xf << CLKDIV2_SD1CKDIV))
 			| ((divider / 2) - 1) << CLKDIV2_SD1CKDIV,
-			&sd_clk->clkdiv2);
-	} else if (sdnum == SD2_DEV) {
-		writel((readl(&sd_clk->clkdiv1) & ~(0x1f << CLKDIV1_MMCCKDIV))
-			| (divider - 1) << CLKDIV1_MMCCKDIV, &sd_clk->clkdiv1);
+			&mmc_clk->clkdiv2);
+	} else if (mmcnum == EMMC_DEV) {
+		writel((readl(&mmc_clk->clkdiv1) & ~(0x1f << CLKDIV1_MMCCKDIV))
+			| (divider - 1) << CLKDIV1_MMCCKDIV, &mmc_clk->clkdiv1);
 	}
 	/* Wait to the divider to stabilize (according to spec) */
 	for (i = 200; i > 0; i--);
 
 	/* SD clock uses always PLL0 */
-	writel((readl(&sd_clk->clksel) & ~(0x3 << CLKSEL_SDCKSEL))
+	writel((readl(&mmc_clk->clksel) & ~(0x3 << CLKSEL_SDCKSEL))
 		| (CLKSEL_SDCKSEL_PLL0 << CLKSEL_SDCKSEL),
-		&sd_clk->clksel);
+		&mmc_clk->clksel);
 
 	sdhci_clk = pll0_freq / divider;
 
@@ -225,7 +225,7 @@ static u32 poleg_get_pll0_apb_divisor(struct clk_ctl *regs, u32 apb)
 				(((readl(&regs->clkdiv3)
 					>> CLKDIV3_SPI0CKDV) & 0x1f) + 1);
 		break;
-	case SPI3: /* SPI0 divider */
+	case SPI3: /* SPI3 divider */
 		apb_divisor = apb_divisor *
 				(((readl(&regs->clkdiv1)
 					>> CLKDIV1_AHB3CKDIV) & 0x1f) + 1);
@@ -269,10 +269,10 @@ static ulong poleg_set_rate(struct clk *clk, ulong rate)
 		return poleg_uart_init_clk(priv->regs);
 		break;
 	case CLK_SD:
-		return poleg_sd_configure_clk(priv->regs, rate, SD1_DEV);
+		return poleg_mmc_configure_clk(priv->regs, rate, SD_DEV);
 		break;
 	case CLK_EMMC:
-		return poleg_sd_configure_clk(priv->regs, rate, SD2_DEV);
+		return poleg_mmc_configure_clk(priv->regs, rate, EMMC_DEV);
 		break;
 	default:
 		return -1;

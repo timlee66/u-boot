@@ -4,10 +4,12 @@ choice
 	prompt "NPCM board select"
 
 config TARGET_POLEG
-    bool "POLEG board"
-
+	bool "POLEG board"
+	
 endchoice
 
+config ARCH_NPCM
+	bool "NUVOTON NPCM Arch"
 
 config SYS_SOC
 	default "npcm750"

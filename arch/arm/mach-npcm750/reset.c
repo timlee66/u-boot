@@ -22,27 +22,28 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <asm/arch/poleg_rst.h>
+#include <asm/arch/rst.h>
 #include <asm/arch/gcr.h>
-#include <asm/arch/poleg_info.h>
+#include <asm/arch/info.h>
 #include <asm/arch/cpu.h>
 
 void reset_cpu(ulong ignored)
 {
-	writel(0x83, 0xf000801c);
+	writel(0x83, 0xf000801c);    /* Watcdog reset - WTCR register set  WTE-BIT7 WTRE-BIT1 WTR-BIT0 */
     while (1);
 }
 
 void reset_misc(void)
 {
+	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 	printf("clear WDC\n");
-	writel(readl(0xf0800060) & ~(1 << 21), 0xf0800060);
+	writel(readl(&gcr->intcr2) & ~(1 << INTCR2_WDC), &gcr->intcr2);
 }
 
 enum reset_type npcm7xx_reset_reason(void)
 {
 	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-	enum reset_type type = UNKNOWN;
+	enum reset_type type = UNKNOWN_TYPE;
     u32 value = readl(&gcr->ressr);
 
 	if (value == 0)

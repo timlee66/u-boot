@@ -1,5 +1,5 @@
 /*
- * NUVOTON POLEG USB HOST EHCI Controller
+ * NUVOTON NPCMX50 USB HOST EHCI Controller
  *
  * Copyright (C) 2019 Nuvoton Co.Ltd
  *
@@ -20,7 +20,7 @@
 /* Declare global data pointer */
 DECLARE_GLOBAL_DATA_PTR;
 
-struct poleg_ehci_platdata {
+struct npcmX50_ehci_platdata {
 	struct usb_platdata usb_plat;
 	fdt_addr_t hcd_base;
 };
@@ -29,14 +29,14 @@ struct poleg_ehci_platdata {
  * Contains pointers to register base addresses
  * for the usb controller.
  */
-struct poleg_ehci {
+struct npcmX50_ehci {
 	struct ehci_ctrl ctrl;
 	struct ehci_hccr *hcd;
 };
 
 static int ehci_usb_ofdata_to_platdata(struct udevice *dev)
 {
-	struct poleg_ehci_platdata *plat = dev_get_platdata(dev);
+	struct npcmX50_ehci_platdata *plat = dev_get_platdata(dev);
 
 	/*
 	 * Get the base address for EHCI controller from the device node
@@ -54,11 +54,16 @@ static int ehci_usb_ofdata_to_platdata(struct udevice *dev)
 
 static int ehci_usb_probe(struct udevice *dev)
 {
-	struct poleg_ehci_platdata *plat = dev_get_platdata(dev);
-	struct poleg_ehci *ctx = dev_get_priv(dev);
+	struct npcmX50_ehci_platdata *plat = dev_get_platdata(dev);
+	struct npcmX50_ehci *ctx = dev_get_priv(dev);
 	struct ehci_hcor *hcor;
-	struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
+#if defined (CONFIG_TARGET_ARBEL)
+	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm850_get_base_clk();
+#elif defined (CONFIG_TARGET_POLEG)
 	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
+#endif
 
 	ctx->hcd = (struct ehci_hccr *)plat->hcd_base;
 
@@ -119,19 +124,19 @@ static int ehci_usb_remove(struct udevice *dev)
 }
 
 static const struct udevice_id ehci_usb_ids[] = {
-	{ .compatible = "nuvoton,poleg-ehci" },
+	{ .compatible = "nuvoton,npcmX50-ehci" },
 	{ }
 };
 
-U_BOOT_DRIVER(usb_poleg) = {
-	.name	= "ehci_poleg",
+U_BOOT_DRIVER(usb_npcmX50) = {
+	.name	= "ehci_npcmX50",
 	.id	= UCLASS_USB,
 	.of_match = ehci_usb_ids,
 	.ofdata_to_platdata = ehci_usb_ofdata_to_platdata,
 	.probe = ehci_usb_probe,
 	.remove = ehci_usb_remove,
 	.ops	= &ehci_usb_ops,
-	.priv_auto_alloc_size = sizeof(struct poleg_ehci),
-	.platdata_auto_alloc_size = sizeof(struct poleg_ehci_platdata),
+	.priv_auto_alloc_size = sizeof(struct npcmX50_ehci),
+	.platdata_auto_alloc_size = sizeof(struct npcmX50_ehci_platdata),
 	.flags	= DM_FLAG_ALLOC_PRIV_DMA,
 };

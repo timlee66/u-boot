@@ -29,17 +29,13 @@
 #error "no target board defined!"
 #endif
 
-enum pspi_transfer_mode {
-	PSPI_WRITE_RISING_EDGE,
-	PSPI_WRITE_FALLING_EDGE,
-};
 
 enum pspi_dev {
 	PSPI1_DEV = 0,
-	PSPI2_DEV = 1,
+	PSPI2_DEV = 1
 };
 
-struct npcm750_pspi_regs {
+struct npcmX50_pspi_regs {
 	unsigned short pspi_data;
 	unsigned short pspi_ctl1;
 	unsigned char pspi_stat;

@@ -145,6 +145,7 @@ pie_fixup_done:
 	 * d-cache is invalidated before enabled in dcache_enable()
 	 */
 
+#if !defined (CONFIG_NPCMX50_CORE0) && !defined (CONFIG_NPCMX50_CORE1) && !defined (CONFIG_NPCMX50_CORE2) && !defined (CONFIG_NPCMX50_CORE3)
 	/* Processor specific initialization */
 	bl	lowlevel_init
 
@@ -166,6 +167,7 @@ slave_cpu:
 	br	x0			/* branch to the given address */
 #endif /* CONFIG_ARMV8_MULTIENTRY */
 master_cpu:
+#endif
 	bl	_main
 
 #ifdef CONFIG_SYS_RESET_SCTRL

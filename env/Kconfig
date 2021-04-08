@@ -294,6 +294,7 @@ config ENV_IS_IN_REMOTE
 config ENV_IS_IN_SPI_FLASH
 	bool "Environment is in SPI flash"
 	depends on !CHAIN_OF_TRUST
+	depends on !NPCMX50_CORE0 && !NPCMX50_CORE1 && !NPCMX50_CORE2 && !NPCMX50_CORE3
 	default y if ARMADA_XP
 	default y if INTEL_BAYTRAIL
 	default y if INTEL_BRASWELL

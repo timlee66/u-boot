@@ -1,7 +1,7 @@
 #ifndef _POLEG_RNG_H_
 #define _POLEG_RNG_H_
 
-struct poleg_rng_regs {
+struct npcmX50_rng_regs {
 	unsigned int rngcs;
 	unsigned int rngd;
 	unsigned int rngmode;
@@ -37,7 +37,7 @@ typedef enum
 	RNG_NUM_OF_CLKP
 } RNG_CLKP_T;
 
-void npcm750_rng_init(void);
-void npcm750_rng_disable(void);
+void npcmX50_rng_init(void);
+void npcmX50_rng_disable(void);
 
 #endif

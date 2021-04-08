@@ -34,8 +34,9 @@ enum {
 };
 
 /* Clock Enable 1 Register (CLKEN1) */
-#define CLKEN1_TIMER0_4             19
+#define CLKEN1_EMC2                 21
 #define CLKEN1_TIMER5_9             20
+#define CLKEN1_TIMER0_4             19
 #define CLKEN1_EMC1                 6
 
 /* Clock Enable 2 Register (CLKEN2) */
@@ -124,6 +125,7 @@ enum {
 #define IPSRST1_EMC1                6
 #define IPSRST1_USBDEV2             8
 #define IPSRST1_USBDEV3             25
+#define IPSRST1_EMC2                21
 #define IPSRST1_USBDEV4             22
 #define IPSRST1_USBDEV5             23
 #define IPSRST1_USBDEV6             24

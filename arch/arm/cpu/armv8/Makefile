@@ -31,5 +31,7 @@ obj-$(CONFIG_FSL_LAYERSCAPE) += fsl-layerscape/
 obj-$(CONFIG_S32V234) += s32v234/
 obj-$(CONFIG_ARCH_ZYNQMP) += zynqmp/
 obj-$(CONFIG_TARGET_HIKEY) += hisilicon/
+obj-$(CONFIG_ARCH_NPCM850) += npcm850/
+obj-$(CONFIG_NPCM850_DBG_INTERRUPTS) += armv8_interrupts/
 obj-$(CONFIG_ARMV8_PSCI) += psci.o
 obj-$(CONFIG_ARCH_SUNXI) += lowlevel_init.o

@@ -22,6 +22,9 @@ choice
 config TARGET_POLEG_EVB
 	bool "Poleg EVB"
 
+config TARGET_POLEG_SVB
+	bool "Poleg SVB"
+	
 config TARGET_POLEG_RUNBMC
 	bool "Poleg RunBMC"
 

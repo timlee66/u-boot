@@ -20,4 +20,4 @@ obj-$(CONFIG_STI_TIMER)		+= sti-timer.o
 obj-$(CONFIG_STM32_TIMER)	+= stm32_timer.o
 obj-$(CONFIG_X86_TSC_TIMER)	+= tsc_timer.o
 obj-$(CONFIG_MTK_TIMER)		+= mtk_timer.o
-obj-$(CONFIG_NPCM750_TIMER)	+= npcm750-timer.o
+obj-$(CONFIG_NPCMX50_TIMER)	+= npcmX50-timer.o

@@ -11,8 +11,6 @@ obj-y += help.o
 obj-y += version.o
 
 # command
-obj-$(CONFIG_CMD_NUC_TST) += standalone_test.o
-obj-$(CONFIG_CMD_MCU) += mcu_updater.o
 obj-$(CONFIG_CMD_AES) += aes.o
 obj-$(CONFIG_CMD_ADC) += adc.o
 obj-$(CONFIG_CMD_ARMFLASH) += armflash.o
@@ -86,7 +84,6 @@ obj-$(CONFIG_CMD_LOG) += log.o
 obj-$(CONFIG_ID_EEPROM) += mac.o
 obj-$(CONFIG_CMD_MD5SUM) += md5sum.o
 obj-$(CONFIG_CMD_MEMORY) += mem.o
-obj-$(CONFIG_CMD_GFX) += gfx_test.o
 obj-$(CONFIG_CMD_IO) += io.o
 obj-$(CONFIG_CMD_MFSL) += mfsl.o
 obj-$(CONFIG_CMD_MII) += mii.o
@@ -183,6 +180,8 @@ endif # !CONFIG_SPL_BUILD
 obj-y += nvedit.o
 
 obj-$(CONFIG_TI_COMMON_CMD_OPTIONS) += ti/
+
+obj-$(CONFIG_ARCH_NPCM) += nuvoton/
 
 filechk_data_gz = (echo "static const char data_gz[] ="; cat $< | scripts/bin2c; echo ";")
 

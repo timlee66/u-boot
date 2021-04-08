@@ -11,6 +11,18 @@
 #include <cli.h>
 #include <console.h>
 #include <version.h>
+#include <asm/io.h>
+#ifdef CONFIG_NPCM850_DBG_INTERRUPTS
+extern void timer_test(void);
+extern void init_gicd(void);
+extern void init_gicc(void);
+extern void mc_intr(void);
+#endif
+
+
+#ifdef CONFIG_DISABLE_CONSOLE
+DECLARE_GLOBAL_DATA_PTR;
+#endif
 
 /*
  * Board-specific Platform code can reimplement show_boot_progress () if needed
@@ -42,6 +54,35 @@ void main_loop(void)
 {
 	const char *s;
 
+#if 0
+	while(1)
+	{
+	     printf("U");   /* This is for finding uart freq. */
+	}
+#endif
+
+#ifdef CONFIG_NPCM850_DBG_INTERRUPTS
+	init_gicd();
+	init_gicc();
+	
+	mc_intr();      /* Memory Controller interrupt */
+
+#ifdef CONFIG_NPCM850_DBG_TIMER
+	timer_test();
+#endif
+#endif
+
+#if defined (CONFIG_NPCMX50_CORE1) || defined (CONFIG_NPCMX50_CORE2) || defined (CONFIG_NPCMX50_CORE3)
+#ifdef CONFIG_DISABLE_CONSOLE
+	gd->flags |= GD_FLG_DISABLE_CONSOLE;
+#endif
+
+#if defined (CONFIG_TARGET_ARBEL)
+	writel(readl((volatile uint32_t *)(0xfffb000C)) + 0x1, (volatile uint32_t *)(0xfffb000C));            /* Flag for mainloop (shell) per secondary cores */
+#elif defined (CONFIG_TARGET_POLEG)
+	writel(readl((volatile uint32_t *)(0xfffd000C)) + 0x1, (volatile uint32_t *)(0xfffd000C));            /* Flag for mainloop (shell) per secondary cores */
+#endif
+#endif
 	bootstage_mark_name(BOOTSTAGE_ID_MAIN_LOOP, "main_loop");
 
 	if (IS_ENABLED(CONFIG_VERSION_VARIABLE))

@@ -20,6 +20,10 @@
 #include <asm/unaligned.h>
 #include <part.h>
 #include <usb.h>
+#include <dm/lists.h>
+#include <dm/device-internal.h>
+
+DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_USB_STORAGE
 static int usb_stor_curr_dev = -1; /* current device */
@@ -608,6 +612,37 @@ static void do_usb_start(void)
 #endif
 }
 
+static void do_usbd_probe(void)
+{
+	struct udevice *devp;
+	int node, ret;
+
+#if defined (CONFIG_TARGET_ARBEL)	
+	node = fdt_node_offset_by_compatible(gd->fdt_blob, -1, "nuvoton,npcm8xx-ehci-usbd");
+	const char *name = fdt_get_name(gd->fdt_blob, node, NULL);
+	ret = device_bind_driver_to_node(gd->dm_root, "ehci_usbd_npcm8xx", name,
+					 offset_to_ofnode(node), &devp);
+#elif defined (CONFIG_TARGET_POLEG)
+	node = fdt_node_offset_by_compatible(gd->fdt_blob, -1, "nuvoton,npcm7xx-ehci-usbd");
+	const char *name = fdt_get_name(gd->fdt_blob, node, NULL);
+	ret = device_bind_driver_to_node(gd->dm_root, "ehci_usbd_npcm7xx", name,
+					 offset_to_ofnode(node), &devp);
+#endif
+
+
+	if (ret) {
+		printf("could not find usbd %d\n", ret);
+		return;
+	}
+
+	ret = device_probe(devp);
+	
+	if (ret) {
+		printf("usbd probe failed %d\n", ret);
+		return;
+	}
+}
+
 #ifdef CONFIG_DM_USB
 static void usb_show_info(struct usb_device *udev)
 {
@@ -648,6 +683,12 @@ static int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 0;
 	}
 
+	if (strncmp(argv[1], "usbd_probe", 10) == 0) {
+		printf("probing USBD...\n");
+		do_usbd_probe();
+		return 0;
+	}
+	
 	if (strncmp(argv[1], "reset", 5) == 0) {
 		printf("resetting USB...\n");
 		if (do_usb_stop_keyboard(1) != 0)
@@ -733,7 +774,8 @@ static int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 U_BOOT_CMD(
 	usb,	5,	1,	do_usb,
 	"USB sub-system",
-	"start - start (scan) USB controller\n"
+	"usb start - start (scan) USB controller\n"
+	"usb usbd_probe - probe usbd driver\n"
 	"usb reset - reset (rescan) USB controller\n"
 	"usb stop [f] - stop USB [f]=force stop\n"
 	"usb tree - show USB device tree\n"

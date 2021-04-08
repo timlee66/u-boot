@@ -576,8 +576,13 @@ dtb-$(CONFIG_ARCH_MEDIATEK) += \
 
 dtb-$(CONFIG_ARCH_NPCM750) += \
 	nuvoton-npcm750-evb.dtb \
+	nuvoton-npcm750-svb.dtb \
 	nuvoton-npcm730.dtb
 
+dtb-$(CONFIG_ARCH_NPCM850) += \
+	nuvoton-npcm850-evb.dtb \
+	nuvoton-npcm850-svb.dtb \
+	nuvoton-npcm850-pld.dtb
 
 targets += $(dtb-y)
 

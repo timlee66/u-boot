@@ -308,7 +308,7 @@ config SMC911X
 config ETH_NPCM750
 	bool "Nuvoton NPCM750 Ethernet MAC"
 	help
-      support NPCM750 EMAC
+      	  support NPCM750 EMAC (EMC)
 
 if SMC911X
 

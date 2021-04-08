@@ -38,11 +38,6 @@ static void pl310_background_op_all_ways(u32 *op_reg)
 	pl310_cache_sync();
 }
 
-void set_pl310_ctrl(u32 enable)
-{
-	writel(enable, &pl310->pl310_ctrl);
-}
-
 void v7_outer_cache_inval_all(void)
 {
 	pl310_background_op_all_ways(&pl310->pl310_inv_way);

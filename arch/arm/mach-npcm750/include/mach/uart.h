@@ -3,9 +3,9 @@
 
 #ifndef __ASSEMBLY__
 
-struct npcm750_uart {
+struct npcmX50_uart {
 	union {
-		unsigned int	pbr;
+		unsigned int	rbr;
 		unsigned int	thr;
 		unsigned int	dll;
 	};

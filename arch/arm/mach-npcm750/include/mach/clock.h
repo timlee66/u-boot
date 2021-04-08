@@ -31,6 +31,10 @@
 
 #define EXT_CLOCK_FREQUENCY_KHZ	    25 * 1000 * 1UL
 #define EXT_CLOCK_FREQUENCY_MHZ	    25
+#define _1Hz_           1UL
+#define _1KHz_          (1000 * _1Hz_ )
+#define _1MHz_          (1000 * _1KHz_)
+#define _1GHz_          (1000 * _1MHz_)
 
 struct clk_ctl {
 	unsigned int  clken1;

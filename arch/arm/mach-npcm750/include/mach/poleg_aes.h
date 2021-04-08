@@ -50,6 +50,6 @@ struct poleg_aes_regs {
 #define DIN_FIFO_OVERFLOW       (1 << 4)
 #define DOUT_FIFO_UNDERFLOW     (1 << 5)
 
-int npcm750_aes_select_key(u8 fkeyind);
+int npcmX50_aes_select_key(u8 fkeyind);
 
 #endif

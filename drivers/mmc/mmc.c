@@ -456,8 +456,11 @@ static int mmc_go_idle(struct mmc *mmc)
 	struct mmc_cmd cmd;
 	int err;
 
+#ifdef CONFIG_TARGET_POLEG_SVB
+	udelay(5000);   /* Need for SVB */
+#else
 	udelay(1000);
-
+#endif
 	cmd.cmdidx = MMC_CMD_GO_IDLE_STATE;
 	cmd.cmdarg = 0;
 	cmd.resp_type = MMC_RSP_NONE;
@@ -466,9 +469,11 @@ static int mmc_go_idle(struct mmc *mmc)
 
 	if (err)
 		return err;
-
+#ifdef CONFIG_TARGET_POLEG_SVB
+	udelay(10000);  /* Need for SVB */
+#else
 	udelay(2000);
-
+#endif
 	return 0;
 }
 
@@ -2344,6 +2349,12 @@ static int mmc_startup(struct mmc *mmc)
 	}
 
 	mmc->capacity_user = (csize + 1) << (cmult + 2);
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
+#ifndef _NPCM850_EXT_SD_
+	printf("csize = %llu cmult = %llu  mmc->read_bl_len= %d \n", csize, cmult, mmc->read_bl_len );
+	mmc->capacity_user = 256;     /* We have only 128KB on Palladium eMMC simulation - so 256 block's of 512B */
+#endif 
+#endif
 	mmc->capacity_user *= mmc->read_bl_len;
 	mmc->capacity_boot = 0;
 	mmc->capacity_rpmb = 0;

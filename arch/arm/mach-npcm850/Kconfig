@@ -1,0 +1,33 @@
+if ARCH_NPCM850
+
+choice
+	prompt "NPCM board select"
+	
+config TARGET_ARBEL
+	bool "Arbel board"
+	
+endchoice
+
+config ARCH_NPCM
+	bool "NUVOTON NPCMX Arch"
+
+config TARGET_ARBEL_EVB
+	bool "Arbel EVB board"
+
+config TARGET_ARBEL_SVB
+	bool "Arbel SVB board"
+	
+config TARGET_ARBEL_PALLADIUM
+	bool "Arbel PALLADIUM board"
+	
+config SYS_SOC
+	default "npcm850"
+
+config SYS_MEM_TOP_HIDE
+	hex "Reserved TOP memory"
+	default 0x0 if NPCMX50_CORE0 || NPCMX50_CORE1 || NPCMX50_CORE2 || NPCMX50_CORE3
+	default 0x7000000 if !NPCMX50_CORE0 && !NPCMX50_CORE1 && !NPCMX50_CORE2 && !NPCMX50_CORE3
+
+source "board/nuvoton/arbel/Kconfig"
+
+endif

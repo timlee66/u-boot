@@ -4,8 +4,8 @@
 # 	http://www.samsung.com
 
 obj-$(CONFIG_EXYNOS_ACE_SHA)	+= ace_sha.o
-obj-$(CONFIG_NPCM750_RNG) += npcm750_rng.o
-obj-$(CONFIG_NPCM750_AES) += npcm750_aes.o
-obj-$(CONFIG_NPCM750_SHA) += npcm750_sha.o
+obj-$(CONFIG_NPCMX50_RNG) += npcmX50_rng.o
+obj-$(CONFIG_NPCMX50_AES) += npcmX50_aes.o
+obj-$(CONFIG_NPCMX50_SHA) += npcmX50_sha.o
 obj-y += rsa_mod_exp/
 obj-y += fsl/
