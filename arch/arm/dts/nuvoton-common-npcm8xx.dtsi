@@ -4,11 +4,9 @@
 #include "nuvoton-npcm8xx-pinctrl.dtsi"
 
 //#define GMAC_EXTERNAL_CLK
-#define GMAC1_SGMII
+
 #define GMAC2_RGMII
-//#define GMAC2_RMII3
-#define GMAC3_RMII1
-#define GMAC4_RMII2
+
 
 / {
 
@@ -298,7 +296,7 @@
 
 	otp: otp@f0189000 {
 		compatible = "nuvoton,npcmX50-otp";
-		reg = <0x0 0xf0189000 0x0 0x1000 0x0 0xf018a000 0x0 0x1000>;
+		reg = <0x0 0xf0189000 0x0 0x1000>;
 		clocks = <&clks CLK_APB4>;
 		status = "disabled";
 	};
@@ -405,7 +403,7 @@
 		gpio-count = <32>;
 		gpio-port = <7>;
 	};
-#ifdef GMAC1_SGMII
+
 	gmac1: gmac1 {
 		compatible = "nuvoton,npcmX50-dwmac";
 		reg = <0x0 0xF0802000 0x0 0x2000>;
@@ -421,9 +419,6 @@
 		snps,reset-gpio = <&gpio5 30 GPIO_ACTIVE_LOW>;    /* gpio190 */
 		status = "disabled";
 	};
-#endif
-
-#if defined GMAC2_RGMII || defined GMAC2_RMII3
 
 	gmac2: gmac2 {
 		compatible = "nuvoton,npcmX50-dwmac";
@@ -436,10 +431,14 @@
 			     &rg2refck_pins
 #endif	
 			     &rg2mdio_pins>;
-#else   /* GMAC2_RMII3 */			     
+#else   /* GMAC2-RMII3 */			     
 		phy-mode = "mii";
 		pinctrl-names = "default";
-		pinctrl-0 = <&rmii3_pins &r3rxer_pins>;
+		pinctrl-0 = <&rmii3_pins
+#ifdef GMAC_EXTERNAL_CLK
+			     &rg2refck_pins
+#endif	
+			     &r3rxer_pins>;
 #endif			     
 		snps,reset-active-low;
 #ifdef CONFIG_TARGET_ARBEL_PALLADIUM
@@ -450,10 +449,8 @@
 		snps,reset-gpio = <&gpio5 2 GPIO_ACTIVE_LOW>;    /* gpio162 */
 		status = "disabled";
 	};
-#endif
 	
-#ifdef GMAC3_RMII1
-	gmac3: gmac3 {  /* GMAC3_RMII1 */
+	gmac3: gmac3 {  /* GMAC3-RMII1 */
 		compatible = "nuvoton,npcmX50-dwmac";
 		reg = <0x0 0xF0806000 0x0 0x2000>;
 		phy-mode = "mii";
@@ -470,10 +467,8 @@
 		snps,reset-gpio = <&gpio2 30 GPIO_ACTIVE_LOW>;    /* gpio94 */
 		status = "disabled";
 	};
-#endif
 
-#ifdef GMAC4_RMII2
-	gmac4: gmac4 {  /* GMAC4_RMII2 */
+	gmac4: gmac4 {  /* GMAC4-RMII2 */
 		compatible = "nuvoton,npcmX50-dwmac";
 		reg = <0x0 0xF0808000 0x0 0x2000>;
 		phy-mode = "mii";
@@ -490,8 +485,8 @@
 		snps,reset-gpio = <&gpio2 29 GPIO_ACTIVE_LOW>;    /* gpio93 */
 		status = "disabled";
 	};
-#endif
-	usbd0: usbd0@f0830100 {
+
+	usb_dev0: usb-dev0@f0830100 {
 		compatible = "nuvoton,npcm8xx-ehci-usbd";
 		/* change the base address according the device you want to test */
 		reg = <0x0 0xF0830100 0x0 0x200>;
@@ -500,25 +495,25 @@
 		status = "disabled";
 	};
 
-	ehci1: ehci1 {
+	usb_eh1: usb-eh1@f0828100 {
 		compatible = "nuvoton,npcm8xx-ehci-host";
 		reg = <0x0 0xF0828100 0x0 0x100>;
 		status = "disabled";
 	};
 
-	ehci2: ehci2 {
+	usb_oh1: usb-oh1@f0829000 {
+		compatible = "nuvoton,npcm8xx-ohci";
+		reg = <0x0 0xF0829000 0x0 0x1000>;
+		status = "disabled";
+	};
+	
+	usb_eh2: usb-eh2@f082a100 {
 		compatible = "nuvoton,npcm8xx-ehci-host";
 		reg = <0x0 0xF082A100 0x0 0x100>;
 		status = "disabled";
 	};
 
-	ohci1: ohci1 {
-		compatible = "nuvoton,npcm8xx-ohci";
-		reg = <0x0 0xF0829000 0x0 0x1000>;
-		status = "disabled";
-	};
-
-	ohci2: ohci2 {
+	usb_oh2: usb-oh2@f082b000 {
 		compatible = "nuvoton,npcm8xx-ohci";
 		reg = <0x0 0xF082B000 0x0 0x1000>;
 		status = "disabled";

@@ -29,7 +29,6 @@
 //#define debug printf
 
 #define SR_MII_CTRL_SS6_BIT6  6
-#define SR_MII_CTRL_ANEN_BIT12  12
 #define SR_MII_CTRL_SS13_BIT13  13
 #define SR_MII_STS_LINKUP_BIT2  2
 #endif
@@ -247,7 +246,9 @@ static int dw_adjust_link(struct dw_eth_dev *priv, struct eth_mac_regs *mac_p,
 {
 #ifdef CONFIG_TARGET_ARBEL
 	unsigned int start;
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
 	char *phy_speed;
+#endif
 #endif
 	u32 conf = readl(&mac_p->conf) | FRAMEBURSTENABLE | DISABLERXOWN;
 
@@ -295,8 +296,6 @@ static int dw_adjust_link(struct dw_eth_dev *priv, struct eth_mac_regs *mac_p,
 		if( phydev->interface == PHY_INTERFACE_MODE_SGMII)
 		{
 			writew(0x1F00, 0xF07801FE);           /* Get access to 0x3E... (SR_MII_STS) */
-			/* Clear SGMII PHY default auto neg. */
-			writew(readw(0xF0780000) & ~(1 << SR_MII_CTRL_ANEN_BIT12), 0xF0780000);
 
             switch (phydev->speed) {
 			    case SPEED_1000:

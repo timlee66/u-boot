@@ -15,7 +15,7 @@
 //#define USB_OHCI_HOST2
 
 / {
-	model = "Nuvoton npcm850 Development Board";
+	model = "Nuvoton npcm850 PLD Development Board";
 	compatible = "nuvoton,arbel", "nuvoton,npcm850";
 
 	chosen {

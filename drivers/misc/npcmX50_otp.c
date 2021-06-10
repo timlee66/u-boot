@@ -494,7 +494,7 @@ static int npcmX50_otp_bind(struct udevice *dev)
 		return -EINVAL;
 	}
 	otp_priv->regs[0] = pRegs;
-
+#if defined (CONFIG_TARGET_POLEG)
 	pRegs = NULL;
 	pRegs = dev_remap_addr_index(dev, 1);
 	if (!pRegs) {
@@ -502,7 +502,7 @@ static int npcmX50_otp_bind(struct udevice *dev)
 		return -EINVAL;
 	}
 	otp_priv->regs[1] = pRegs;
-
+#endif
 	printk(KERN_INFO "OTP: NPCMX50 OTP module bind OK\n");
 
 	return 0;

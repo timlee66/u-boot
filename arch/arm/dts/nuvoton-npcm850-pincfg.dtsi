@@ -1481,6 +1481,7 @@
 			pins = "GPIO168/ESPI_nALERT/SERIRQ";
 			bias-disable;
 			input-enable;
+			drive-open-drain;
 		};
 		gpio168ol_pins: gpio168ol-pins {
 			pins = "GPIO168/ESPI_nALERT/SERIRQ";

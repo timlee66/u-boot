@@ -155,10 +155,12 @@ static int npcmX50_pspi_xfer(struct udevice *dev, unsigned int bitlen,
 
 static int npcmX50_pspi_set_speed(struct udevice *bus, uint speed)
 {
+#if 0
 	struct npcmX50_pspi_priv *priv = dev_get_priv(bus);
+
 	int divisor;
 	ulong apb_clock;
-#if 0
+
 	apb_clock = clk_get_rate(&priv->pspi_clk);
 	if (!apb_clock)
 		return -EINVAL;

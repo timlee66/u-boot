@@ -37,7 +37,9 @@ struct npcm8xx_ehci_usbd {
 static int ehci_usbd_ofdata_to_platdata(struct udevice *dev)
 {
 	struct npcm8xx_ehci_platdata *plat = dev_get_platdata(dev);
-	unsigned int usbphy_num = 0, usbdev_num = 0, env_usbphy_num = 0, env_usbdev_num = 0;
+	unsigned int usbphy_num = 0, usbdev_num = 0;
+	char * env_usbphy_num;
+	char * env_usbdev_num;
 	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
 	
 	/*
@@ -181,8 +183,8 @@ static int ehci_usbd_remove(struct udevice *dev)
 	int ret;
 	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
 
-	writel((readl(&gcr->intcr3) & ~(0x3 << INTCR3_USBPHY2SW) | (0x1 << INTCR3_USBPHY2SW) ), &gcr->intcr3);
-	writel((readl(&gcr->intcr3) & ~(0x3 << INTCR3_USBPHY3SW) | (0x1 << INTCR3_USBPHY3SW) ), &gcr->intcr3);
+	writel(((readl(&gcr->intcr3) & ~(0x3 << INTCR3_USBPHY2SW)) | (0x1 << INTCR3_USBPHY2SW) ), &gcr->intcr3);
+	writel(((readl(&gcr->intcr3) & ~(0x3 << INTCR3_USBPHY3SW)) | (0x1 << INTCR3_USBPHY3SW) ), &gcr->intcr3);
 
 	ret = ehci_deregister(dev);
 	printf("USB Device ehci_usbd_remove\n");

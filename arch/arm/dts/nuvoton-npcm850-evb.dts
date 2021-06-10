@@ -3,15 +3,13 @@
 #include "nuvoton-npcm850-pincfg.dtsi"
 
 
-
+/* Comment below for selecting OHCI_HOST1/2 */
 #define USB_EHCI_HOST1
-//#define USB_EHCI_HOST2
+#define USB_EHCI_HOST2
 
-//#define USB_OHCI_HOST1
-//#define USB_OHCI_HOST2
 
 / {
-	model = "Nuvoton npcm850 Development Board";
+	model = "Nuvoton npcm850 EVB Development Board";
 	compatible = "nuvoton,arbel", "nuvoton,npcm850";
 
 	chosen {
@@ -56,7 +54,17 @@
 		gpio5 = &gpio5;
 		gpio6 = &gpio6;
 		gpio7 = &gpio7;
-		usb0 = &usbd0;
+		usb0 = &usb_dev0;
+#ifdef USB_EHCI_HOST1
+		usb1 = &usb_eh1;
+#else
+		usb1 = &usb_oh1;
+#endif
+#ifdef USB_EHCI_HOST2
+		usb2 = &usb_eh2;
+#else
+		usb2 = &usb_oh2;
+#endif
 		eth0 = &gmac1;
 		eth1 = &gmac2;
 		eth2 = &gmac3;
@@ -156,30 +164,30 @@
 		status = "okay";
 	};
 
-	usbd0: usbd0@f0830100 {
+	usb_dev0: usb-dev0@f0830100 {
 		status = "okay";
 	};
+
 #ifdef USB_EHCI_HOST1
-	ehci1: ehci1 {
+	usb_eh1: usb-eh1@f0828100 {
 		status = "okay";
 	};
-#endif	
-#ifdef USB_EHCI_HOST2
-	ehci2: ehci2 {
+#else
+	usb_oh1: usb-oh1@f0829000 {
 		status = "okay";
 	};
 #endif
 
-#ifdef USB_OHCI_HOST1
-	ohci1: ohci1 {
+#ifdef USB_EHCI_HOST2
+	usb_eh2: usb-eh2@f082a100 {
+		status = "okay";
+	};
+#else	
+	usb_oh2: usb-oh2@f082b000 {
 		status = "okay";
 	};
 #endif
-#ifdef USB_OHCI_HOST2
-	ohci2: ohci2 {
-		status = "okay";
-	};
-#endif
+
 	i2c0: i2c-bus@f0080000 {
 		status = "okay";
 	};
@@ -300,7 +308,8 @@
 				&gpio155_pins		
 				&gpio231_pins		
 				&gpio194_pins		
-				&gpio195_pins		
+				&gpio195_pins
+				&gpio168_pins		
 			    >;
 	};
 };

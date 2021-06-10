@@ -20,6 +20,7 @@
 #include <fuse.h>
 #include <spi_flash.h>
 #include <spi.h>
+#include <asm/gpio.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -37,6 +38,7 @@ extern void sdelay(unsigned long loops);
 u32  CLK_GetPLL0toAPBdivisor(u32 apb)
 {
     struct clk_ctl *clkctl = (struct clk_ctl *)(uintptr_t)npcm850_get_base_clk();
+	
 	volatile u32 apb_divisor = 1;
 
 	apb_divisor = apb_divisor * ((readl(&clkctl->clkdiv1) & (0x1)) + 1);         /* AXI divider ( div by 1\2) */
@@ -465,8 +467,10 @@ int UART_Init (UART_DEV_T devNum, UART_MUX_T muxMode, UART_BAUDRATE_T baudRate)
         return 0;
 }
 
+#define SR_MII_CTRL_ANEN_BIT12  12
 #define SR_MII_CTRL_SWR_BIT15   15
 #define VR_MII_MMD_DIG_CTRL1_R2TLBE_BIT14 14
+#define VR_MII_MDD_DIG_CTRL2_RX_POL_INV_0_BIT0 0
 
 int board_uart_init(void)
 {
@@ -477,6 +481,50 @@ int board_uart_init(void)
 	sdelay(210000UL);	  /* 	udelay (100) */
 #endif
 	return 0;
+}
+
+/*
+ * Routine: get_board_version_id
+ * Description: Detect board version by reading  GPIO79 (VER_ID1), GPIO78 (VER_ID0).
+ *		GPIO79 (VER_ID1), GPIO78 (VER_ID0): 1 1 => X00
+ *		GPIO79 (VER_ID1), GPIO78 (VER_ID0): 1 0 => X01
+ *		GPIO79 (VER_ID1), GPIO78 (VER_ID0): 0 1 => Reserved
+ *		GPIO79 (VER_ID1), GPIO78 (VER_ID0): 0 0 => Reserved
+ */
+int get_board_version_id(void)
+{
+	static int pcb_version = -1;
+
+	if (pcb_version == -1) 
+	{
+		if (!gpio_request(PCB_VER_ID0, "rev0") &&
+		    !gpio_request(PCB_VER_ID1, "rev1"))
+	    {
+			gpio_direction_input(PCB_VER_ID0);
+			gpio_direction_input(PCB_VER_ID1);
+
+			pcb_version = gpio_get_value(PCB_VER_ID1) << 1 | gpio_get_value(PCB_VER_ID0);
+
+			switch(pcb_version) 
+			{
+				case 3:
+					printf("NPCM850 EVB PCB version ID 0x%01x -> version X00 \n", pcb_version);
+				break;
+				case 2:
+					printf("NPCM850 EVB PCB version ID 0x%01x -> version X01 \n", pcb_version);
+				break;
+
+				default:
+					printf("NPCM850 EVB PCB version ID 0x%01x -> unknown version ID \n", pcb_version);
+				break;
+			}			
+			gpio_free(PCB_VER_ID0);
+			gpio_free(PCB_VER_ID1);
+		} else {
+			printf("Error: unable to acquire board version GPIOs\n");
+		}
+	}
+	return pcb_version;
 }
 
 int board_init(void)
@@ -501,44 +549,44 @@ int board_init(void)
 //#define GMAC1_SGMII_PCS_LB
 
 
-#define GMAC2_RGMII
-
     /* GMAC INTERNAL CLK  setup */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM	
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
 //	writel(((readl(&clkctl->clksel) & ~(0x3 << CLKSEL_RGSEL)) | (CLKSEL_CPUCKSEL_PLL0 << CLKSEL_RGSEL)), &clkctl->clksel);  // Select PLL0 for GMAC 500MHz /4 = 125MHz
 	writel(((readl(&clkctl->clksel) & ~(0x3 << CLKSEL_RGSEL)) | (CLKSEL_CPUCKSEL_PLL1 << CLKSEL_RGSEL)), &clkctl->clksel);  // Select PLL1 for GMAC 500MHz /4 = 125MHz
 	writel((readl(&clkctl->clkdiv4) & ~(0xF << CLKDIV4_RGREFDIV) | (3 << CLKDIV4_RGREFDIV)), &clkctl->clkdiv4);           // Select Divider 3+1=4 for GMAC 500MHz /4 = 125MHz   
 #endif
 
 
-#if 1  /* TBD - Remove when BB take-over setup */
+#if 0  /* TBD - Remove when BB take-over setups */
 	writel(((readl(&clkctl->clksel) & ~(0x3 << CLKSEL_RGSEL)) | (CLKSEL_CPUCKSEL_PLL0 << CLKSEL_RGSEL)), &clkctl->clksel);  // Select PLL0 for GMAC 500MHz /4 = 125MHz
 //	writel(((readl(&clkctl->clksel) & ~(0x3 << CLKSEL_RGSEL)) | (CLKSEL_CPUCKSEL_PLL1 << CLKSEL_RGSEL)), &clkctl->clksel);  // Select PLL1 for GMAC 500MHz /4 = 125MHz
-	writel((readl(&clkctl->clkdiv4) & ~(0xF << CLKDIV4_RGREFDIV) | (3 << CLKDIV4_RGREFDIV)), &clkctl->clkdiv4);           // Select Divider 3+1=4 for GMAC 500MHz /4 = 125MHz   
+	writel((readl(&clkctl->clkdiv4) & ~(0xF << CLKDIV4_RGREFDIV) | (3 << CLKDIV4_RGREFDIV)), &clkctl->clkdiv4);             // Select Divider 3+1=4 for GMAC 500MHz/4 = 125MHz
+//	writel((readl(&clkctl->clkdiv3) & ~(0x1F << CLKDIV3_SPI0CKDV) | (1 << CLKDIV3_SPI0CKDV)), &clkctl->clkdiv3);            // Select Divider 1+1=2 for SPI0 500MHz/4/2 = 62.5MHz   
 #endif
 
 	/* Enable SGMII/RGMII for GMAC1/2 module */
 	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_SG1MSEL)), &gcr->mfsel4);     // GMAC1 - MDIO SGMII
 
-
 #ifdef GMAC2_RGMII
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
 	writel(readl((volatile uint32_t *)(0xf0800efc)) & ~(1 << 2), (volatile uint32_t *)(0xf0800efc));	// Clear SCRCHPAD63 Bit2
 	printf("board_init: GMAC2 = RGMII2 on Port2 SCRCHPAD63=0x%x \n", *(volatile uint32_t *)(0xf0800efc));
-	
+#endif
 	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2SEL)), &gcr->mfsel4);      // GMAC2 - RGMII
 	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);     // GMAC2 - MDIO
 
-#else
+#else  /* GMAC2 RMII3 */
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
 	writel(readl((volatile uint32_t *)(0xf0800efc)) | (1 << 2), (volatile uint32_t *)(0xf0800efc));		//  Set SCRCHPAD63 Bit2
 	printf("board_init: GMAC2 = RMII3 on Port4  SCRCHPAD63=0x%x \n", *(volatile uint32_t *)(0xf0800efc));
-
+#endif
 	writel((readl(&gcr->mfsel4) & ~(1 << MFSEL4_RG2SEL)), &gcr->mfsel4);     // Switch GMAC2 to RMII3 Mode
 	writel((readl(&gcr->mfsel3) & ~(1 << MFSEL3_DDRDVOSEL)), &gcr->mfsel3);  // Switch GMAC2 to RMII3 Mode
 	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);     // GMAC2 - MDIO		
 	writel((readl(&gcr->mfsel5) | (1 << MFSEL5_RMII3SEL)), &gcr->mfsel5);    // RMII3 select
 	writel((readl(&gcr->intcr4) | (1 << INTCR4_R3EN)), &gcr->intcr4);        // RMII3 Set INTCR4_R3EN Enable
 	writel((readl(&gcr->mfsel5) | (1 << MFSEL5_R3OENSEL)), &gcr->mfsel5);    // RMII3 Set MFSEL5_R3OENSEL Output-Enable
-#endif
+#endif /* #endif GMAC2_RGMII */
 
 	writel((readl(&gcr->mfsel3) | (1 << MFSEL3_RMII1SEL)), &gcr->mfsel3);    // GMAC3 - RMII1 Select	
 	writel((readl(&gcr->intcr4) | (1 << INTCR4_R1EN)), &gcr->intcr4);        // GMAC3 - RMII1 Set INTCR4_R1EN 
@@ -568,7 +616,7 @@ int board_init(void)
 	writew(readw(0xF0780000) | (1 << SR_MII_CTRL_SWR_BIT15), 0xF0780000);
 	start = get_timer(0);
 
-	printf("SGMII PHY reset wait \n");
+	printf("SGMII PCS PHY reset wait \n");
 	while (readw(0xF0780000) & (1 << SR_MII_CTRL_SWR_BIT15)) 
 	{
 		if (get_timer(start) >= 3*CONFIG_SYS_HZ) 
@@ -579,8 +627,24 @@ int board_init(void)
 
 		mdelay(1);
 	};
-	printf("SGMII PHY reset wait done \n");
 	
+	/* Clear SGMII PHY default auto neg. */
+	writew(readw(0xF0780000) & ~(1 << SR_MII_CTRL_ANEN_BIT12), 0xF0780000);
+	printf("SGMII PCS PHY reset done and clear Auto Negotiation \n");
+
+#ifdef CONFIG_TARGET_ARBEL_EVB
+    if (get_board_version_id() == 3 )  /* EVB X00 version - need to swap sgmii lane polarity HW issue */
+	{
+		writew(0x1F80, 0xF07801FE);                           /* Get access to 0x3F... (VR_MII_MMD_DIG_CTRL1) */
+		writew(readw(0xf07801c2) | (1 << VR_MII_MDD_DIG_CTRL2_RX_POL_INV_0_BIT0), 0xf07801c2);                      /* Swap lane polarity on EVB only */
+		writel(readl((volatile uint32_t *)(0xf001305c)) | 0x3000, (volatile uint32_t *)(0xf001305c));           	/* Set SGMII MDC/MDIO pins to output slew-rate high */
+		printf("EVB-X00 SGMII Work-Around: RX Polarity Invert Lane-0 and MDC/MDIO pins output slew-rate high\n");     
+	}
+
+	/* Set reg SMC_CTL bit HOSTWAIT Write 1 to Clear */
+	writeb(readb((volatile uint8_t *)(0xC0001001)) | 0x80, (volatile uint8_t *)(0xC0001001));           	
+#endif
+
 #ifdef GMAC1_SGMII_PCS_LB
 	writew(0x1F80, 0xF07801FE);           /* Get access to 0x3F... (VR_MII_MMD_DIG_CTRL1) */
 	writew(readw(0xF0780000) | (1 << VR_MII_MMD_DIG_CTRL1_R2TLBE_BIT14), 0xF0780000);
@@ -596,7 +660,9 @@ int board_init(void)
 int dram_init(void)
 {
 	struct npcm850_gcr *gcr = (struct npcm850_gcr *)(uintptr_t)npcm850_get_base_gcr();
+#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
     struct clk_ctl *clkctl = (struct clk_ctl *)(uintptr_t)npcm850_get_base_clk();
+#endif
 
 	int RAMsize = (readl(&gcr->intcr4) >> 20) & 0x7;   /* Read only 3bit's MSB of GMMAP0 */
 
@@ -617,6 +683,9 @@ int dram_init(void)
 			printf("GMMAP is not set correctly intcr4=0x%08x\n", readl(&gcr->intcr4));		   
 			break;
 	}
+	
+
+
 
 #ifdef CONFIG_TARGET_ARBEL_PALLADIUM
 
@@ -647,6 +716,24 @@ int dram_init(void)
 
 #ifdef CONFIG_NPCMX50_CORE3
 	gd->ram_size = 0x2800000; /* 40 MB. */
+#endif
+
+#else  /* else CONFIG_TARGET_ARBEL_PALLADIUM */
+
+#ifdef CONFIG_NPCMX50_CORE0	
+	gd->ram_size = 0x40000000; /* 1024 MB.  keep space for GFX+ECC */  
+#endif
+
+#ifdef CONFIG_NPCMX50_CORE1
+	gd->ram_size = 0x20000000; /* 512 MB. */
+#endif
+
+#ifdef CONFIG_NPCMX50_CORE2
+	gd->ram_size = 0x10000000; /* 256 MB. */
+#endif
+
+#ifdef CONFIG_NPCMX50_CORE3
+	gd->ram_size = 0x8000000; /* 128 MB. */
 #endif
 
 #endif /* Endif CONFIG_TARGET_ARBEL_PALLADIUM */
@@ -695,9 +782,9 @@ int checkboard(void)
 #ifdef CONFIG_LAST_STAGE_INIT
 static bool is_security_enabled(void)
 {
-	u32 val = readl(FUSTRAP);
+	struct npcm850_gcr *gcr = (struct npcm850_gcr *)(uintptr_t)npcm850_get_base_gcr();
 
-	if (val & FUSTRAP_O_SECBOOT) {
+	if ((readl(&gcr->pwron) & (1 << PWRON_SECEN))) {
 		printf("Security is enabled\n");
 		return true;
 	} else {

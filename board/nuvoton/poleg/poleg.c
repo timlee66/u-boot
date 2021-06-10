@@ -13,6 +13,7 @@
 #include <asm/arch/otp.h>
 #include <asm/arch/info.h>
 #include <asm/arch/poleg_espi.h>
+
 #include <common.h>
 #include <dm.h>
 #include <fdtdec.h>
@@ -68,6 +69,115 @@ static int board_mmc_clk_init(const char *name)
 	clk_free(&clk);
 	if (err < 0)
 		return err;
+
+	return 0;
+}
+
+int board_init(void)
+{
+	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
+	int nodeoff;
+	u32 reg_val = 0;
+	u32 espi_ch_supp;
+
+	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
+	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
+
+	nodeoff = -1;
+	while ((nodeoff = fdt_node_offset_by_compatible(gd->fdt_blob, nodeoff,
+                "npcm750,runbmc")) >= 0) {
+		/* select DAC2 for VGA output */
+		reg_val = (1 << INTCR_DACSEL) |
+			(1 << INTCR_DACOSOVR) |
+			(0x3 << INTCR_GFXIFDIS);
+		writel((readl(&gcr->intcr) | reg_val), &gcr->intcr);
+
+		/* select PLL1 clock for Graphic System */
+		writel((readl(&clkctl->clksel) | (1 << CLKSEL_GFXCKSEL)), &clkctl->clksel);
+
+		/* set Graphic Reset Delay to fix host stuck */
+		writel((readl(&gcr->intcr3) | (0x7 << INTCR3_GFXRSTDLY) ), &gcr->intcr3);;
+
+		board_mmc_clk_init("mmc1");
+	}
+
+	nodeoff = -1;
+	while ((nodeoff = fdt_node_offset_by_compatible(gd->fdt_blob, nodeoff,
+                "quanta,olympus")) >= 0) {
+		/* Uart Mode7 - BMC UART3 connected to Serial Interface 2 */
+		writel(((readl(&gcr->spswc) & ~(SPMOD_MASK)) | SPMOD_MODE7), &gcr->spswc);
+	}
+
+	if (readl(&gcr->mfsel4) & (1 << MFSEL4_ESPISEL)) {
+		espi_ch_supp = fdtdec_get_config_int(gd->fdt_blob, "espi-channel-support", 0);
+		if (espi_ch_supp > 0) {
+			reg_val = readl(NPCM750_ESPI_BA + ESPICFG);
+			writel(reg_val | ((espi_ch_supp & ESPICFG_CHNSUPP_MASK) << ESPICFG_CHNSUPP_SHFT),
+					NPCM750_ESPI_BA + ESPICFG);
+		}
+	}
+	
+	return 0;
+}
+
+int dram_init(void)
+{
+	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+
+	int RAMsize = (readl(&gcr->intcr3) >> INTCR3_GMMAP) & 0x7;
+
+	switch(RAMsize)
+	{
+		case 0:
+				gd->ram_size = 0x08000000; /* 128 MB. */
+				break;
+		case 1:
+				gd->ram_size = 0x10000000; /* 256 MB. */
+				break;
+		case 2:
+				gd->ram_size = 0x20000000; /* 512 MB. */
+				break;
+		case 3:
+				gd->ram_size = 0x40000000; /* 1 GB. */
+				break;
+		case 4:
+				gd->ram_size = 0x80000000; /* 2 GB. */
+				break;
+
+		default:
+			break;
+	}
+#ifdef CONFIG_NPCMX50_CORE0
+	gd->ram_size = 0x20000000; /* 512 MB. */
+#endif
+
+#ifdef CONFIG_NPCMX50_CORE1
+	gd->ram_size = 0x10000000; /* 256 MB. */
+#endif
+	
+	return 0;
+}
+
+int board_eth_init(bd_t *bis)
+{
+#ifdef CONFIG_ETH_DESIGNWARE
+    struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
+    struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
+
+
+    /* Enable RGMII for GMAC1/2 module */
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1SEL)), &gcr->mfsel4);
+    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1MSEL)), &gcr->mfsel4);
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2SEL)), &gcr->mfsel4);
+    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);
+
+    /* IP Software Reset for GMAC1/2 module */
+    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
+    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
+#endif
 
 	return 0;
 }
@@ -200,118 +310,7 @@ static int secure_boot_configuration(void)
 
 	return 0;
 }
-#endif
 
-int board_init(void)
-{
-	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-	struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
-	int nodeoff;
-	u32 reg_val = 0;
-	u32 espi_ch_supp;
-
-	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
-	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
-
-	nodeoff = -1;
-	while ((nodeoff = fdt_node_offset_by_compatible(gd->fdt_blob, nodeoff,
-                "npcm750,runbmc")) >= 0) {
-		/* select DAC2 for VGA output */
-		reg_val = (1 << INTCR_DACSEL) |
-			(1 << INTCR_DACOSOVR) |
-			(0x3 << INTCR_GFXIFDIS);
-		writel((readl(&gcr->intcr) | reg_val), &gcr->intcr);
-
-		/* select PLL1 clock for Graphic System */
-		writel((readl(&clkctl->clksel) | (1 << CLKSEL_GFXCKSEL)), &clkctl->clksel);
-
-		/* set Graphic Reset Delay to fix host stuck */
-		writel((readl(&gcr->intcr3) | (0x7 << INTCR3_GFXRSTDLY) ), &gcr->intcr3);;
-
-		board_mmc_clk_init("mmc1");
-	}
-
-	nodeoff = -1;
-	while ((nodeoff = fdt_node_offset_by_compatible(gd->fdt_blob, nodeoff,
-                "quanta,olympus")) >= 0) {
-		/* Uart Mode7 - BMC UART3 connected to Serial Interface 2 */
-		writel(((readl(&gcr->spswc) & ~(SPMOD_MASK)) | SPMOD_MODE7), &gcr->spswc);
-	}
-
-	if (readl(&gcr->mfsel4) & (1 << MFSEL4_ESPISEL)) {
-		espi_ch_supp = fdtdec_get_config_int(gd->fdt_blob, "espi-channel-support", 0);
-		if (espi_ch_supp > 0) {
-			reg_val = readl(NPCM750_ESPI_BA + ESPICFG);
-			writel(reg_val | ((espi_ch_supp & ESPICFG_CHNSUPP_MASK) << ESPICFG_CHNSUPP_SHFT),
-					NPCM750_ESPI_BA + ESPICFG);
-		}
-	}
-
-	return 0;
-}
-
-int dram_init(void)
-{
-	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-
-	int RAMsize = (readl(&gcr->intcr3) >> INTCR3_GMMAP) & 0x7;
-
-	switch(RAMsize)
-	{
-		case 0:
-				gd->ram_size = 0x08000000; /* 128 MB. */
-				break;
-		case 1:
-				gd->ram_size = 0x10000000; /* 256 MB. */
-				break;
-		case 2:
-				gd->ram_size = 0x20000000; /* 512 MB. */
-				break;
-		case 3:
-				gd->ram_size = 0x40000000; /* 1 GB. */
-				break;
-		case 4:
-				gd->ram_size = 0x80000000; /* 2 GB. */
-				break;
-
-		default:
-			break;
-	}
-#ifdef CONFIG_NPCMX50_CORE0
-	gd->ram_size = 0x20000000; /* 512 MB. */
-#endif
-
-#ifdef CONFIG_NPCMX50_CORE1
-	gd->ram_size = 0x10000000; /* 256 MB. */
-#endif
-	
-	return 0;
-}
-
-int board_eth_init(bd_t *bis)
-{
-#ifdef CONFIG_ETH_DESIGNWARE
-    struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
-    struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-
-
-    /* Enable RGMII for GMAC1/2 module */
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1SEL)), &gcr->mfsel4);
-    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG1MSEL)), &gcr->mfsel4);
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2SEL)), &gcr->mfsel4);
-    writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);
-
-    /* IP Software Reset for GMAC1/2 module */
-    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
-    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
-    writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
-    writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
-#endif
-
-	return 0;
-}
-
-#ifdef CONFIG_LAST_STAGE_INIT
 int last_stage_init(void)
 {
 	int rc;

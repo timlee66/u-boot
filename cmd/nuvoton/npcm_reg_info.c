@@ -9,6 +9,7 @@
  */
 #include <common.h>
 #include <asm/io.h>
+#include <asm/gpio.h>
 
 
 #define GCR_BA  0xF0800000
@@ -337,6 +338,46 @@ static int do_reginfo(cmd_tbl_t *cmdtp, int flag, int argc,
 	return 0;
 }
 
+void npcm_verinfo(void)
+{
+	u32 pcb_ver_id;
+	
+	if (!gpio_request(PCB_VER_ID0, "pcb_ver_id0") &&
+		!gpio_request(PCB_VER_ID1, "pcb_ver_id1"))
+	{
+		gpio_direction_input(PCB_VER_ID0);
+		gpio_direction_input(PCB_VER_ID1);
+
+		pcb_ver_id = gpio_get_value(PCB_VER_ID1) << 1 | gpio_get_value(PCB_VER_ID0);
+
+		switch(pcb_ver_id) 
+		{
+			case 3:
+				printf("NPCM850 PCB version ID 0x%01x -> version X00 \n", pcb_ver_id);
+			break;
+			case 2:
+				printf("NPCM850 PCB version ID 0x%01x -> version X01 \n", pcb_ver_id);
+			break;
+
+			default:
+				printf("NPCM850 PCB version ID 0x%01x -> unknown version ID \n", pcb_ver_id);
+			break;
+		}
+		gpio_free(PCB_VER_ID0);
+		gpio_free(PCB_VER_ID1);
+	} else {
+		printf("Error: unable to acquire board version ID GPIOs\n");
+	}
+}
+
+static int do_verinfo(cmd_tbl_t *cmdtp, int flag, int argc,
+		       char * const argv[])
+{
+	npcm_verinfo();
+
+	return 0;
+}
+
  /**************************************************/
 
 U_BOOT_CMD(
@@ -344,3 +385,10 @@ U_BOOT_CMD(
 	"print NPCM register information",
 	""
 );
+
+U_BOOT_CMD(
+	verinfo,	2,	1,	do_verinfo,
+	"print NPCM EVB PCB version identification",
+	""
+);
+

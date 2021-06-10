@@ -37,8 +37,8 @@
 #define FLOCKR2_G35DA2P              18
 
 /* Power-On Setting Register (PWRON) */
-#define PWRON_BSPA             4         /* STRAP5 */
-
+#define PWRON_BSPA             		4         /* STRAP5 */
+#define PWRON_SECEN            		7         /* STRAP8 */
 
 /* Multiple Function Pin Select Register 1 (MFSEL1) */
 #define MFSEL1_SIRQSE               31
