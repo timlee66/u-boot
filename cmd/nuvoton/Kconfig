@@ -31,6 +31,12 @@ config CMD_CACHE_PERF
 	help
 	  Nuvoton Caches performence test 
 
+config CMD_CACHE_TEST
+	bool "Caches test for ARMv8"
+	depends on ARCH_NPCM850
+	help
+	  Nuvoton Cache test
+
 config CMD_DDR_ECC
 	bool "command for verifying DDR features"
 	depends on ARCH_NPCM850
