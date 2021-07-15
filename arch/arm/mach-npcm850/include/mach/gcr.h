@@ -58,7 +58,7 @@ struct npcm850_gcr {
 	unsigned int  dscnt;
 	unsigned int  mdlr;
 	unsigned int  scrpad_c;
-	unsigned int  scrpad_b;
+	unsigned int  scrpad_b; // holds the active dram size (value set by bootblock)
 	unsigned int  rsvd7[4];
 	unsigned int  daclvlr;
 	unsigned int  intcr3;
@@ -67,7 +67,7 @@ struct npcm850_gcr {
 	unsigned int  vsintr;
 	unsigned int  rsvd9[1];
 	unsigned int  sd2sur1;
-	unsigned int  sd2sur2;	
+	unsigned int  sd2sur2;
 	unsigned int  sd2irv3;
 	unsigned int  intcr4;
 	unsigned int  obscr2;
@@ -98,11 +98,11 @@ struct npcm850_gcr {
 	unsigned int  intcrpce0b;
 	unsigned int  intcrpce1b;
 	unsigned int  intcrpce3b;
-	unsigned int  rsvd13[4];	
+	unsigned int  rsvd13[4];
 	unsigned int  intcrpce2c;
 	unsigned int  intcrpce0c;
 	unsigned int  intcrpce1c;
-	unsigned int  intcrpce3c;	
+	unsigned int  intcrpce3c;
 	unsigned int  rsvd14[40];
 	unsigned int  sd2irv4;
 	unsigned int  sd2irv5;
@@ -153,7 +153,7 @@ struct npcm850_gcr_cp1 {
 	unsigned int  cppctl1;
 	unsigned int  cpbpntr1;
 	};
-	
+
 struct npcm850_gcr_cp2 {
 	unsigned int  cpctl2;
 	unsigned int  cp2bst2;

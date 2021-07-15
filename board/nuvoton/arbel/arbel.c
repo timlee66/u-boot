@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nuvoton Technology Corp.
+ * Copyright (c) 2016-2021 Nuvoton Technology Corp.
  *
  *
  * SPDX-License-Identifier:	GPL-2.0+
@@ -38,7 +38,7 @@ extern void sdelay(unsigned long loops);
 u32  CLK_GetPLL0toAPBdivisor(u32 apb)
 {
     struct clk_ctl *clkctl = (struct clk_ctl *)(uintptr_t)npcm850_get_base_clk();
-	
+
 	volatile u32 apb_divisor = 1;
 
 	apb_divisor = apb_divisor * ((readl(&clkctl->clkdiv1) & (0x1)) + 1);         /* AXI divider ( div by 1\2) */
@@ -92,7 +92,7 @@ u32 CLK_ConfigureUartClock(void)
 #ifdef CONFIG_TARGET_ARBEL_PALLADIUM
 	u32 uartDesiredFreq  = 25000000; /*Hz */
 #else
-	u32 uartDesiredFreq  = 24000000; /*Hz */	
+	u32 uartDesiredFreq  = 24000000; /*Hz */
 #endif
 	/*-----------------------------------------------------------------------------------------------------*/
 	/* Normal configuration - UART from PLL0 with divider calculated from PLL0 configuration to get 24MHz  */
@@ -110,7 +110,7 @@ u32 CLK_ConfigureUartClock(void)
 	u32 uartDiv = pllFreq/uartDesiredFreq;
 
 	uart_clk = pllFreq / uartDiv;
-		
+
 	/*----------------------------------------------------[]---------------------------------------------*/
 	/* Set divider:                                                                                    */
 	/*-------------------------------------------------------------------------------------------------*/
@@ -120,7 +120,7 @@ u32 CLK_ConfigureUartClock(void)
     /* Setting PLL2 source clock                                                                           */
     /*-----------------------------------------------------------------------------------------------------*/
 	writel((readl(&clkctl->clksel) | (0x3 << 8)), &clkctl->clksel);  // SRC_PLL2 = 0x03
-	
+
 	/*-----------------------------------------------------------------------------------------------------*/
 	/* Wait for 200 clock cycles between clkDiv change and clkSel change:                                  */
 	/*-----------------------------------------------------------------------------------------------------*/
@@ -144,14 +144,14 @@ u32 CLK_ConfigureUartClock(void)
 int UART_SetParity(UART_PARITY_T parity)
 {
 	struct npcmX50_uart *uart = (struct npcmX50_uart *)(uintptr_t)npcm850_get_base_uart();
-	
+
     if (parity != UART_PARITY_NONE)
     {
         /*-------------------------------------------------------------------------------------------------*/
         /* Parity enable, choosing type                                                                    */
         /*-------------------------------------------------------------------------------------------------*/
 		writel((readl(&uart->lcr) | (1 << 3)), &uart->lcr);  // LCR_PBE
-		
+
 
         if (parity == UART_PARITY_EVEN)
         {
@@ -159,12 +159,12 @@ int UART_SetParity(UART_PARITY_T parity)
 
         }
         else if (parity == UART_PARITY_ODD)
-        {	
+        {
 			writel((readl(&uart->lcr) & ~(1 << 4)), &uart->lcr);  // LCR_EPE
         }
 
     }
-    else  //No parity   
+    else  //No parity
     {
 		writel((readl(&uart->lcr) & ~(1 << 3)), &uart->lcr);  // LCR_PBE
     }
@@ -187,7 +187,7 @@ int UART_SetParity(UART_PARITY_T parity)
 int UART_SetBitsPerChar(unsigned int  bits)
 {
 	struct npcmX50_uart *uart = (struct npcmX50_uart *)(uintptr_t)npcm850_get_base_uart();
-	
+
     switch (bits)
     {
         case 5:   writel(((readl(&uart->lcr) & ~(0x03)) | LCR_WLS_5bit ), &uart->lcr);   break;
@@ -223,7 +223,7 @@ int UART_SetBaudrate(UART_BAUDRATE_T baudrate)
     /* Configuring UART clock                                                                              */
     /*-----------------------------------------------------------------------------------------------------*/
     uart_clock = CLK_ConfigureUartClock();
-    
+
     /*-----------------------------------------------------------------------------------------------------*/
     /* Computing the divisor for the given baudrate.                                                       */
     /*-----------------------------------------------------------------------------------------------------*/
@@ -246,7 +246,7 @@ int UART_SetBaudrate(UART_BAUDRATE_T baudrate)
 	/* Maximum Baudrate possible = PLL2_CLK/2/10/32/COMPILATION_RATIO = Baudrate  */
 	/* Maximum Baudrate possible = 960000000/2/10/32/2079 = 722  */
 	/* Maximum Baudrate possible = 500000000/2/10/32/1040 = 752  */
-    divisor = 0; 
+    divisor = 0;
 
     ret = 0;
 #endif
@@ -307,7 +307,7 @@ int UART_SetStopBit(UART_STOPBIT_T stopbit)
 int CHIP_Mux_Uart (UART_MUX_T redirection_mode, bool CoreSP, bool sp1, bool sp2)
 {
 	struct npcm850_gcr *gcr = (struct npcm850_gcr *)(uintptr_t)npcm850_get_base_gcr();
-	
+
 	/* 111 combination is reserved: */
 	if (redirection_mode < 7)
 	{
@@ -366,7 +366,7 @@ int CHIP_Mux_Uart (UART_MUX_T redirection_mode, bool CoreSP, bool sp1, bool sp2)
 void CLK_ResetUART(void)
 {
     struct clk_ctl *clkctl = (struct clk_ctl *)(uintptr_t)npcm850_get_base_clk();
-	
+
 	writel((readl(&clkctl->ipsrst1) | (1 << 11)), &clkctl->ipsrst1);
 	writel((readl(&clkctl->ipsrst1) & ~(1 << 11)), &clkctl->ipsrst1);
 
@@ -377,7 +377,7 @@ void CLK_ResetUART(void)
 int UART_Init (UART_DEV_T devNum, UART_MUX_T muxMode, UART_BAUDRATE_T baudRate)
 {
 	struct npcmX50_uart *uart = (struct npcmX50_uart *)(uintptr_t)npcm850_get_base_uart();
-	
+
 	u32 FCR_Val      = 0;
 
     bool CoreSP  = false;
@@ -429,7 +429,7 @@ int UART_Init (UART_DEV_T devNum, UART_MUX_T muxMode, UART_BAUDRATE_T baudRate)
         /*-------------------------------------------------------------------------------------------------*/
         /* Illegal mux mode                                                                                */
         /*-------------------------------------------------------------------------------------------------*/
-        default: 
+        default:
 		  return -1;
     }
 
@@ -495,7 +495,7 @@ int get_board_version_id(void)
 {
 	static int pcb_version = -1;
 
-	if (pcb_version == -1) 
+	if (pcb_version == -1)
 	{
 		if (!gpio_request(PCB_VER_ID0, "rev0") &&
 		    !gpio_request(PCB_VER_ID1, "rev1"))
@@ -505,7 +505,7 @@ int get_board_version_id(void)
 
 			pcb_version = gpio_get_value(PCB_VER_ID1) << 1 | gpio_get_value(PCB_VER_ID0);
 
-			switch(pcb_version) 
+			switch(pcb_version)
 			{
 				case 3:
 					printf("NPCM850 EVB PCB version ID 0x%01x -> version X00 \n", pcb_version);
@@ -517,7 +517,7 @@ int get_board_version_id(void)
 				default:
 					printf("NPCM850 EVB PCB version ID 0x%01x -> unknown version ID \n", pcb_version);
 				break;
-			}			
+			}
 			gpio_free(PCB_VER_ID0);
 			gpio_free(PCB_VER_ID1);
 		} else {
@@ -531,14 +531,14 @@ int board_init(void)
 {
 #ifdef CONFIG_ETH_DESIGNWARE
 	unsigned int start;
-	
+
 	struct clk_ctl *clkctl = (struct clk_ctl *)(uintptr_t)npcm850_get_base_clk();
 	struct npcm850_gcr *gcr = (struct npcm850_gcr *)(uintptr_t)npcm850_get_base_gcr();
 
     /* Power voltage select setup  TBD  move to dts */
 	writel( 0x40004800, &gcr->vsrcr);
-	
-    /* Clock setups */ 
+
+    /* Clock setups */
 	writel((readl(&clkctl->clkdiv2) & ~(0x1f << CLKDIV2_CLKOUTDIV)) | (31 << CLKDIV2_CLKOUTDIV), &clkctl->clkdiv2);
 	sdelay(420000UL); 	/* udelay(200) */
 	writel((readl(&clkctl->clksel) & ~(0x7 << CLKSEL_CLKOUTSEL)) | (CLKSEL_CLKOUTSEL_PLL0 << CLKSEL_CLKOUTSEL), &clkctl->clksel);  // Select PLL0 for CLKOUTSEL
@@ -553,7 +553,7 @@ int board_init(void)
 #ifdef CONFIG_TARGET_ARBEL_PALLADIUM
 //	writel(((readl(&clkctl->clksel) & ~(0x3 << CLKSEL_RGSEL)) | (CLKSEL_CPUCKSEL_PLL0 << CLKSEL_RGSEL)), &clkctl->clksel);  // Select PLL0 for GMAC 500MHz /4 = 125MHz
 	writel(((readl(&clkctl->clksel) & ~(0x3 << CLKSEL_RGSEL)) | (CLKSEL_CPUCKSEL_PLL1 << CLKSEL_RGSEL)), &clkctl->clksel);  // Select PLL1 for GMAC 500MHz /4 = 125MHz
-	writel((readl(&clkctl->clkdiv4) & ~(0xF << CLKDIV4_RGREFDIV) | (3 << CLKDIV4_RGREFDIV)), &clkctl->clkdiv4);           // Select Divider 3+1=4 for GMAC 500MHz /4 = 125MHz   
+	writel((readl(&clkctl->clkdiv4) & ~(0xF << CLKDIV4_RGREFDIV) | (3 << CLKDIV4_RGREFDIV)), &clkctl->clkdiv4);           // Select Divider 3+1=4 for GMAC 500MHz /4 = 125MHz
 #endif
 
 
@@ -561,7 +561,7 @@ int board_init(void)
 	writel(((readl(&clkctl->clksel) & ~(0x3 << CLKSEL_RGSEL)) | (CLKSEL_CPUCKSEL_PLL0 << CLKSEL_RGSEL)), &clkctl->clksel);  // Select PLL0 for GMAC 500MHz /4 = 125MHz
 //	writel(((readl(&clkctl->clksel) & ~(0x3 << CLKSEL_RGSEL)) | (CLKSEL_CPUCKSEL_PLL1 << CLKSEL_RGSEL)), &clkctl->clksel);  // Select PLL1 for GMAC 500MHz /4 = 125MHz
 	writel((readl(&clkctl->clkdiv4) & ~(0xF << CLKDIV4_RGREFDIV) | (3 << CLKDIV4_RGREFDIV)), &clkctl->clkdiv4);             // Select Divider 3+1=4 for GMAC 500MHz/4 = 125MHz
-//	writel((readl(&clkctl->clkdiv3) & ~(0x1F << CLKDIV3_SPI0CKDV) | (1 << CLKDIV3_SPI0CKDV)), &clkctl->clkdiv3);            // Select Divider 1+1=2 for SPI0 500MHz/4/2 = 62.5MHz   
+//	writel((readl(&clkctl->clkdiv3) & ~(0x1F << CLKDIV3_SPI0CKDV) | (1 << CLKDIV3_SPI0CKDV)), &clkctl->clkdiv3);            // Select Divider 1+1=2 for SPI0 500MHz/4/2 = 62.5MHz
 #endif
 
 	/* Enable SGMII/RGMII for GMAC1/2 module */
@@ -582,28 +582,28 @@ int board_init(void)
 #endif
 	writel((readl(&gcr->mfsel4) & ~(1 << MFSEL4_RG2SEL)), &gcr->mfsel4);     // Switch GMAC2 to RMII3 Mode
 	writel((readl(&gcr->mfsel3) & ~(1 << MFSEL3_DDRDVOSEL)), &gcr->mfsel3);  // Switch GMAC2 to RMII3 Mode
-	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);     // GMAC2 - MDIO		
+	writel((readl(&gcr->mfsel4) | (1 << MFSEL4_RG2MSEL)), &gcr->mfsel4);     // GMAC2 - MDIO
 	writel((readl(&gcr->mfsel5) | (1 << MFSEL5_RMII3SEL)), &gcr->mfsel5);    // RMII3 select
 	writel((readl(&gcr->intcr4) | (1 << INTCR4_R3EN)), &gcr->intcr4);        // RMII3 Set INTCR4_R3EN Enable
 	writel((readl(&gcr->mfsel5) | (1 << MFSEL5_R3OENSEL)), &gcr->mfsel5);    // RMII3 Set MFSEL5_R3OENSEL Output-Enable
 #endif /* #endif GMAC2_RGMII */
 
-	writel((readl(&gcr->mfsel3) | (1 << MFSEL3_RMII1SEL)), &gcr->mfsel3);    // GMAC3 - RMII1 Select	
-	writel((readl(&gcr->intcr4) | (1 << INTCR4_R1EN)), &gcr->intcr4);        // GMAC3 - RMII1 Set INTCR4_R1EN 
+	writel((readl(&gcr->mfsel3) | (1 << MFSEL3_RMII1SEL)), &gcr->mfsel3);    // GMAC3 - RMII1 Select
+	writel((readl(&gcr->intcr4) | (1 << INTCR4_R1EN)), &gcr->intcr4);        // GMAC3 - RMII1 Set INTCR4_R1EN
 	writel((readl(&gcr->mfsel5) | (1 << MFSEL5_R1OENSEL)), &gcr->mfsel5);    // GMAC3 - RMII1 Set MFSEL5_R1OENSEL
 	writel((readl(&gcr->mfsel1) & ~(1 << MFSEL1_R1ERRSEL)), &gcr->mfsel1);   // GMAC3 - RMII1 Clear MFSEL1_R1ERRSEL
-	
+
 	writel((readl(&gcr->mfsel1) | (1 << MFSEL1_RMII2SEL)), &gcr->mfsel1);    // GMAC4 - RMII2 Select
-	writel((readl(&gcr->intcr4) | (1 << INTCR4_R2EN)), &gcr->intcr4);        // GMAC4 - RMII2 Set INTCR4_R2EN 
+	writel((readl(&gcr->intcr4) | (1 << INTCR4_R2EN)), &gcr->intcr4);        // GMAC4 - RMII2 Set INTCR4_R2EN
 	writel((readl(&gcr->mfsel5) | (1 << MFSEL5_R2OENSEL)), &gcr->mfsel5);    // GMAC4 - RMII2 Set MFSEL5_R2OENSEL
-	writel((readl(&gcr->mfsel1) & ~(1 << MFSEL1_R2ERRSEL)), &gcr->mfsel1);   // GMAC4 - RMII2 Clear MFSEL1_R2ERRSEL	
+	writel((readl(&gcr->mfsel1) & ~(1 << MFSEL1_R2ERRSEL)), &gcr->mfsel1);   // GMAC4 - RMII2 Clear MFSEL1_R2ERRSEL
 
 	/* IP Software Reset for GMAC1/2 module */
 	writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
 	writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC1), &clkctl->ipsrst2);
 	writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
 	writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_GMAC2), &clkctl->ipsrst2);
-	
+
 	/* IP Software Reset for GMAC3/4 module */
 	writel(readl(&clkctl->ipsrst1) | (1 << IPSRST1_GMAC3), &clkctl->ipsrst1);
 	writel(readl(&clkctl->ipsrst1) & ~(1 << IPSRST1_GMAC3), &clkctl->ipsrst1);
@@ -617,9 +617,9 @@ int board_init(void)
 	start = get_timer(0);
 
 	printf("SGMII PCS PHY reset wait \n");
-	while (readw(0xF0780000) & (1 << SR_MII_CTRL_SWR_BIT15)) 
+	while (readw(0xF0780000) & (1 << SR_MII_CTRL_SWR_BIT15))
 	{
-		if (get_timer(start) >= 3*CONFIG_SYS_HZ) 
+		if (get_timer(start) >= 3*CONFIG_SYS_HZ)
 		{
 			printf("SGMII PHY reset timeout\n");
 			return -ETIMEDOUT;
@@ -627,7 +627,7 @@ int board_init(void)
 
 		mdelay(1);
 	};
-	
+
 	/* Clear SGMII PHY default auto neg. */
 	writew(readw(0xF0780000) & ~(1 << SR_MII_CTRL_ANEN_BIT12), 0xF0780000);
 	printf("SGMII PCS PHY reset done and clear Auto Negotiation \n");
@@ -638,11 +638,11 @@ int board_init(void)
 		writew(0x1F80, 0xF07801FE);                           /* Get access to 0x3F... (VR_MII_MMD_DIG_CTRL1) */
 		writew(readw(0xf07801c2) | (1 << VR_MII_MDD_DIG_CTRL2_RX_POL_INV_0_BIT0), 0xf07801c2);                      /* Swap lane polarity on EVB only */
 		writel(readl((volatile uint32_t *)(0xf001305c)) | 0x3000, (volatile uint32_t *)(0xf001305c));           	/* Set SGMII MDC/MDIO pins to output slew-rate high */
-		printf("EVB-X00 SGMII Work-Around: RX Polarity Invert Lane-0 and MDC/MDIO pins output slew-rate high\n");     
+		printf("EVB-X00 SGMII Work-Around: RX Polarity Invert Lane-0 and MDC/MDIO pins output slew-rate high\n");
 	}
 
 	/* Set reg SMC_CTL bit HOSTWAIT Write 1 to Clear */
-	writeb(readb((volatile uint8_t *)(0xC0001001)) | 0x80, (volatile uint8_t *)(0xC0001001));           	
+	writeb(readb((volatile uint8_t *)(0xC0001001)) | 0x80, (volatile uint8_t *)(0xC0001001));
 #endif
 
 #ifdef GMAC1_SGMII_PCS_LB
@@ -666,6 +666,8 @@ int dram_init(void)
 
 	int RAMsize = (readl(&gcr->intcr4) >> 20) & 0x7;   /* Read only 3bit's MSB of GMMAP0 */
 
+// For bootblock 0.0.5 and below:
+#if 0
 	switch(RAMsize)
 	{
 		case 1:
@@ -680,61 +682,64 @@ int dram_init(void)
 				break;
 
 		default:
-			printf("GMMAP is not set correctly intcr4=0x%08x\n", readl(&gcr->intcr4));		   
+			printf("GMMAP is not set correctly intcr4=0x%08x\n", readl(&gcr->intcr4));
 			break;
 	}
-	
+#endif
 
 
+	// get dram active size value from bootblock. Value sent using scrpad_02 register.
+	// feature available in bootblock 0.0.6 and above.
+	gd->ram_size = readl(&gcr->scrpad_b);
 
 #ifdef CONFIG_TARGET_ARBEL_PALLADIUM
 
 	gd->ram_size = 0x10000000; /* 256 MB.  set for ecc test */
-	
 
-#if defined  (CONFIG_NPCMX50_CORE0) || !defined (CONFIG_NPCMX50_CORE0) && !defined (CONFIG_NPCMX50_CORE1) && !defined (CONFIG_NPCMX50_CORE2) && !defined (CONFIG_NPCMX50_CORE3)
 
-//	writel((readl(&gcr->intcr4) | (0x0B << INTCR4_GMMAP1)  | (0x0B << INTCR4_GMMAP0) ), &gcr->intcr4);   /* Set BMC ECC GFX1 PCI GFX0 to (16MB)  top of 256MB DDR on Palladium */
-//	writel((readl(&gcr->intcr4) | (0x0A << INTCR4_GMMAP1)  | (0x0B << INTCR4_GMMAP0) ), &gcr->intcr4);   /* Set BMC ECC refresh GFX1 & PCI GFX0 to (16MB)  top of 256MB DDR on Palladium */
+	#if defined  (CONFIG_NPCMX50_CORE0) || !defined (CONFIG_NPCMX50_CORE0) && !defined (CONFIG_NPCMX50_CORE1) && !defined (CONFIG_NPCMX50_CORE2) && !defined (CONFIG_NPCMX50_CORE3)
 
-	writel((readl(&gcr->intcr4) | (0x0F << INTCR4_GMMAP1)  | (0x0F << INTCR4_GMMAP0) ), &gcr->intcr4);   /* Set BMC GFX1 PCI GFX0 to (16MB + ECC)  top of 256MB DDR on Palladium */
-	writel((readl(&gcr->intcr)  & ~(0x01 << INTCR_DAC_SNS) ), &gcr->intcr);                              /* Clear INTCR_DAC_SNS for GFX Diag test on Palladium */
-	writel(0xFFFFFFDF, &clkctl->wd0rcr);                                                                 /* Disable Memory Controler MC reset upon WDOG reset - done for GFX test */
-#endif
+	//	writel((readl(&gcr->intcr4) | (0x0B << INTCR4_GMMAP1)  | (0x0B << INTCR4_GMMAP0) ), &gcr->intcr4);   /* Set BMC ECC GFX1 PCI GFX0 to (16MB)  top of 256MB DDR on Palladium */
+	//	writel((readl(&gcr->intcr4) | (0x0A << INTCR4_GMMAP1)  | (0x0B << INTCR4_GMMAP0) ), &gcr->intcr4);   /* Set BMC ECC refresh GFX1 & PCI GFX0 to (16MB)  top of 256MB DDR on Palladium */
 
-#ifdef CONFIG_NPCMX50_CORE0	
-	gd->ram_size = 0x9F00000; /* 159 MB.  keep space for GFX+ECC */  
-#endif
+		writel((readl(&gcr->intcr4) | (0x0F << INTCR4_GMMAP1)  | (0x0F << INTCR4_GMMAP0) ), &gcr->intcr4);   /* Set BMC GFX1 PCI GFX0 to (16MB + ECC)  top of 256MB DDR on Palladium */
+		writel((readl(&gcr->intcr)  & ~(0x01 << INTCR_DAC_SNS) ), &gcr->intcr);                              /* Clear INTCR_DAC_SNS for GFX Diag test on Palladium */
+		writel(0xFFFFFFDF, &clkctl->wd0rcr);                                                                 /* Disable Memory Controler MC reset upon WDOG reset - done for GFX test */
+	#endif
 
-#ifdef CONFIG_NPCMX50_CORE1
-	gd->ram_size = 0x7800000; /* 120 MB. */
-#endif
+	#ifdef CONFIG_NPCMX50_CORE0
+		gd->ram_size = 0x9F00000; /* 159 MB.  keep space for GFX+ECC */
+	#endif
 
-#ifdef CONFIG_NPCMX50_CORE2
-	gd->ram_size = 0x5000000; /* 80 MB. */
-#endif
+	#ifdef CONFIG_NPCMX50_CORE1
+		gd->ram_size = 0x7800000; /* 120 MB. */
+	#endif
 
-#ifdef CONFIG_NPCMX50_CORE3
-	gd->ram_size = 0x2800000; /* 40 MB. */
-#endif
+	#ifdef CONFIG_NPCMX50_CORE2
+		gd->ram_size = 0x5000000; /* 80 MB. */
+	#endif
+
+	#ifdef CONFIG_NPCMX50_CORE3
+		gd->ram_size = 0x2800000; /* 40 MB. */
+	#endif
 
 #else  /* else CONFIG_TARGET_ARBEL_PALLADIUM */
 
-#ifdef CONFIG_NPCMX50_CORE0	
-	gd->ram_size = 0x40000000; /* 1024 MB.  keep space for GFX+ECC */  
-#endif
+	#ifdef CONFIG_NPCMX50_CORE0
+		gd->ram_size = 0x40000000; /* 1024 MB.  keep space for GFX+ECC */
+	#endif
 
-#ifdef CONFIG_NPCMX50_CORE1
-	gd->ram_size = 0x20000000; /* 512 MB. */
-#endif
+	#ifdef CONFIG_NPCMX50_CORE1
+		gd->ram_size = 0x20000000; /* 512 MB. */
+	#endif
 
-#ifdef CONFIG_NPCMX50_CORE2
-	gd->ram_size = 0x10000000; /* 256 MB. */
-#endif
+	#ifdef CONFIG_NPCMX50_CORE2
+		gd->ram_size = 0x10000000; /* 256 MB. */
+	#endif
 
-#ifdef CONFIG_NPCMX50_CORE3
-	gd->ram_size = 0x8000000; /* 128 MB. */
-#endif
+	#ifdef CONFIG_NPCMX50_CORE3
+		gd->ram_size = 0x8000000; /* 128 MB. */
+	#endif
 
 #endif /* Endif CONFIG_TARGET_ARBEL_PALLADIUM */
 
