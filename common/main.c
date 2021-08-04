@@ -64,7 +64,7 @@ void main_loop(void)
 #ifdef CONFIG_NPCM850_DBG_INTERRUPTS
 	init_gicd();
 	init_gicc();
-	
+
 	mc_intr();      /* Memory Controller interrupt */
 
 #ifdef CONFIG_NPCM850_DBG_TIMER
@@ -78,7 +78,7 @@ void main_loop(void)
 #endif
 
 #if defined (CONFIG_TARGET_ARBEL)
-	writel(readl((volatile uint32_t *)(0xfffb000C)) + 0x1, (volatile uint32_t *)(0xfffb000C));            /* Flag for mainloop (shell) per secondary cores */
+	writel(readl((volatile uint32_t *)(0xC0008000C)) + 0x1, (volatile uint32_t *)(0xC0008000C));            /* Flag for mainloop (shell) per secondary cores */
 #elif defined (CONFIG_TARGET_POLEG)
 	writel(readl((volatile uint32_t *)(0xfffd000C)) + 0x1, (volatile uint32_t *)(0xfffd000C));            /* Flag for mainloop (shell) per secondary cores */
 #endif
