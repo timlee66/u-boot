@@ -370,7 +370,7 @@ static int npcm_smb_read_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 				if (err)
 					printf("check sda err %d, %d, len %d\n", err, i, len);
 			} else {
-				err = npcm_smb_wait_nack(bus, 1000);
+				err = npcm_smb_wait_nack(bus, 10000);
 				if (err) {
 					printf("wait nack err %d\n", err);
 					npcm_dump_regs(bus);
