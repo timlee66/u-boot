@@ -28,36 +28,8 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/gcr.h>
 #include <asm/arch/fiu.h>
-#include <asm/arch/spi_flash.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
-enum npcmX50_sf_state {
-	SF_CMD		    = 0,
-	SF_ID		    = 1,
-	SF_ADDR		    = 2,
-	SF_READ		    = 3,
-	SF_WRITE	    = 4,
-	SF_ERASE	    = 5,
-	SF_READ_STATUS	    = 6,
-	SF_READ_STATUS1	    = 7,
-	SF_WRITE_STATUS	    = 8,
-	SF_READ_BAR,
-	SF_WRITE_BAR,
-};
-
-/* Bits for the status register */
-#define STAT_WIP        (1 << 0)
-#define STAT_WEL        (1 << 1)
-
-static const char *npcmX50_sf_state_name(enum npcmX50_sf_state state)
-{
-	static const char * const states[] = {
-		"CMD", "ID", "ADDR", "READ", "WRITE", "ERASE", "READ_STATUS",
-		"READ_STATUS1", "WRITE_STATUS", "READ_BAR", "WRITE_BAR"
-	};
-	return states[state];
-}
 
 struct npcmX50_fiu_spi_platdata {
 	void* regs;
@@ -69,9 +41,6 @@ struct npcmX50_fiu_spi_priv {
 	struct npcmX50_fiu_regs *regs;
 	u32 cs;
 	enum fiu_moudle_tag dev_num;
-	enum npcmX50_sf_state state;
-	u16 status; /* The current flash status (see STAT_XXX defines above) */
-	u32 cmd;
 };
 
 static void gcr_muxfiu(enum fiu_moudle_tag dev_num,
@@ -83,7 +52,6 @@ static void gcr_muxfiu(enum fiu_moudle_tag dev_num,
 #elif defined (CONFIG_TARGET_POLEG)
 	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
 #endif
-
 
 	switch (dev_num) {
 	case FIU_MODULE_0:
@@ -113,8 +81,6 @@ static void gcr_muxfiu(enum fiu_moudle_tag dev_num,
 			writel(readl(&gcr->mfsel1) & ~(1 << MFSEL1_S0CS3SEL),
 				&gcr->mfsel1);
 #endif
-			writel(readl(&gcr->mfsel4) | (1 << MFSEL4_SP0QSEL),
-				&gcr->mfsel4);
 		}
 		break;
 #if defined (CONFIG_TARGET_ARBEL)
@@ -236,20 +202,6 @@ static void gcr_muxfiu(enum fiu_moudle_tag dev_num,
 	};
 }
 
-static void fiu_spi_cs_activate(struct udevice *dev)
-{
-	struct udevice *bus = dev->parent;
-	struct npcmX50_fiu_spi_priv *priv = dev_get_priv(bus);
-
-	priv->state = SF_CMD;
-	priv->cmd = SF_CMD;
-}
-
-static void fiu_spi_cs_deactivate(struct udevice *dev)
-{
-	return;
-}
-
 static int npcmX50_fiu_spi_set_speed(struct udevice *bus, uint speed)
 {
 	return 0;
@@ -258,6 +210,178 @@ static int npcmX50_fiu_spi_set_speed(struct udevice *bus, uint speed)
 static int npcmX50_fiu_spi_set_mode(struct udevice *bus, uint mode)
 {
 	return 0;
+}
+
+static int npcmX50_fiu_spi_release_bus(struct udevice *dev)
+{
+	return 0;
+}
+
+static int fiu_uma_read(struct udevice *bus, u32 address, uint8_t *rx,
+			bool is_address_size, u32 data_size)
+{
+	struct npcmX50_fiu_spi_priv *priv = dev_get_priv(bus);
+	struct npcmX50_fiu_regs *regs = priv->regs;
+	u32 data_reg[4];
+	u32 uma_cfg = 0;
+	u32 address_size = 0;
+
+	//uma_cfg = uma_cfg | (1 << FIU_UMA_CFG_CMDSIZ);
+
+	if (is_address_size) {
+		address_size = 3;
+
+		uma_cfg = (uma_cfg & ~(0x07 << FIU_UMA_CFG_ADDSIZ))
+				| (address_size << FIU_UMA_CFG_ADDSIZ);
+
+		/* Set the UMA address registers */
+		writel(address, &regs->uma_addr);
+	}
+
+	/* Set data size and direction */
+	uma_cfg = (uma_cfg & ~(0x1f << FIU_UMA_CFG_RDATSIZ)) |
+		(data_size << FIU_UMA_CFG_RDATSIZ);
+	uma_cfg = uma_cfg & ~(0x1f << FIU_UMA_CFG_WDATSIZ);
+
+	/* Set UMA CFG */
+	writel(uma_cfg, &regs->uma_cfg);
+
+	/* Initiate the read */
+	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE),
+		&regs->uma_cts);
+
+	/* wait for indication that transaction has terminated */
+	while ((readl(&regs->uma_cts) & (1 << FIU_UMA_CTS_EXEC_DONE))
+		== FIU_TRANS_STATUS_IN_PROG);
+
+	/* copy read data from FIU_UMA_DB0-3 regs to data buffer */
+	/* Set the UMA data registers - FIU_UMA_DB0-3 */
+	if (data_size >= FIU_UMA_DATA_SIZE_1)
+		data_reg[0] = readl(&regs->uma_dr0);
+	if (data_size >= FIU_UMA_DATA_SIZE_5)
+		data_reg[1] = readl(&regs->uma_dr1);
+	if (data_size >= FIU_UMA_DATA_SIZE_9)
+		data_reg[2] = readl(&regs->uma_dr2);
+	if (data_size >= FIU_UMA_DATA_SIZE_13)
+		data_reg[3] = readl(&regs->uma_dr3);
+
+	memcpy(rx, data_reg, data_size);
+
+	return 0;
+}
+
+static int fiu_uma_write(struct udevice *bus, u32 address, const uint8_t *tx,
+			bool is_address_size, u32 data_size)
+{
+	struct npcmX50_fiu_spi_priv *priv = dev_get_priv(bus);
+	struct npcmX50_fiu_regs *regs = priv->regs;
+	u32 data_reg[4];
+	u32 uma_cfg = 0;
+	u32 address_size = 0;
+
+	//uma_cfg = uma_cfg | (1 << FIU_UMA_CFG_CMDSIZ);
+
+	if (is_address_size) {
+		address_size = 3;
+
+		uma_cfg = (uma_cfg & ~(0x07 << FIU_UMA_CFG_ADDSIZ))
+				| (address_size << FIU_UMA_CFG_ADDSIZ);
+		/* Set the UMA address registers */
+		writel(address, &regs->uma_addr);
+	}
+
+	/* Set the UMA data registers - FIU_UMA_DB0-3 */
+	if (data_size) {
+		memcpy(data_reg, tx, data_size);
+
+		if (data_size >= FIU_UMA_DATA_SIZE_1)
+			writel(data_reg[0], &regs->uma_dw0);
+		if (data_size >= FIU_UMA_DATA_SIZE_5)
+			writel(data_reg[1], &regs->uma_dw1);
+		if (data_size >= FIU_UMA_DATA_SIZE_9)
+			writel(data_reg[2], &regs->uma_dw2);
+		if (data_size >= FIU_UMA_DATA_SIZE_13)
+			writel(data_reg[3], &regs->uma_dw3);
+	}
+
+	/* Set data size and direction */
+	uma_cfg = (uma_cfg & ~(0x1f << FIU_UMA_CFG_WDATSIZ)) |
+		(data_size << FIU_UMA_CFG_WDATSIZ);
+	uma_cfg = uma_cfg & ~(0x1f << FIU_UMA_CFG_RDATSIZ);
+
+	/* Set UMA status */
+	writel(uma_cfg, &regs->uma_cfg);
+
+	/* Initiate the write */
+	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE),
+		&regs->uma_cts);
+
+	/* wait for indication that transaction has terminated */
+	while ((readl(&regs->uma_cts) & (1 << FIU_UMA_CTS_EXEC_DONE))
+		== FIU_TRANS_STATUS_IN_PROG);
+
+	return 0;
+}
+
+static int npcmX50_fiu_spi_xfer(struct udevice *dev, unsigned int bitlen,
+			const void *dout, void *din, unsigned long flags)
+{
+	struct udevice *bus = dev->parent;
+	struct npcmX50_fiu_spi_priv *priv = dev_get_priv(bus);
+	struct npcmX50_fiu_regs *regs = priv->regs;
+	struct dm_spi_slave_platdata *slave_plat =
+			dev_get_parent_platdata(dev);
+	const uint8_t *tx = dout;
+	uint8_t *rx = din;
+	int bytes = bitlen / 8;
+	u32 pos = 0;
+
+	if (flags & SPI_XFER_BEGIN)
+		//if (tx && tx[0] == CMD_EXTNADDR_RDEAR){
+		//}
+		/* set device number - DEV_NUM in FIU_UMA_CTS.
+		   Select the chip select to be used in the following
+		   UMA transaction and set CS low */
+		writel((readl(&regs->uma_cts) & ~(0x03 << FIU_UMA_CTS_DEV_NUM) & ~(1 << FIU_UMA_CTS_SW_CS))
+			| ((slave_plat->cs & 0x3) << FIU_UMA_CTS_DEV_NUM),
+			&regs->uma_cts);
+
+	if ((flags & SPI_XFER_MMAP) || (flags & SPI_XFER_MMAP_END))
+		goto done;
+
+	while (pos < bytes) {
+		if (tx) {
+			if ((pos + CHUNK_SIZE) <= bytes) {
+				fiu_uma_write(bus, 0x0, tx, false,
+						CHUNK_SIZE);
+				pos = pos + CHUNK_SIZE;
+				tx = tx + CHUNK_SIZE;
+			} else if (bytes - pos) {
+				fiu_uma_write(bus, 0x0, tx, false,
+						bytes - pos);
+				pos = bytes;
+			}
+		}
+		else { // rx
+			if ((pos + CHUNK_SIZE) <= bytes) {
+				fiu_uma_read(bus, 0x0, rx, false,
+						CHUNK_SIZE);
+				pos = pos + CHUNK_SIZE;
+				rx = rx + CHUNK_SIZE;
+			} else if (bytes - pos) {
+				fiu_uma_read(bus, 0x0, rx, false,
+						bytes - pos);
+				pos = bytes;
+			}
+		}
+	}
+
+done:
+	if (flags & SPI_XFER_END)			
+		/* set CS high  */
+		writel((readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_SW_CS)), &regs->uma_cts);
+
+	return pos == bytes ? 0 : -EIO;
 }
 
 static int npcmX50_fiu_spi_claim_bus(struct udevice *dev)
@@ -292,7 +416,7 @@ static int npcmX50_fiu_spi_claim_bus(struct udevice *dev)
 		break;
 	};
 
-    if (priv->dev_num == FIU_MODULE_X)
+	if (priv->dev_num == FIU_MODULE_X)
 	{
 		writel(0x0300100B, &regs->drd_cfg);     /* FIU-X Change default drd_cfg register value to be regular FIU using a regular flash */
 		writel(0x0000000B, &regs->fiu_cfg);     /* FIU-X Change default fiu_cfg register value to be regular FIU using a regular flash */		
@@ -301,303 +425,6 @@ static int npcmX50_fiu_spi_claim_bus(struct udevice *dev)
 	/* SPI flash init */
 	gcr_muxfiu(priv->dev_num, cs0_en, cs1_en, cs2_en, cs3_en, quad_mode);
 	return 0;
-}
-
-static int npcmX50_fiu_spi_release_bus(struct udevice *dev)
-{
-	return 0;
-}
-
-static int fiu_uma_read(struct udevice *bus, u32 address, uint8_t *tx,
-			bool is_address_size, u32 data_size)
-{
-	struct npcmX50_fiu_spi_priv *priv = dev_get_priv(bus);
-	struct npcmX50_fiu_regs *regs = priv->regs;
-	u32 data_reg[4];
-	u32 uma_cfg = 0;
-	u32 address_size = 0;
-
-	uma_cfg = uma_cfg | (1 << FIU_UMA_CFG_CMDSIZ);
-
-	if (is_address_size)
-		address_size = 3;
-
-	uma_cfg = (uma_cfg & ~(0x07 << FIU_UMA_CFG_ADDSIZ))
-			| (address_size << FIU_UMA_CFG_ADDSIZ);
-
-	/* Set the UMA address registers */
-	writel(address, &regs->uma_addr);
-
-	/* Set data size and direction */
-	uma_cfg = (uma_cfg & ~(0x1f << FIU_UMA_CFG_RDATSIZ)) |
-		(data_size << FIU_UMA_CFG_RDATSIZ);
-	uma_cfg = uma_cfg & ~(0x1f << FIU_UMA_CFG_WDATSIZ);
-
-	/* Set UMA CFG */
-	writel(uma_cfg, &regs->uma_cfg);
-
-	/* Initiate the read */
-	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE),
-		&regs->uma_cts);
-
-	/* wait for indication that transaction has terminated */
-	while ((readl(&regs->uma_cts) & (1 << FIU_UMA_CTS_EXEC_DONE))
-		== FIU_TRANS_STATUS_IN_PROG);
-
-	/* copy read data from FIU_UMA_DB0-3 regs to data buffer */
-	/* Set the UMA data registers - FIU_UMA_DB0-3 */
-	if (data_size >= FIU_UMA_DATA_SIZE_1)
-		data_reg[0] = readl(&regs->uma_dr0);
-	if (data_size >= FIU_UMA_DATA_SIZE_5)
-		data_reg[1] = readl(&regs->uma_dr1);
-	if (data_size >= FIU_UMA_DATA_SIZE_9)
-		data_reg[2] = readl(&regs->uma_dr2);
-	if (data_size >= FIU_UMA_DATA_SIZE_13)
-		data_reg[3] = readl(&regs->uma_dr3);
-
-	memcpy(tx, data_reg, data_size);
-
-	return 0;
-}
-
-static int fiu_uma_write(struct udevice *bus, u32 address, const uint8_t *rx,
-			bool is_address_size, u32 data_size)
-{
-	struct npcmX50_fiu_spi_priv *priv = dev_get_priv(bus);
-	struct npcmX50_fiu_regs *regs = priv->regs;
-	u32 data_reg[4];
-	u32 uma_cfg = 0;
-	u32 address_size = 0;
-
-	uma_cfg = uma_cfg | (1 << FIU_UMA_CFG_CMDSIZ);
-
-	if (is_address_size)
-		address_size = 3;
-
-	uma_cfg = (uma_cfg & ~(0x07 << FIU_UMA_CFG_ADDSIZ))
-			| (address_size << FIU_UMA_CFG_ADDSIZ);
-	/* Set the UMA address registers */
-	writel(address, &regs->uma_addr);
-
-	/* Set the UMA data registers - FIU_UMA_DB0-3 */
-	memcpy(data_reg, rx, data_size);
-
-	if (data_size >= FIU_UMA_DATA_SIZE_1)
-		writel(data_reg[0], &regs->uma_dw0);
-	if (data_size >= FIU_UMA_DATA_SIZE_5)
-		writel(data_reg[1], &regs->uma_dw1);
-	if (data_size >= FIU_UMA_DATA_SIZE_9)
-		writel(data_reg[2], &regs->uma_dw2);
-	if (data_size >= FIU_UMA_DATA_SIZE_13)
-		writel(data_reg[3], &regs->uma_dw3);
-
-	/* Set data size and direction */
-	uma_cfg = (uma_cfg & ~(0x1f << FIU_UMA_CFG_WDATSIZ)) |
-		(data_size << FIU_UMA_CFG_WDATSIZ);
-	uma_cfg = uma_cfg & ~(0x1f << FIU_UMA_CFG_RDATSIZ);
-
-	/* Set UMA status */
-	writel(uma_cfg, &regs->uma_cfg);
-
-	/* Initiate the read */
-	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE),
-		&regs->uma_cts);
-
-	/* wait for indication that transaction has terminated */
-	while ((readl(&regs->uma_cts) & (1 << FIU_UMA_CTS_EXEC_DONE))
-		== FIU_TRANS_STATUS_IN_PROG);
-
-	return 0;
-}
-
-static int npcmX50_sf_process_cmd(struct udevice *dev, const u8 *rx, u8 *tx)
-{
-	struct udevice *bus = dev->parent;
-	struct npcmX50_fiu_spi_priv *priv = dev_get_priv(bus);
-	struct npcmX50_fiu_regs *regs = priv->regs;
-	enum npcmX50_sf_state oldstate = priv->state;
-	struct dm_spi_slave_platdata *slave_plat =
-			dev_get_parent_platdata(dev);
-
-	priv->cmd = rx[0];
-	/* set device number - DEV_NUM in FIU_UMA_CTS.
-	   Select the chip select to be used in the following
-	   UMA transaction */
-	writel((readl(&regs->uma_cts) & ~(0x03 << FIU_UMA_CTS_DEV_NUM))
-			| ((slave_plat->cs & 0x3) << FIU_UMA_CTS_DEV_NUM),
-			&regs->uma_cts);
-
-	/* set transaction code in FIU_UMA_CODE */
-	writel((readl(&regs->uma_cmd) & ~(0xff << FIU_UMA_CMD_CMD))
-			| (priv->cmd << FIU_UMA_CMD_CMD), &regs->uma_cmd);
-
-	switch (priv->cmd) {
-		case SPI_READ_JEDEC_ID_CMD:
-			priv->state = SF_ID;
-			priv->cmd = SF_ID;
-			break;
-		case SPI_READ_STATUS_REG_CMD:
-			priv->state = SF_READ_STATUS;
-			break;
-		case SPI_WRITE_STATUS_REG_CMD:
-			priv->state = SF_WRITE_STATUS;
-			break;
-		case SPI_EXTNADDR_RDEAR_CMD:
-			priv->state = SF_READ_BAR;
-			break;
-		case SPI_EXTNADDR_WREAR_CMD:
-			priv->state = SF_WRITE_BAR;
-			break;
-		case SPI_WRITE_ENABLE_CMD:
-			fiu_uma_write(bus, 0x0, NULL, false, 0);
-			priv->status |= STAT_WEL;
-			break;
-		case SPI_WRITE_DISABLE_CMD:
-			priv->status &= ~STAT_WEL;
-			break;
-		case SPI_4K_SECTOR_ERASE_CMD:
-		case SPI_64K_BLOCK_ERASE_CMD:
-			priv->state = SF_ADDR;
-			break;
-		case SPI_PAGE_PRGM_CMD:
-			writel(readl(&regs->uma_cts)
-				& ~(1 << FIU_UMA_CTS_SW_CS), &regs->uma_cts);
-			priv->state = SF_ADDR;
-			break;
-		default:
-			printf("%s: unknown cmd:0x%x\n", __func__, priv->cmd);
-			return -EIO;
-	}
-
-	if (oldstate != priv->state)
-		debug(" %s: transition to %s state\n", dev->name,
-				npcmX50_sf_state_name(priv->state));
-
-	return 0;
-}
-
-static int npcmX50_fiu_spi_xfer(struct udevice *dev, unsigned int bitlen,
-			const void *dout, void *din, unsigned long flags)
-{
-	struct udevice *bus = dev->parent;
-	struct npcmX50_fiu_spi_priv *priv = dev_get_priv(bus);
-	struct npcmX50_fiu_regs *regs = priv->regs;
-	struct dm_spi_slave_platdata *slave_plat =
-			dev_get_parent_platdata(dev);
-	const uint8_t *rx = dout;
-	uint8_t *tx = din;
-	int bytes = bitlen / 8;
-	u32 address, pos = 0;
-	u32 remain_data = 0; /* For SF_WRITE */
-	int ret;
-	//debug("%s: flags 0x%lx\n", __func__, flags);
-
-	if (flags & SPI_XFER_BEGIN)
-		fiu_spi_cs_activate(dev);
-
-	if ((flags & SPI_XFER_MMAP) || (flags & SPI_XFER_MMAP_END))
-		goto done;
-
-	if (priv->state == SF_CMD) {
-		ret = npcmX50_sf_process_cmd(dev, rx, tx);
-		if (ret)
-			return ret;
-		++pos;
-	}
-
-	if (priv->state == SF_WRITE)
-		remain_data = bytes % CHUNK_SIZE;
-
-	while (pos < bytes) {
-		switch (priv->state) {
-		case SF_ID:
-			fiu_uma_read(bus, 0x0, tx, false, bytes);
-			pos += bytes;
-			break;
-		case SF_READ_STATUS:
-			fiu_uma_read(bus, 0x0, tx, false, 1);
-			pos ++;
-			break;
-		case SF_WRITE_STATUS:
-			fiu_uma_write(bus, 0x0, rx, false, 1);
-			pos ++;
-			break;
-		case SF_READ_BAR:
-			fiu_uma_read(bus, 0x0, tx, false, 1);
-			pos ++;
-			break;
-		case SF_WRITE_BAR:
-			fiu_uma_write(bus, 0x0, rx, false, 1);
-			pos ++;
-			break;
-		case SF_ADDR:
-			address = (rx[1] << 16) | (rx[2] << 8) | (rx[3] << 0);
-			pos += 3;
-			switch (priv->cmd) {
-			case SPI_4K_SECTOR_ERASE_CMD:
-			case SPI_64K_BLOCK_ERASE_CMD:
-				if (!(priv->status & STAT_WEL)) {
-					printf("%s: write enable not set"
-						" before erase!\n",
-						__func__);
-				}
-				fiu_uma_write(bus, address, NULL, true, 0);
-				priv->status &= ~STAT_WEL;
-				break;
-			case SPI_PAGE_PRGM_CMD:
-				priv->state = SF_WRITE;
-				fiu_uma_write(bus, address, NULL, true, 0);
-				break;
-			}
-			break;
-		case SF_WRITE:
-			if (!(priv->status & STAT_WEL)) {
-				printf("%s: write enable not set"
-					" before write!\n",
-					__func__);
-				goto done;
-			}
-
-			writel((readl(&regs->uma_cts) &
-				~(0x03 << FIU_UMA_CTS_DEV_NUM))
-				| ((slave_plat->cs & 0x3) << FIU_UMA_CTS_DEV_NUM),
-				&regs->uma_cts);
-
-			/* set transaction code in FIU_UMA_CODE */
-			writel((readl(&regs->uma_cmd) &
-				~(0xff << FIU_UMA_CMD_CMD))
-				| (rx[0] << FIU_UMA_CMD_CMD),
-				&regs->uma_cmd);
-
-			if ((pos + remain_data) < bytes) {
-				fiu_uma_write(bus, 0x0, &rx[1], false,
-						CHUNK_SIZE - 1);
-				pos = pos + CHUNK_SIZE;
-				rx = rx + CHUNK_SIZE;
-			} else if (remain_data) {
-				fiu_uma_write(bus, 0x0, &rx[1], false,
-						remain_data - 1);
-				pos = pos + remain_data;
-			}
-
-			if (pos >= bytes) {
-				writel(readl(&regs->uma_cts) |
-					(1 << FIU_UMA_CTS_SW_CS),
-					&regs->uma_cts);
-				priv->status &= ~STAT_WEL;
-			}
-			break;
-		default:
-			printf("%s: no idea what to do.\n", __func__);
-			goto done;
-		}
-	}
-
-done:
-	if (flags & SPI_XFER_END)
-		fiu_spi_cs_deactivate(dev);
-
-	return pos == bytes ? 0 : -EIO;
 }
 
 static int npcmX50_fiu_spi_ofdata_to_platdata(struct udevice *bus)
