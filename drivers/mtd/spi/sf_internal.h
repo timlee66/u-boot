@@ -69,6 +69,8 @@ enum spi_nor_option_flags {
 # define CMD_BANKADDR_BRRD		0x16
 # define CMD_EXTNADDR_WREAR		0xC5
 # define CMD_EXTNADDR_RDEAR		0xC8
+# define CMD_ENTER_4_BYTE_MODE		0xB7
+# define CMD_EXIT_4_BYTE_MODE		0xE9
 #endif
 
 /* Common status */
@@ -186,6 +188,12 @@ int stm_is_locked(struct spi_flash *flash, u32 ofs, size_t len);
 static inline int spi_flash_cmd_write_enable(struct spi_flash *flash)
 {
 	return spi_flash_cmd(flash->spi, CMD_WRITE_ENABLE, NULL, 0);
+}
+
+/* Enter 4 byte mode (if enable == true) or exit 4 byte mode */
+static inline int spi_flash_cmd_four_byte_mode(struct spi_flash *flash, bool enable)
+{
+	return spi_flash_cmd(flash->spi, enable? CMD_ENTER_4_BYTE_MODE: CMD_EXIT_4_BYTE_MODE, NULL, 0);
 }
 
 /* Disable writing on the SPI flash */

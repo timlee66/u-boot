@@ -352,9 +352,13 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 			spi_flash_dual(flash, &erase_addr);
 #endif
 #ifdef CONFIG_SPI_FLASH_BAR
-		ret = write_bar(flash, erase_addr);
-		if (ret < 0)
-			return ret;
+		if (flash->size > SPI_FLASH_16MB_BOUN){
+			spi_flash_cmd_four_byte_mode(flash, false);
+			flash->bank_curr = 0xff;
+			ret = write_bar(flash, erase_addr);
+			if (ret < 0)
+				return ret;
+		}
 #endif
 		spi_flash_addr(erase_addr, cmd);
 
@@ -373,6 +377,8 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 
 #ifdef CONFIG_SPI_FLASH_BAR
 	ret = clean_bar(flash);
+	if (flash->size > SPI_FLASH_16MB_BOUN)
+		spi_flash_cmd_four_byte_mode(flash, true);
 #endif
 
 	return ret;
@@ -407,9 +413,13 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 			spi_flash_dual(flash, &write_addr);
 #endif
 #ifdef CONFIG_SPI_FLASH_BAR
-		ret = write_bar(flash, write_addr);
-		if (ret < 0)
-			return ret;
+		if (flash->size > SPI_FLASH_16MB_BOUN){
+			spi_flash_cmd_four_byte_mode(flash, false);
+			flash->bank_curr = 0xff;
+			ret = write_bar(flash, write_addr);
+			if (ret < 0)
+				return ret;
+		}
 #endif
 		byte_addr = offset % page_size;
 		chunk_len = min(len - actual, (size_t)(page_size - byte_addr));
@@ -435,6 +445,8 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 
 #ifdef CONFIG_SPI_FLASH_BAR
 	ret = clean_bar(flash);
+		if (flash->size > SPI_FLASH_16MB_BOUN)
+			spi_flash_cmd_four_byte_mode(flash, true);
 #endif
 
 	return ret;
@@ -511,10 +523,13 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 			spi_flash_dual(flash, &read_addr);
 #endif
 #ifdef CONFIG_SPI_FLASH_BAR
-		ret = write_bar(flash, read_addr);
-		if (ret < 0)
-			return log_ret(ret);
-		bank_sel = flash->bank_curr;
+		if (flash->size > SPI_FLASH_16MB_BOUN){
+			spi_flash_cmd_four_byte_mode(flash, false);
+			flash->bank_curr = 0xff;
+			ret = write_bar(flash, read_addr);
+			if (ret < 0)
+				return ret;
+		}
 #endif
 		remain_len = ((SPI_FLASH_16MB_BOUN << flash->shift) *
 				(bank_sel + 1)) - offset;
@@ -541,6 +556,8 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 
 #ifdef CONFIG_SPI_FLASH_BAR
 	ret = clean_bar(flash);
+		if (flash->size > SPI_FLASH_16MB_BOUN)
+			spi_flash_cmd_four_byte_mode(flash, true);
 #endif
 
 	return log_ret(ret);
