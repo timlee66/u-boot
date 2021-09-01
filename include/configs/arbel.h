@@ -40,17 +40,9 @@
 #define CONFIG_ENV_OFFSET               (0x100000)
 #define CONFIG_ENV_SECT_SIZE            0x1000
 
-#define ENV_IS_IN_FIU1_CS0
-
-#ifdef ENV_IS_IN_FIU1_CS0
-#define CONFIG_SF_DEFAULT_BUS		1
-#define CONFIG_SF_DEFAULT_CS		0
-#define CONFIG_ENV_ADDR                 (0x90000000 + CONFIG_ENV_OFFSET)
-#else
 #define CONFIG_SF_DEFAULT_BUS		0
 #define CONFIG_SF_DEFAULT_CS		0
 #define CONFIG_ENV_ADDR                 (0x80000000 + CONFIG_ENV_OFFSET)
-#endif
 
 #define CONFIG_SYS_MALLOC_LEN           (CONFIG_ENV_SIZE + 2048*1024)
 
