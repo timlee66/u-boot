@@ -64,6 +64,7 @@ static int ehci_usbd_ofdata_to_platdata(struct udevice *dev)
 
 	if ((usbphy_num < 1) || (usbphy_num > 3) || (usbdev_num > 9)) 
 	{
+		printf("USB Device tree usbphy %d or usbdev %d are illegal\n", usbphy_num, usbdev_num);
 		return -ENXIO;
 	}
 	

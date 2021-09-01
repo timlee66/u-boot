@@ -490,8 +490,8 @@
 		compatible = "nuvoton,npcm8xx-ehci-usbd";
 		/* change the base address according the device you want to test */
 		reg = <0x0 0xF0830100 0x0 0x200>;
-		usbphy = <1>;      /* USBD settups:  Phy1(0-9) or Phy2(9)  or Phy3(8) */
-		usbdev = <0>;
+		usbphy = <1>;      /* choose Phy: 1 for device 0-9 / 2 for device 9 / 3 for device 8 */
+		usbdev = <0>;      /* choose device : 0-9, note the phy limitation above */
 		status = "disabled";
 	};
 
