@@ -298,6 +298,14 @@ config PINCTRL_K210
 	  Support pin multiplexing on the K210. The "FPIOA" can remap any
 	  supported function to any multifunctional IO pin. It can also perform
 	  basic GPIO functions, such as reading the current value of a pin.
+
+config PINCTRL_NPCM8XX
+  bool "Nuvoton NPCM8xx pin control driver"
+  depends on DM && PINCTRL_GENERIC && ARCH_NPCM8XX
+  default y
+  help
+    Support MFSEL control on Nuvoton NPCM8xx SoC.
+
 endif
 
 source "drivers/pinctrl/broadcom/Kconfig"
