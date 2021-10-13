@@ -1,0 +1,21 @@
+if ARCH_NPCM
+
+config SYS_ARCH
+	default "arm"
+
+config SYS_TEXT_BASE
+	default 0x8000
+
+choice
+	prompt "Nuvoton SoC select"
+	default ARCH_NPCM8XX
+
+config ARCH_NPCM8XX
+	bool "Support Nuvoton NPCM8xx SoC"
+	select ARM64
+
+endchoice
+
+source "arch/arm/mach-nuvoton/npcm8xx/Kconfig"
+
+endif

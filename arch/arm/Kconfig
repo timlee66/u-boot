@@ -1782,6 +1782,12 @@ config ARCH_ASPEED
 	select OF_CONTROL
 	imply CMD_DM
 
+config ARCH_NPCM
+	bool "Support Nuvoton SoCs"
+	select OF_CONTROL
+	select DM
+	imply CMD_DM
+
 config TARGET_DURIAN
 	bool "Support Phytium Durian Platform"
 	select ARM64
@@ -1953,6 +1959,8 @@ source "arch/arm/cpu/armv8/Kconfig"
 source "arch/arm/mach-imx/Kconfig"
 
 source "arch/arm/mach-nexell/Kconfig"
+
+source "arch/arm/mach-nuvoton/Kconfig"
 
 source "board/armltd/total_compute/Kconfig"
 

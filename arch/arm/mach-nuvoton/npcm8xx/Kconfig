@@ -1,0 +1,14 @@
+if ARCH_NPCM8XX
+
+config SYS_CPU
+	default "armv8"
+
+config SYS_SOC
+	default "npcm8xx"
+
+config TARGET_ARBEL_EVB
+	bool "Arbel-EVB"
+
+source "board/nuvoton/arbel/Kconfig"
+
+endif

@@ -227,4 +227,10 @@ config MCHP_PIT64B_TIMER
 	  Select this to enable support for Microchip 64-bit periodic
 	  interval timer.
 
+config NPCMX50_TIMER
+	bool "Nuvoton NPCMX50 timer support"
+	depends on TIMER
+	help
+	  Select this to enable an timer for Nuvoton NPCMX50 devices.
+
 endmenu
