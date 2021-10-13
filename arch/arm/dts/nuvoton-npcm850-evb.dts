@@ -251,7 +251,7 @@
 	i2c15: i2c-bus@f008f000 {
 		status = "okay";
 	};
-
+#if 0
 	pinctrl: pinctrl@f0800000 {
 		pinctrl-names = "default";
 		pinctrl-0 = <
@@ -312,4 +312,5 @@
 				&gpio168_pins
 			    >;
 	};
+#endif
 };
