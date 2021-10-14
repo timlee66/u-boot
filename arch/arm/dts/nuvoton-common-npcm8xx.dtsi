@@ -93,33 +93,6 @@
 		pinctrl-0 = <&spi0cs1_pins>;
 		#address-cells = <1>;
 		#size-cells = <0>;
-		spi_flash@0 {
-			compatible = "spi-flash";
-			reg = <0>; /* CS 0 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0x80000000 0x0 0x02000000>;    /* 32MB */
-#endif
-#ifdef CONFIG_TARGET_ARBEL_EVB
-			memory-map = <0x0 0x80000000 0x0 0x00400000>;    /* 4MB */
-#endif
-#ifdef CONFIG_TARGET_ARBEL_SVB
-			memory-map = <0x0 0x80000000 0x0 0x02000000>;    /* 32MB */
-#endif
-		};
-
-		spi_flash@1 {
-			compatible = "spi-flash";
-			reg = <1>;  /* CS 1 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0x88000000 0x0 0x00080000>;    /* 512KB */
-#endif
-#ifdef CONFIG_TARGET_ARBEL_EVB
-			memory-map = <0x0 0x88000000 0x0 0x04000000>;    /* 64MB */
-#endif
-#ifdef CONFIG_TARGET_ARBEL_SVB
-			memory-map = <0x0 0x88000000 0x0 0x02000000>;    /* 32MB */
-#endif
-		};
 	};
 
 	fiu1: fiu1@fb002000 {
@@ -128,53 +101,10 @@
 		index = <1>;
 		spi-max-frequency = <50000000>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&spi1_pins &spi1cs1_pins &spi1cs2_pins &spi1cs3_pins>;
+		pinctrl-0 = <&spi1_pins>;
 		status = "disabled";
 		#address-cells = <1>;
 		#size-cells = <0>;
-		spi_flash@0 {
-			compatible = "spi-flash";
-			reg = <0>; /* CS 0 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0x90000000 0x0 0x00080000>;    /* 512KB */
-#endif
-#ifdef CONFIG_TARGET_ARBEL_EVB
-			memory-map = <0x0 0x90000000 0x0 0x00400000>;    /* 4MB */
-#endif
-#ifdef CONFIG_TARGET_ARBEL_SVB
-			memory-map = <0x0 0x90000000 0x0 0x01000000>;    /* 16MB */
-#endif
-		};
-
-		spi_flash@1 {
-			compatible = "spi-flash";
-			reg = <1>; /* CS 1 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0x91000000 0x0 0x00080000>;    /* 512KB */
-#else
-			memory-map = <0x0 0x91000000 0x0 0x01000000>;    /* 16MB */
-#endif
-		};
-
-		spi_flash@2 {
-			compatible = "spi-flash";
-			reg = <2>; /* CS 2 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0x92000000 0x0 0x00080000>;    /* 512KB */
-#else
-			memory-map = <0x0 0x92000000 0x0 0x01000000>;    /* 16MB */
-#endif
-		};
-
-		spi_flash@3 {
-			compatible = "spi-flash";
-			reg = <3>; /* CS 3 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0x93000000 0x0 0x00080000>;    /* 512KB */
-#else
-			memory-map = <0x0 0x93000000 0x0 0x01000000>;    /* 16MB */
-#endif
-		};
 	};
 
 	fiu3: fiu3@c0000000 {
@@ -183,50 +113,10 @@
 		index = <3>;
 		spi-max-frequency = <50000000>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&spi3_pins &spi3cs1_pins &spi3cs2_pins &spi3cs3_pins>;
+		pinctrl-0 = <&spi3_pins>;
 		status = "disabled";
 		#address-cells = <1>;
 		#size-cells = <0>;
-		spi_flash@0 {
-			compatible = "spi-flash";
-			reg = <0>; /* CS 0 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0xA0000000 0x0 0x00080000>;    /* 512KB */
-#endif
-#ifdef CONFIG_TARGET_ARBEL_EVB
-			memory-map = <0x0 0xA0000000 0x0 0x04000000>;    /* 64MB */
-#endif
-#ifdef CONFIG_TARGET_ARBEL_SVB
-			memory-map = <0x0 0xA0000000 0x0 0x01000000>;    /* 16MB */
-#endif
-		};
-		spi_flash@1 {
-			compatible = "spi-flash";
-			reg = <1>; /* CS 1 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0xA8000000 0x0 0x00080000>;    /* 512KB */
-#else
-			memory-map = <0x0 0xA8000000 0x0 0x01000000>;    /* 16MB */
-#endif
-		};
-		spi_flash@2 {
-			compatible = "spi-flash";
-			reg = <2>; /* CS 2 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0xB0000000 0x0 0x00080000>;    /* 512KB */
-#else
-			memory-map = <0x0 0xB0000000 0x0 0x01000000>;    /* 16MB */
-#endif
-		};
-		spi_flash@3 {
-			compatible = "spi-flash";
-			reg = <3>; /* CS 3 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0xB8000000 0x0 0x00080000>;    /* 512KB */
-#else
-			memory-map = <0x0 0xB8000000 0x0 0x01000000>;    /* 16MB */
-#endif
-		};
 	};
 
 	fiux: fiux@fb001000 {
@@ -239,25 +129,6 @@
 		status = "disabled";
 		#address-cells = <1>;
 		#size-cells = <0>;
-		spi_flash@0 {
-			compatible = "spi-flash";
-			reg = <0>; /* CS 0 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0xF8000000 0x0 0x00080000>;    /* 512KB */
-#else
-			memory-map = <0x0 0xF8000000 0x0 0x00800000>;    /* 8MB */
-#endif
-		};
-
-		spi_flash@1 {
-			compatible = "spi-flash";
-			reg = <1>; /* CS 1 */
-#ifdef CONFIG_TARGET_ARBEL_PALLADIUM
-			memory-map = <0x0 0xF9000000 0x0 0x00080000>;    /* 512KB */
-#else
-			memory-map = <0x0 0xF9000000 0x0 0x00800000>;    /* 8MB */
-#endif
-		};
 	};
 
 	pspi: pspi@f0201000 {
