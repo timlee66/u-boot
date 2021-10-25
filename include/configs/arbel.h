@@ -140,6 +140,7 @@
 #define CONFIG_BOOTCOMMAND "run clear_results"
 #endif
 
+#define CONFIG_BITBANGMII_MULTI
 #define CONFIG_SERVERIP                 10.191.20.49
 #define CONFIG_IPADDR                   10.191.20.48
 #define CONFIG_NETMASK                  255.255.255.0
