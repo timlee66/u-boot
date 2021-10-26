@@ -85,52 +85,76 @@
 	fiu0: fiu0@fb000000 {
 		status = "okay";
 		spi_flash@0 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <0>; /* Chip select 0 */
+			memory-map = <0x80000000 0x8000000>;
 		};
 		spi_flash@1 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <1>;
+			memory-map = <0x88000000 0x8000000>;
 		};
 	};
 
 	fiu1: fiu1@fb002000 {
 		status = "okay";
 		spi_flash@0 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <0>; /* Chip select 0 */
+			memory-map = <0x90000000 0x1000000>;
 		};
 		spi_flash@1 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <1>; /* Chip select 1 */
+			memory-map = <0x91000000 0x1000000>;
 		};
 		spi_flash@2 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <2>; /* Chip select 2 */
+			memory-map = <0x92000000 0x1000000>;
 		};
 		spi_flash@3 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <3>; /* Chip select 3 */
+			memory-map = <0x93000000 0x1000000>;
 		};
 	};
 
 	fiu3: fiu3@c0000000 {
 		status = "okay";
 		spi_flash@0 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <0>; /* Chip select 0 */
+			memory-map = <0xa0000000 0x8000000>;
 		};
 		spi_flash@1 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <1>; /* Chip select 1 */
+			memory-map = <0xa8000000 0x8000000>;
 		};
 		spi_flash@2 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <2>; /* Chip select 2 */
+			memory-map = <0xb0000000 0x8000000>;
 		};
 		spi_flash@3 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <0>; /* Chip select 3 */
+			memory-map = <0xb8000000 0x8000000>;
 		};
 	};
 
 	fiux: fiux@fb001000 {
 		status = "okay";
 		spi_flash@0 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <0>; /* Chip select 0 */
+			memory-map = <0xf8000000 0x1000000>;
 		};
 		spi_flash@1 {
-			status = "okay";
+			compatible = "spi-flash";
+			reg = <1>; /* Chip select 1 */
+			memory-map = <0xf9000000 0x1000000>;
 		};	
 	};
 	
