@@ -242,7 +242,6 @@ struct dw_eth_dev {
 	struct gpio_desc reset_gpio;
 	struct gpio_desc mdc_gpio;
 	struct gpio_desc mdio_gpio;
-	int mdio_val;
 #endif
 #ifdef CONFIG_CLK
 	struct clk *clocks;	/* clock list */
