@@ -16,4 +16,10 @@ config NIST_VERSION_ADDR
 	  The address of the Linux NIST version, which should be identical
 	  to the u-boot version.
 
+config SYS_MEM_TOP_HIDE
+	hex "Reserved TOP memory"
+	default 0xB000000
+	help
+	  Reserve memory for ECC/GFX/VCD/ECE.
+
 endif
