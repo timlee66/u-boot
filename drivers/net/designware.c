@@ -849,14 +849,13 @@ int designware_eth_probe(struct udevice *dev)
 	if (dev_read_bool(dev, "snps,bitbang-mii")) {
 		debug("\n%s: use bitbang mii..\n", dev->name);
 		ret = gpio_request_by_name(dev, "snps,mdc-gpio", 0,
-				&priv->mdc_gpio, GPIOD_IS_OUT);
+				&priv->mdc_gpio, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
 		if (ret)
 			return ret;
 		ret = gpio_request_by_name(dev, "snps,mdio-gpio", 0,
-				&priv->mdio_gpio, GPIOD_IS_OUT);
+				&priv->mdio_gpio, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
 		if (ret)
 			return ret;
-		dm_gpio_set_value(&priv->mdc_gpio, 1);
 		bb_miiphy_buses[0].priv = priv;
 		sprintf(bb_miiphy_buses[0].name, dev->name);
 		priv->bus->read = bb_miiphy_read;
@@ -984,7 +983,7 @@ static int npcm_eth_bb_mdio_active(struct bb_miiphy_bus *bus)
 {
 	struct dw_eth_dev *priv = bus->priv;
 
-	dm_gpio_set_dir_flags(&priv->mdio_gpio, GPIOD_IS_OUT);
+	dm_gpio_set_dir_flags(&priv->mdio_gpio, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
 
 	return 0;
 }
