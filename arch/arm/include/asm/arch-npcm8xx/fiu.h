@@ -25,12 +25,6 @@
 
 #define CHUNK_SIZE		    16
 
-enum _spi_trans_status
-{
-	FIU_TRANS_STATUS_DONE	    = 0,
-	FIU_TRANS_STATUS_IN_PROG    = 1
-};
-
 /* FIU UMA data size */
 enum _spi_uma_data_size
 {
@@ -82,16 +76,7 @@ enum _spi_uma_data_size
 
 #define FIU_DEVICES_PER_MODULE		    4
 
-enum fiu_moudle_tag {
-	FIU_MODULE_0,
-	FIU_MODULE_1,
-	FIU_MODULE_2,
-	FIU_MODULE_3,
-	FIU_MODULE_X
-};
-
-
-struct npcmX50_fiu_regs {
+struct npcm_fiu_regs {
 	unsigned int    drd_cfg;
 	unsigned int    dwr_cfg;
 	unsigned int    uma_cfg;
