@@ -19,6 +19,7 @@
 #include <dm.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/smb.h>
+#include <asm/arch/gcr.h>
 #include <linux/delay.h>
 
 #define SMBUS_FREQ_100KHz   100000
@@ -540,6 +541,9 @@ static int npcm_smb_probe(struct udevice *dev)
 	struct npcmX50_smb_regs *reg;
 	struct clk clk;
 	int ret;
+#if defined (CONFIG_ARCH_NPCM8XX)
+	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+#endif
 
 	ret = clk_get_by_index(dev, 0, &clk);
 	if (ret) {
@@ -563,6 +567,10 @@ static int npcm_smb_probe(struct udevice *dev)
 		printf("%s: init_clk failed\n", __func__);
 		return -EINVAL;
 	}
+#if defined (CONFIG_ARCH_NPCM8XX)
+	writel(I2CSEGCTL_INIT_VAL, &gcr->i2csegctl);
+#endif
+
 	/* enable SMB moudle */
 	writeb(readb(&reg->ctl2) | SMBCTL2_ENABLE, &reg->ctl2);
 
