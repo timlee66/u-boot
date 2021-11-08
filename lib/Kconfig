@@ -183,8 +183,8 @@ config LIB_RAND
 config LIB_HW_RAND
 	bool "HW Engine for random library support"
 
-config NPCMX50_RNG
-	bool "NPCMX50 Random Number Generator (RNG) support"
+config NPCM_RNG
+	bool "NPCM Random Number Generator (RNG) support"
 
 endchoice
 

@@ -1,5 +1,5 @@
 /*
- * NUVOTON NPCMX50 USB DEVICE EHCI Controller
+ * NUVOTON NPCM8XX USB DEVICE EHCI Controller
  *
  * Copyright (C) 2019 Nuvoton Co.Ltd
  *
@@ -41,7 +41,7 @@ static int ehci_usbd_ofdata_to_platdata(struct udevice *dev)
 	unsigned int usbphy_num = 0, usbdev_num = 0;
 	char * env_usbphy_num;
 	char * env_usbdev_num;
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
 	/*
 	 * Get the base address for EHCI controller from the device node
 	 */
@@ -102,8 +102,8 @@ static int ehci_usbd_probe(struct udevice *dev)
 	struct npcm8xx_ehci_platdata *plat = dev_get_plat(dev);
 	struct npcm8xx_ehci_usbd *ctx = dev_get_priv(dev);
 	struct ehci_hcor *hcor;
-	struct clk_ctl *clkctl = (struct clk_ctl *)npcm850_get_base_clk();
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm_get_base_clk();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
 
 	ctx->hcd = (struct ehci_hccr *)plat->hcd_base;
 
@@ -181,7 +181,7 @@ static int ehci_usbd_probe(struct udevice *dev)
 static int ehci_usbd_remove(struct udevice *dev)
 {
 	int ret;
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
 
 	writel(((readl(&gcr->intcr3) & ~(0x3 << INTCR3_USBPHY2SW)) | (0x1 << INTCR3_USBPHY2SW) ), &gcr->intcr3);
 	writel(((readl(&gcr->intcr3) & ~(0x3 << INTCR3_USBPHY3SW)) | (0x1 << INTCR3_USBPHY3SW) ), &gcr->intcr3);

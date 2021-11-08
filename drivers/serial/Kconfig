@@ -920,7 +920,7 @@ config SYS_SDMR
 	depends on MPC8XX_CONS
 	default 0
 
-config NPCMX50_SERIAL
+config NPCM_SERIAL
 	depends on DM_SERIAL
 	bool "NUVOTON on-chip USB-UART"
 	help

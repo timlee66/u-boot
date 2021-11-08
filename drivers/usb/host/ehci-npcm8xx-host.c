@@ -1,5 +1,5 @@
 /*
- * NUVOTON NPCMX50 USB HOST EHCI Controller
+ * NUVOTON NPCM8XX USB HOST EHCI Controller
  *
  * Copyright (C) 2019 Nuvoton Co.Ltd
  *
@@ -56,8 +56,8 @@ static int ehci_usb_probe(struct udevice *dev)
 	struct npcm8xx_ehci_platdata *plat = dev_get_plat(dev);
 	struct npcm8xx_ehci *ctx = dev_get_priv(dev);
 	struct ehci_hcor *hcor;
-	struct clk_ctl *clkctl = (struct clk_ctl *)npcm850_get_base_clk();
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm_get_base_clk();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
 
 	ctx->hcd = (struct ehci_hccr *)plat->hcd_base;
 	printf("USB HOST Address 0x%llx \n", plat->hcd_base);

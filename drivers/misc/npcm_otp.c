@@ -1,5 +1,5 @@
 /*
- * NUVOTON Poleg OTP driver
+ * NUVOTON NPCM OTP driver
  *
  * Copyright (C) 2019, NUVOTON, Incorporated
  *
@@ -16,7 +16,7 @@
 #include <clk.h>
 #include <linux/delay.h>
 
-struct npcmX50_otp_priv {
+struct npcm_otp_priv {
 #if defined (CONFIG_ARCH_NPCM8XX)
 	struct npcm_otp_regs *regs[1];
 #else
@@ -24,10 +24,10 @@ struct npcmX50_otp_priv {
 #endif
 };
 
-static struct npcmX50_otp_priv *otp_priv;
+static struct npcm_otp_priv *otp_priv;
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_check_inputs                                  */
+/* Function:        npcm_otp_check_inputs                                  */
 /*                                                                            */
 /* Parameters:      arr - fuse array number to check                          */
 /*                  word - fuse word (offset) to chcek                        */
@@ -36,10 +36,10 @@ static struct npcmX50_otp_priv *otp_priv;
 /* Description:     Checks is arr and word are illegal and do not exceed      */
 /*                  their range. Return 0 if they are legal, -1 if not        */
 /*----------------------------------------------------------------------------*/
-static int npcmX50_otp_check_inputs(npcm_otp_storage_array arr, u32 word)
+static int npcm_otp_check_inputs(npcm_otp_storage_array arr, u32 word)
 {
 
-	if (arr >= NPCMX50_NUM_OF_SA) {
+	if (arr >= NPCM_NUM_OF_SA) {
 #if defined (CONFIG_ARCH_NPCM8XX)
 		printf("\nError: npcm8XX otp includs only one bank: 0\n");
 #else
@@ -48,8 +48,8 @@ static int npcmX50_otp_check_inputs(npcm_otp_storage_array arr, u32 word)
 		return -1;
 	}
 
-	if (word >= NPCMX50_OTP_ARR_BYTE_SIZE) {
-		printf("\nError: npcmX50 otp array comprises only %d bytes, numbered from 0 to %d\n",NPCMX50_OTP_ARR_BYTE_SIZE,NPCMX50_OTP_ARR_BYTE_SIZE-1);
+	if (word >= NPCM_OTP_ARR_BYTE_SIZE) {
+		printf("\nError: npcm otp array comprises only %d bytes, numbered from 0 to %d\n",NPCM_OTP_ARR_BYTE_SIZE,NPCM_OTP_ARR_BYTE_SIZE-1);
 		return -1;
 	}
 
@@ -57,14 +57,14 @@ static int npcmX50_otp_check_inputs(npcm_otp_storage_array arr, u32 word)
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_wait_for_otp_ready                            */
+/* Function:        npcm_otp_wait_for_otp_ready                            */
 /*                                                                            */
 /* Parameters:      array - fuse array to wait for                            */
 /* Returns:         int                                                       */
 /* Side effects:                                                              */
 /* Description:     Initialize the Fuse HW module.                            */
 /*----------------------------------------------------------------------------*/
-static int npcmX50_otp_wait_for_otp_ready(npcm_otp_storage_array arr,
+static int npcm_otp_wait_for_otp_ready(npcm_otp_storage_array arr,
 										  u32 timeout)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
@@ -73,7 +73,7 @@ static int npcmX50_otp_wait_for_otp_ready(npcm_otp_storage_array arr,
 	/*------------------------------------------------------------------------*/
 	/* check parameters validity                                              */
 	/*------------------------------------------------------------------------*/
-	if (arr > NPCMX50_FUSE_SA)
+	if (arr > NPCM_FUSE_SA)
 		return -EINVAL;
 
 	while (--time > 1) {
@@ -91,7 +91,7 @@ static int npcmX50_otp_wait_for_otp_ready(npcm_otp_storage_array arr,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_read_byte                                     */
+/* Function:        npcm_otp_read_byte                                     */
 /*                                                                            */
 /* Parameters:      arr  - Storage Array type [input].                        */
 /*                  addr - Byte-address to read from [input].                 */
@@ -100,13 +100,13 @@ static int npcmX50_otp_wait_for_otp_ready(npcm_otp_storage_array arr,
 /* Side effects:                                                              */
 /* Description:     Read 8-bit data from an OTP storage array.                */
 /*----------------------------------------------------------------------------*/
-static void npcmX50_otp_read_byte(npcm_otp_storage_array arr, u32 addr,
+static void npcm_otp_read_byte(npcm_otp_storage_array arr, u32 addr,
 								  u8 *data)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
 
 	/* Wait for the Fuse Box Idle */
-	npcmX50_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
+	npcm_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 	/* Configure the byte address in the fuse array for read operation */
 	writel(FADDR_VAL(addr, 0), &regs->faddr);
@@ -115,7 +115,7 @@ static void npcmX50_otp_read_byte(npcm_otp_storage_array arr, u32 addr,
 	writel(READ_INIT, &regs->fctl);
 
 	/* Wait for read operation completion */
-	npcmX50_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
+	npcm_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 	/* Read the result */
 	*data = readl(&regs->fdata) & FDATA_MASK;
@@ -126,7 +126,7 @@ static void npcmX50_otp_read_byte(npcm_otp_storage_array arr, u32 addr,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_bit_is_programmed                             */
+/* Function:        npcm_otp_bit_is_programmed                             */
 /*                                                                            */
 /* Parameters:      arr     - Storage Array type [input].                     */
 /*                  byteNum - Byte offset in array [input].                   */
@@ -135,13 +135,13 @@ static void npcmX50_otp_read_byte(npcm_otp_storage_array arr, u32 addr,
 /* Side effects:                                                              */
 /* Description:     Check if a bit is programmed in an OTP storage array.     */
 /*----------------------------------------------------------------------------*/
-static bool npcmX50_otp_bit_is_programmed(npcm_otp_storage_array  arr,
+static bool npcm_otp_bit_is_programmed(npcm_otp_storage_array  arr,
 										  u32 byteNum, u8 bitNum)
 {
 	u32 data = 0;
 
 	/* Read the entire byte you wish to program */
-	npcmX50_otp_read_byte(arr, byteNum, (u8*)&data);
+	npcm_otp_read_byte(arr, byteNum, (u8*)&data);
 
 	/* Check whether the bit is already programmed */
 	if (data & (1 << bitNum))
@@ -151,7 +151,7 @@ static bool npcmX50_otp_bit_is_programmed(npcm_otp_storage_array  arr,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_program_bit                                   */
+/* Function:        npcm_otp_program_bit                                   */
 /*                                                                            */
 /* Parameters:      arr     - Storage Array type [input].                     */
 /*                  byteNum - Byte offset in array [input].                   */
@@ -160,7 +160,7 @@ static bool npcmX50_otp_bit_is_programmed(npcm_otp_storage_array  arr,
 /* Side effects:                                                              */
 /* Description:     Program (set to 1) a bit in an OTP storage array.         */
 /*----------------------------------------------------------------------------*/
-static int npcmX50_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
+static int npcm_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
 								   u8 bitNum)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
@@ -168,10 +168,10 @@ static int npcmX50_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
 	u8 read_data;
 
 	/* Wait for the Fuse Box Idle */
-	npcmX50_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
+	npcm_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 	/* Make sure the bit is not already programmed */
-	if (npcmX50_otp_bit_is_programmed(arr, byteNum, bitNum))
+	if (npcm_otp_bit_is_programmed(arr, byteNum, bitNum))
 		return 0;
 
 	/* Configure the bit address in the fuse array for program operation */
@@ -185,7 +185,7 @@ static int npcmX50_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
 		writel(PROGRAM_INIT, &regs->fctl);
 
 		/* Wait for program operation completion */
-		npcmX50_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
+		npcm_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 		// after MIN_PROGRAM_PULSES start verifying the result
 		if (count >= MIN_PROGRAM_PULSES) {
@@ -193,7 +193,7 @@ static int npcmX50_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
 			writel(READ_INIT, &regs->fctl);
 
 			/* Wait for read operation completion */
-			npcmX50_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
+			npcm_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 			/* Read the result */
 			read_data = readl(&regs->fdata) & FDATA_MASK;
@@ -220,7 +220,7 @@ static int npcmX50_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_ProgramByte                                   */
+/* Function:        npcm_otp_ProgramByte                                   */
 /*                                                                            */
 /* Parameters:      arr     - Storage Array type [input].                     */
 /*                  byteNum - Byte offset in array [input].                   */
@@ -230,7 +230,7 @@ static int npcmX50_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
 /* Description:     Program (set to 1) a given byte's relevant bits in an     */
 /*                  OTP storage array.                                        */
 /*----------------------------------------------------------------------------*/
-static int npcmX50_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
+static int npcm_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
 								   u8 value)
 {
 	int status = 0;
@@ -238,15 +238,15 @@ static int npcmX50_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
 	u8 data = 0;
 	int rc;
 
-	rc = npcmX50_otp_check_inputs(arr, byteNum);
+	rc = npcm_otp_check_inputs(arr, byteNum);
 	if (rc != 0)
 		return rc;
 
 	/* Wait for the Fuse Box Idle */
-	npcmX50_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
+	npcm_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 	/* Read the entire byte you wish to program */
-	npcmX50_otp_read_byte(arr, byteNum, &data);
+	npcm_otp_read_byte(arr, byteNum, &data);
 
 	/* In case all relevant bits are already programmed - nothing to do */
 	if ((~data & value) == 0)
@@ -256,7 +256,7 @@ static int npcmX50_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
 	for (i = 0; i < 8; i++) {
 		if (value & (1 << i)) {
 			/* Program (set to 1) the relevant bit */
-			int last_status = npcmX50_otp_program_bit(arr, byteNum, (u8)i);
+			int last_status = npcm_otp_program_bit(arr, byteNum, (u8)i);
 
 			if (last_status != 0)
 				status = last_status;
@@ -266,7 +266,7 @@ static int npcmX50_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_is_fuse_array_disabled                        */
+/* Function:        npcm_otp_is_fuse_array_disabled                        */
 /*                                                                            */
 /* Parameters:      arr - Storage Array type [input].                         */
 /* Returns:         bool                                                      */
@@ -274,7 +274,7 @@ static int npcmX50_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
 /* Description:     Return true if access to the first 2048 bits of the       */
 /*                  specified fuse array is disabled, false if not            */
 /*----------------------------------------------------------------------------*/
-bool npcmX50_otp_is_fuse_array_disabled(npcm_otp_storage_array arr)
+bool npcm_otp_is_fuse_array_disabled(npcm_otp_storage_array arr)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
 
@@ -282,7 +282,7 @@ bool npcmX50_otp_is_fuse_array_disabled(npcm_otp_storage_array arr)
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_select_key                                                                 */
+/* Function:        npcm_otp_select_key                                                                 */
 /*                                                                                                         */
 /* Parameters:                                                                                             */
 /*                  key_index - AES key index in the key array (in 128-bit steps) [input]                  */
@@ -290,9 +290,9 @@ bool npcmX50_otp_is_fuse_array_disabled(npcm_otp_storage_array arr)
 /* Side effects:                                                                                           */
 /* Description:     Returns 0 on successful selection, -1 otherwise                                        */
 /*---------------------------------------------------------------------------------------------------------*/
-int npcmX50_otp_select_key(u8 key_index)
+int npcm_otp_select_key(u8 key_index)
 {
-	struct npcm_otp_regs *regs = otp_priv->regs[NPCMX50_KEY_SA];
+	struct npcm_otp_regs *regs = otp_priv->regs[NPCM_KEY_SA];
 	u32 fKeyInd = 0;
 	volatile u32 time = 0xDAEDBEEF;
 
@@ -326,7 +326,7 @@ int npcmX50_otp_select_key(u8 key_index)
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_nibble_parity_ecc_encode                      */
+/* Function:        npcm_otp_nibble_parity_ecc_encode                      */
 /*                                                                            */
 /* Parameters:      datain - pointer to decoded data buffer                   */
 /*                  dataout - pointer to encoded data buffer (buffer size     */
@@ -338,7 +338,7 @@ int npcmX50_otp_select_key(u8 key_index)
 /*                  Size specifies the encoded data size.                     */
 /*                  Decodes whole bytes only                                  */
 /*----------------------------------------------------------------------------*/
-void npcmX50_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
+void npcm_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 {
 	u32 i;
 	u8 E0, E1, E2, E3;
@@ -370,7 +370,7 @@ void npcmX50_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcmX50_otp_majority_rule_ecc_encode                      */
+/* Function:        npcm_otp_majority_rule_ecc_encode                      */
 /*                                                                            */
 /* Parameters:      datain - pointer to decoded data buffer                   */
 /*                  dataout - pointer to encoded data buffer (buffer size     */
@@ -382,7 +382,7 @@ void npcmX50_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 /*                  Size specifies the encoded data size.                     */
 /*                  Decodes whole bytes only                                  */
 /*----------------------------------------------------------------------------*/
-void npcmX50_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size)
+void npcm_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 {
 	u32 byte;
 	u32 bit;
@@ -425,7 +425,7 @@ int fuse_program_data(u32 bank, u32 word, u8 *data, u32 size)
 	u32 byte;
 	int rc;
 
-	rc = npcmX50_otp_check_inputs(bank, word + size - 1);
+	rc = npcm_otp_check_inputs(bank, word + size - 1);
 	if (rc != 0)
 		return rc;
 
@@ -436,13 +436,13 @@ int fuse_program_data(u32 bank, u32 word, u8 *data, u32 size)
 		if (val == 0) // optimization
 			continue;
 
-		rc = npcmX50_otp_ProgramByte(arr, word + byte, data[byte]);
+		rc = npcm_otp_ProgramByte(arr, word + byte, data[byte]);
 		if (rc != 0)
 			return rc;
 
 		// verify programming of every '1' bit
 		val = 0;
-		npcmX50_otp_read_byte((npcm_otp_storage_array)bank, byte, &val);
+		npcm_otp_read_byte((npcm_otp_storage_array)bank, byte, &val);
 		if ((data[byte] & ~val) != 0)
 			return -1;
 	}
@@ -452,17 +452,17 @@ int fuse_program_data(u32 bank, u32 word, u8 *data, u32 size)
 
 int fuse_prog_image(u32 bank, u32 address)
 {
-	return fuse_program_data(bank, 0, (u8*)(uintptr_t)address, NPCMX50_OTP_ARR_BYTE_SIZE);
+	return fuse_program_data(bank, 0, (u8*)(uintptr_t)address, NPCM_OTP_ARR_BYTE_SIZE);
 }
 
 int fuse_read(u32 bank, u32 word, u32 *val)
 {
-	int rc = npcmX50_otp_check_inputs(bank, word);
+	int rc = npcm_otp_check_inputs(bank, word);
 	if (rc != 0)
 		return rc;
 
 	*val = 0;
-	npcmX50_otp_read_byte((npcm_otp_storage_array)bank, word, (u8*)val);
+	npcm_otp_read_byte((npcm_otp_storage_array)bank, word, (u8*)val);
 
 	return 0;
 }
@@ -477,11 +477,11 @@ int fuse_prog(u32 bank, u32 word, u32 val)
 {
 	int rc;
 
-	rc = npcmX50_otp_check_inputs(bank, word);
+	rc = npcm_otp_check_inputs(bank, word);
 	if (rc != 0)
 		return rc;
 
-	return npcmX50_otp_ProgramByte((npcm_otp_storage_array)bank, word,
+	return npcm_otp_ProgramByte((npcm_otp_storage_array)bank, word,
 								   (u8)val);
 }
 
@@ -491,11 +491,11 @@ int fuse_override(u32 bank, u32 word, u32 val)
 	return -EINVAL;
 }
 
-static int npcmX50_otp_bind(struct udevice *dev)
+static int npcm_otp_bind(struct udevice *dev)
 {
 	struct npcm_otp_regs *pRegs;
 
-	otp_priv = calloc(1, sizeof(struct npcmX50_otp_priv));
+	otp_priv = calloc(1, sizeof(struct npcm_otp_priv));
 	if (!otp_priv)
 		return -ENOMEM;
 
@@ -515,20 +515,20 @@ static int npcmX50_otp_bind(struct udevice *dev)
 	}
 	otp_priv->regs[1] = pRegs;
 #endif
-	printk(KERN_INFO "OTP: NPCMX50 OTP module bind OK\n");
+	printk(KERN_INFO "OTP: NPCM OTP module bind OK\n");
 
 	return 0;
 }
 
-static const struct udevice_id npcmX50_otp_ids[] = {
-	{ .compatible = "nuvoton,npcmX50-otp" },
+static const struct udevice_id npcm_otp_ids[] = {
+	{ .compatible = "nuvoton,npcm845-otp" },
 	{ }
 };
 
-U_BOOT_DRIVER(npcmX50_otp) = {
-	.name = "npcmX50_otp",
+U_BOOT_DRIVER(npcm_otp) = {
+	.name = "npcm_otp",
 	.id = UCLASS_MISC,
-	.of_match = npcmX50_otp_ids,
-	.priv_auto = sizeof(struct npcmX50_otp_priv),
-	.bind = npcmX50_otp_bind,
+	.of_match = npcm_otp_ids,
+	.priv_auto = sizeof(struct npcm_otp_priv),
+	.bind = npcm_otp_bind,
 };

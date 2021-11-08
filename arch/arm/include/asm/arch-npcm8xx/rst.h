@@ -1,5 +1,5 @@
-#ifndef _ARBEL_RST_H_
-#define _ARBEL_RST_H_
+#ifndef _NPCM_RST_H_
+#define _NPCM_RST_H_
 
 enum reset_type {
     PORST_TYPE    = 0x01,

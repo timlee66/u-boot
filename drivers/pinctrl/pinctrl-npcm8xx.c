@@ -9,7 +9,6 @@
 #include <dm.h>
 #include <errno.h>
 #include <asm/io.h>
-#include <asm/arch/info.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/gcr.h>
 #include <asm/arch/clock.h>
@@ -1651,9 +1650,9 @@ static int npcm8xx_pinctrl_probe(struct udevice *dev)
 {
 	struct npcm8xx_pinctrl_priv *priv = dev_get_priv(dev);
 
-	priv->gcr_base = npcm850_get_base_gcr();
-	priv->clk_base = npcm850_get_base_clk();
-	priv->gpio_base = npcm850_get_base_gpio();
+	priv->gcr_base = npcm_get_base_gcr();
+	priv->clk_base = npcm_get_base_clk();
+	priv->gpio_base = npcm_get_base_gpio();
 
 	return 0;
 }

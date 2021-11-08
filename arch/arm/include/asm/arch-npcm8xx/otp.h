@@ -1,17 +1,17 @@
-#ifndef _ARBEL_OTP_H_
-#define _ARBEL_OTP_H_
+#ifndef _NPCM_OTP_H_
+#define _NPCM_OTP_H_
 
 #if defined (CONFIG_ARCH_NPCM8XX)
 	typedef enum {
-	NPCMX50_KEY_SA    = 0,
-	NPCMX50_FUSE_SA   = 0,
-	NPCMX50_NUM_OF_SA   = 1
+	NPCM_KEY_SA    = 0,
+	NPCM_FUSE_SA   = 0,
+	NPCM_NUM_OF_SA   = 1
 } npcm_otp_storage_array;
 #else
 typedef enum {
-	NPCMX50_KEY_SA    = 0,
-	NPCMX50_FUSE_SA   = 1,
-	NPCMX50_NUM_OF_SA = 2
+	NPCM_KEY_SA    = 0,
+	NPCM_FUSE_SA   = 1,
+	NPCM_NUM_OF_SA = 2
 } npcm_otp_storage_array;
 #endif
 
@@ -75,18 +75,18 @@ struct npcm_otp_regs {
 #define FDATA_CLEAN_VALUE       0x01
 
 #if defined (CONFIG_ARCH_NPCM8XX)
-#define NPCMX50_OTP_ARR_BYTE_SIZE        8192
+#define NPCM_OTP_ARR_BYTE_SIZE        8192
 #else
-#define NPCMX50_OTP_ARR_BYTE_SIZE        1024
+#define NPCM_OTP_ARR_BYTE_SIZE        1024
 #endif
 
 #define MIN_PROGRAM_PULSES               4
 #define MAX_PROGRAM_PULSES               20
 
 int  fuse_program_data(u32 bank, u32 word, u8 *data, u32 size);
-int  npcmX50_otp_select_key(u8 key_index);
-bool npcmX50_otp_is_fuse_array_disabled(npcm_otp_storage_array arr);
-void npcmX50_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size);
-void npcmX50_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size);
+int  npcm_otp_select_key(u8 key_index);
+bool npcm_otp_is_fuse_array_disabled(npcm_otp_storage_array arr);
+void npcm_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size);
+void npcm_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size);
 
 #endif

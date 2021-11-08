@@ -1,5 +1,5 @@
 /*
- * NUVOTON Poleg timer driver
+ * NUVOTON npcm timer driver
  *
  * Copyright (C) 2017, NUVOTON, Incorporated
  *
@@ -12,33 +12,30 @@
 #include <errno.h>
 #include <timer.h>
 #include <asm/io.h>
-#include <asm/arch/cpu.h>
 #include <clk.h>
 #include <asm/arch/timer.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define NPCMX50_CLOCK_RATE			1000000		// 1MHz
+#define NPCM_CLOCK_RATE				1000000
 #define HW_TIMER_INIT_VAL			0xFFFFFF
 
-struct npcmX50_timer_priv {
-	struct npcmX50_gptimer_regs *regs;
+struct npcm_timer_priv {
+	struct npcm_gptimer_regs *regs;
 };
 
-static struct npcmX50_timer_priv *timer_priv;
+static struct npcm_timer_priv *timer_priv;
 
 /* get HW timer data */
 static u32 get_timer_data(void)
 {
 	u32 count;
-	struct npcmX50_timer_priv *priv = timer_priv;
+	struct npcm_timer_priv *priv = timer_priv;
 
 	if (!priv)
 		return 0;
 
-	//writel(readl(&priv->regs->tcsr0) & ~TCSR_EN, &priv->regs->tcsr0);
 	count = readl(&priv->regs->tdr0) & 0x00ffffff;
-	//writel(readl(&priv->regs->tcsr0) | TCSR_EN, &priv->regs->tcsr0);
 
 	return count;
 }
@@ -69,7 +66,7 @@ void __udelay(unsigned long usec)
 }
 
 /* get timer count */
-static u64 npcmX50_timer_get_count(struct udevice *dev)
+static u64 npcm_timer_get_count(struct udevice *dev)
 {
 	unsigned long now, diff;
 	int ret;
@@ -121,14 +118,14 @@ static int timer_clock_init(struct udevice *dev)
 	return 0;
 }
 
-static int npcmX50_timer_probe(struct udevice *dev)
+static int npcm_timer_probe(struct udevice *dev)
 {
 	struct timer_dev_priv *uc_priv = dev_get_uclass_priv(dev);
-	struct npcmX50_timer_priv *priv = dev_get_priv(dev);
+	struct npcm_timer_priv *priv = dev_get_priv(dev);
 	int ret;
 
 	timer_priv = priv;
-	uc_priv->clock_rate = NPCMX50_CLOCK_RATE;
+	uc_priv->clock_rate = NPCM_CLOCK_RATE;
 
 	ret = timer_clock_init(dev);
 	if (ret)
@@ -154,33 +151,33 @@ static int npcmX50_timer_probe(struct udevice *dev)
 	return 0;
 }
 
-static int npcmX50_timer_ofdata_to_platdata(struct udevice *dev)
+static int npcm_timer_ofdata_to_platdata(struct udevice *dev)
 {
-	struct npcmX50_timer_priv *priv = dev_get_priv(dev);
+	struct npcm_timer_priv *priv = dev_get_priv(dev);
 
 	priv->regs = map_physmem((phys_addr_t)dev_read_addr_ptr(dev),
-				 sizeof(struct npcmX50_gptimer_regs), MAP_NOCACHE);
+				 sizeof(struct npcm_gptimer_regs), MAP_NOCACHE);
 
 	return 0;
 }
 
 
-static const struct timer_ops npcmX50_timer_ops = {
-	.get_count = npcmX50_timer_get_count,
+static const struct timer_ops npcm_timer_ops = {
+	.get_count = npcm_timer_get_count,
 };
 
-static const struct udevice_id npcmX50_timer_ids[] = {
-	{ .compatible = "nuvoton,npcmX50-timer" },
+static const struct udevice_id npcm_timer_ids[] = {
+	{ .compatible = "nuvoton,npcm845-timer" },
 	{}
 };
 
-U_BOOT_DRIVER(npcmX50_timer) = {
-	.name	= "npcmX50_timer",
+U_BOOT_DRIVER(npcm_timer) = {
+	.name	= "npcm_timer",
 	.id	= UCLASS_TIMER,
-	.of_match = npcmX50_timer_ids,
-	.of_to_plat = npcmX50_timer_ofdata_to_platdata,
-	.priv_auto = sizeof(struct npcmX50_timer_priv),
-	.probe = npcmX50_timer_probe,
-	.ops	= &npcmX50_timer_ops,
+	.of_match = npcm_timer_ids,
+	.of_to_plat = npcm_timer_ofdata_to_platdata,
+	.priv_auto = sizeof(struct npcm_timer_priv),
+	.probe = npcm_timer_probe,
+	.ops	= &npcm_timer_ops,
 	.flags = DM_FLAG_PRE_RELOC,
 };

@@ -459,15 +459,15 @@ config ZYNQMP_GQSPI
 	  This option is used to enable ZynqMP QSPI controller driver which
 	  is used to communicate with qspi flash devices.
 
-config NPCMX50_FIU_SPI
-	bool "FIU driver for NPCMX50"
+config NPCM_FIU_SPI
+	bool "FIU driver for Nuvoton NPCM SoC"
 	help
-	  Flash Interface Unit controller for NPCMX50.
+	  Flash Interface Unit controller for NPCM SoC.
 
-config NPCMX50_PSPI
-	bool "PSPI driver for NPCM750 SPI"
+config NPCM_PSPI
+	bool "PSPI driver for Nuvoton NPCM SoC"
 	help
-	  PSPI driver for NPCMX50
+	  PSPI driver for NPCM SoC
 
 endif # if DM_SPI
 

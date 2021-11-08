@@ -26,7 +26,7 @@
 #include <asm/io.h>
 #include <dm.h>
 #include <clk-uclass.h>
-#include <dt-bindings/clock/npcm850_arbel-clock.h>
+#include <dt-bindings/clock/npcm845-clock.h>
 
 struct arbel_clk_priv {
 	struct clk_ctl *regs;
@@ -314,7 +314,7 @@ static struct clk_ops arbel_clk_ops = {
 };
 
 static const struct udevice_id arbel_clk_ids[] = {
-	{ .compatible = "nuvoton,npcm850-clock" },
+	{ .compatible = "nuvoton,npcm845-clock" },
 	{ }
 };
 

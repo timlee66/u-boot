@@ -118,7 +118,7 @@ static int do_aes_otp(struct cmd_tbl *cmdtp, int flag, int argc, char *const arg
 	/* Calculate the number of AES blocks to encrypt. */
 	aes_blocks = DIV_ROUND_UP(len, AES128_KEY_LENGTH);
 
-	npcmX50_aes_select_key((uint8_t)fkeyind);
+	npcm_aes_select_key((uint8_t)fkeyind);
 	if (enc)
 		aes_cbc_encrypt_blocks(0, NULL,iv_ptr, src_ptr, dst_ptr,
 								aes_blocks);

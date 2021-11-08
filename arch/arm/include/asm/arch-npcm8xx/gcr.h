@@ -1,33 +1,16 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
- *  Copyright (c) 2017 Nuvoton Technology Corp.
- *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
-#ifndef __ARBEL_GCR_H_
-#define __ARBEL_GCR_H_
+#ifndef _NPCM_GCR_H_
+#define _NPCM_GCR_H_
 
-/* On-Chip ARBEL NPCM850 VERSIONS */
+/* On-Chip ARBEL NPCM8XX VERSIONS */
 
 #define ARBEL_Z1                    0x00A35850
 #define ARBEL_A1                    0x04a35850
-#define ARBEL_NPCM850				0x00000000
+#define ARBEL_NPCM845				0x00000000
 #define ARBEL_NPCM830				0x00300395  /* Update value To Do */
 #define ARBEL_NPCM810				0x00000220  /* Update value To Do */
 
@@ -238,9 +221,9 @@
 #define  SDnIRV2_corecfg_retuningtimercnt  21              /* 24-21 corecfg_retuningtimercnt (Timer Count for Retuning). This is the Timer Count for the Retuning timer for         */
 #define  SDnIRV2_corecfg_sdr50support      15              /* 15 corecfg_sdr50support (SDR50 Support). Simple Data Rate: 50 MHz, 50 Mbps.                                           */
 #define  SDnIRV2_corecfg_slottype          13              /* 14-13 corecfg_slottype (Slot Type). Used by the card detection. 1 for eMMC, 0 for SD.                                 */
-#define  SDnIRV2_corecfg_baseclkfreq       0  
+#define  SDnIRV2_corecfg_baseclkfreq       0
 
-struct npcm850_gcr {
+struct npcm_gcr {
 	unsigned int  pdid;
 	unsigned int  pwron;
 	unsigned int  swstrps;
@@ -357,7 +340,7 @@ struct npcm850_gcr {
 	unsigned int  mfsel_clr7;
 	};
 
-struct npcm850_gcr_cp1 {
+struct npcm_gcr_cp1 {
 	unsigned int  cpctl1;
 	unsigned int  cp2bst1;
 	unsigned int  b2cpnt1;
@@ -365,7 +348,7 @@ struct npcm850_gcr_cp1 {
 	unsigned int  cpbpntr1;
 	};
 
-struct npcm850_gcr_cp2 {
+struct npcm_gcr_cp2 {
 	unsigned int  cpctl2;
 	unsigned int  cp2bst2;
 	unsigned int  b2cpnt2;

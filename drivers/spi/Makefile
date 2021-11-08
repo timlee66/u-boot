@@ -68,5 +68,5 @@ obj-$(CONFIG_XILINX_SPI) += xilinx_spi.o
 obj-$(CONFIG_ZYNQ_SPI) += zynq_spi.o
 obj-$(CONFIG_ZYNQ_QSPI) += zynq_qspi.o
 obj-$(CONFIG_ZYNQMP_GQSPI) += zynqmp_gqspi.o
-obj-$(CONFIG_NPCMX50_FIU_SPI) += npcmX50_fiu_spi.o
-obj-$(CONFIG_NPCMX50_PSPI) += npcmX50_pspi.o
+obj-$(CONFIG_NPCM_FIU_SPI) += npcm_fiu_spi.o
+obj-$(CONFIG_NPCM_PSPI) += npcm_pspi.o

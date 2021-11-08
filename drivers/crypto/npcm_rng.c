@@ -1,5 +1,5 @@
 /*
- * NUVOTON Poleg RNG driver
+ * NUVOTON NPCM RNG driver
  *
  * Copyright (C) 2019, NUVOTON, Incorporated
  *
@@ -15,15 +15,15 @@
 #include <asm/arch/rng.h>
 #include <malloc.h>
 
-struct npcmX50_rng_priv {
-	struct npcmX50_rng_regs * regs;
+struct npcm_rng_priv {
+	struct npcm_rng_regs * regs;
 };
 
-static struct npcmX50_rng_priv *rng_priv;
+static struct npcm_rng_priv *rng_priv;
 
-void npcmX50_rng_init(void)
+void npcm_rng_init(void)
 {
-	struct npcmX50_rng_regs *regs = rng_priv->regs;
+	struct npcm_rng_regs *regs = rng_priv->regs;
 	int init;
 
 	/* check if rng enabled */
@@ -35,9 +35,9 @@ void npcmX50_rng_init(void)
 	}
 }
 
-void npcmX50_rng_disable(void)
+void npcm_rng_disable(void)
 {
-	struct npcmX50_rng_regs *regs = rng_priv->regs;
+	struct npcm_rng_regs *regs = rng_priv->regs;
 
 	/* disable rng */
 	writeb(0, &regs->rngcs);
@@ -50,13 +50,13 @@ void srand(unsigned int seed)
 	return;
 }
 
-int mpcmx50_rng_read(struct udevice *dev, void *data, size_t max)
+int npcm_rng_read(struct udevice *dev, void *data, size_t max)
 {
-	struct npcmX50_rng_regs *regs = rng_priv->regs;
+	struct npcm_rng_regs *regs = rng_priv->regs;
 	int  i;
 	int ret_val = 0;
 	char *buf = data;
-	npcmX50_rng_init();
+	npcm_rng_init();
 
 	printf("NPCM HW RNG\n");
 	/* Wait for RNG done (max bytes) */
@@ -71,11 +71,11 @@ int mpcmx50_rng_read(struct udevice *dev, void *data, size_t max)
 
 unsigned int rand_r(unsigned int *seedp)
 {
-	struct npcmX50_rng_regs *regs = rng_priv->regs;
+	struct npcm_rng_regs *regs = rng_priv->regs;
 	int  i;
 	unsigned int ret_val = 0;
 
-	npcmX50_rng_init();
+	npcm_rng_init();
 
 	/* Wait for RNG done (4 bytes) */
 	for (i = 0; i < 4 ;i++) {
@@ -92,9 +92,9 @@ unsigned int rand(void)
 	return rand_r(NULL);
 }
 
-static int npcmX50_rng_bind(struct udevice *dev)
+static int npcm_rng_bind(struct udevice *dev)
 {
-	rng_priv = calloc(1, sizeof(struct npcmX50_rng_priv));
+	rng_priv = calloc(1, sizeof(struct npcm_rng_priv));
 	if (!rng_priv)
 		return -ENOMEM;
 
@@ -104,25 +104,25 @@ static int npcmX50_rng_bind(struct udevice *dev)
 		return -EINVAL;
 	}
 
-	printk(KERN_INFO "RNG: NPCMX50 RNG module bind OK\n");
+	printk(KERN_INFO "RNG: NPCM RNG module bind OK\n");
 
 	return 0;
 }
 
-static const struct udevice_id npcmX50_rng_ids[] = {
-	{ .compatible = "nuvoton,npcmX50-rng" },
+static const struct udevice_id npcm_rng_ids[] = {
+	{ .compatible = "nuvoton,npcm845-rng" },
 	{ }
 };
 
-static const struct dm_rng_ops npcmx50_rng_ops = {
-	.read = mpcmx50_rng_read,
+static const struct dm_rng_ops npcm_rng_ops = {
+	.read = npcm_rng_read,
 };
 
-U_BOOT_DRIVER(npcmX50_rng) = {
-	.name = "npcmX50_rng",
+U_BOOT_DRIVER(npcm_rng) = {
+	.name = "npcm_rng",
 	.id = UCLASS_RNG,
-	.ops = &npcmx50_rng_ops,
-	.of_match = npcmX50_rng_ids,
-	.priv_auto = sizeof(struct npcmX50_rng_priv),
-	.bind = npcmX50_rng_bind,
+	.ops = &npcm_rng_ops,
+	.of_match = npcm_rng_ids,
+	.priv_auto = sizeof(struct npcm_rng_priv),
+	.bind = npcm_rng_bind,
 };

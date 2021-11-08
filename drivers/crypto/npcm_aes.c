@@ -1,5 +1,5 @@
 /*
- * NUVOTON Poleg AES driver
+ * NUVOTON NPCM AES driver
  *
  * Copyright (C) 2019, NUVOTON, Incorporated
  *
@@ -15,11 +15,11 @@
 #include <asm/arch/otp.h>
 #include <malloc.h>
 
-struct npcmX50_aes_priv {
+struct npcm_aes_priv {
 	struct poleg_aes_regs* regs;
 };
 
-static struct npcmX50_aes_priv *aes_priv;
+static struct npcm_aes_priv *aes_priv;
 static u8 fkeyind_to_set = 0xff;
 
 static int second_timeout(u32* addr, u32 bitmask, u32 bitpol)
@@ -43,9 +43,9 @@ static int second_timeout(u32* addr, u32 bitmask, u32 bitpol)
 	return 0;
 }
 
-int npcmX50_aes_select_key(u8 fkeyind)
+int npcm_aes_select_key(u8 fkeyind)
 {
-	if (npcmX50_otp_is_fuse_array_disabled(NPCMX50_KEY_SA)) {
+	if (npcm_otp_is_fuse_array_disabled(NPCM_KEY_SA)) {
 		printf(" AES key access denied \n");
 		return -EACCES;
 	}
@@ -56,7 +56,7 @@ int npcmX50_aes_select_key(u8 fkeyind)
 	return 0;
 }
 
-static int npcmX50_aes_init(u8 dec_enc)
+static int npcm_aes_init(u8 dec_enc)
 {
 	struct poleg_aes_regs *regs = aes_priv->regs;
 	u32 ctrl, orgctrlval, wrtimeout;
@@ -106,7 +106,7 @@ static int npcmX50_aes_init(u8 dec_enc)
 	return 0;
 }
 
-static inline void npcmX50_aes_load_iv(u8 *iv)
+static inline void npcm_aes_load_iv(u8 *iv)
 {
 	struct poleg_aes_regs *regs = aes_priv->regs;
 	u32* p = (u32 *)iv;
@@ -118,7 +118,7 @@ static inline void npcmX50_aes_load_iv(u8 *iv)
 	}
 }
 
-static inline void npcmX50_aes_load_key(u8 *key)
+static inline void npcm_aes_load_key(u8 *key)
 {
 	struct poleg_aes_regs *regs = aes_priv->regs;
 	u32* p = (u32 *)key;
@@ -131,7 +131,7 @@ static inline void npcmX50_aes_load_key(u8 *key)
 	   key index. Otherwise, we write the given key to the registers. */
 	if (!key && fkeyind_to_set < 4) {
 
-		npcmX50_otp_select_key(fkeyind_to_set);
+		npcm_otp_select_key(fkeyind_to_set);
 
 		/* Sample the new key */
 		writel(readl(&regs->aes_sk) | AES_SK_BIT, &regs->aes_sk);
@@ -147,7 +147,7 @@ static inline void npcmX50_aes_load_key(u8 *key)
 	}
 }
 
-static inline void npcmX50_aes_write(u32 *in)
+static inline void npcm_aes_write(u32 *in)
 {
 	struct poleg_aes_regs *regs = aes_priv->regs;
 	u32 i;
@@ -158,7 +158,7 @@ static inline void npcmX50_aes_write(u32 *in)
 	}
 }
 
-static inline void npcmX50_aes_read (u32 *out)
+static inline void npcm_aes_read (u32 *out)
 {
 	struct poleg_aes_regs *regs = aes_priv->regs;
 	u32 i;
@@ -169,7 +169,7 @@ static inline void npcmX50_aes_read (u32 *out)
 	}
 }
 
-static void npcmX50_aes_feed(u32 num_aes_blocks, u32 * dataIn, u32 * dataOut)
+static void npcm_aes_feed(u32 num_aes_blocks, u32 * dataIn, u32 * dataOut)
 {
 	struct poleg_aes_regs *regs = aes_priv->regs;
 	u32 AesDataBlock;
@@ -194,7 +194,7 @@ static void npcmX50_aes_feed(u32 num_aes_blocks, u32 * dataIn, u32 * dataOut)
 
 	/* Write the first block */
 	if (totalBlocks > 1) {
-		npcmX50_aes_write(dataIn);
+		npcm_aes_write(dataIn);
 		dataIn += AesDataBlock;
 		blocksLeft--;
 	}
@@ -202,7 +202,7 @@ static void npcmX50_aes_feed(u32 num_aes_blocks, u32 * dataIn, u32 * dataOut)
 	/* Write the second block */
 	if (totalBlocks > 2) {
 		second_timeout(&regs->aes_fifo_status, DIN_FIFO_EMPTY, 0);
-		npcmX50_aes_write(dataIn);
+		npcm_aes_write(dataIn);
 		dataIn += AesDataBlock;
 		blocksLeft--;
 	}
@@ -212,14 +212,14 @@ static void npcmX50_aes_feed(u32 num_aes_blocks, u32 * dataIn, u32 * dataOut)
 		second_timeout(&regs->aes_fifo_status, DIN_FIFO_FULL, DIN_FIFO_FULL);
 
 		/* Write next block */
-		npcmX50_aes_write(dataIn);
+		npcm_aes_write(dataIn);
 		dataIn  += AesDataBlock;
 
 		/* Wait till DOUT FIFO is empty */
 		second_timeout(&regs->aes_fifo_status, DOUT_FIFO_EMPTY, DOUT_FIFO_EMPTY);
 
 		/* Read next block */
-		npcmX50_aes_read(dataOut);
+		npcm_aes_read(dataOut);
 		dataOut += AesDataBlock;
 
 		blocksLeft--;
@@ -229,58 +229,58 @@ static void npcmX50_aes_feed(u32 num_aes_blocks, u32 * dataIn, u32 * dataOut)
 		second_timeout(&regs->aes_fifo_status, DOUT_FIFO_FULL, 0);
 
 		/* Read next block */
-		npcmX50_aes_read(dataOut);
+		npcm_aes_read(dataOut);
 		dataOut += AesDataBlock;
 
 		second_timeout(&regs->aes_fifo_status, DOUT_FIFO_FULL, 0);
 
 		/* Read next block */
-		npcmX50_aes_read(dataOut);
+		npcm_aes_read(dataOut);
 		dataOut += AesDataBlock;
 	} else if (totalBlocks > 1) {
 		second_timeout(&regs->aes_fifo_status, DOUT_FIFO_FULL, 0);
 
 		/* Read next block */
-		npcmX50_aes_read(dataOut);
+		npcm_aes_read(dataOut);
 		dataOut += AesDataBlock;
 	}
 }
 
 void aes_expand_key(u8 *key, u32 key_size, u8 *expkey)
 {
-	/* npcmX50 hw expands the key automatically, just copy it */
+	/* npcm hw expands the key automatically, just copy it */
 	memcpy(expkey, key, SIZE_AES_BLOCK * 2);
 }
 
 void aes_cbc_encrypt_blocks(u32 key_size, u8 *key_exp, u8 *iv, u8 *src, u8 *dst,
 			    u32 num_aes_blocks)
 {
-	if (npcmX50_aes_init(AES_OP_ENCRYPT))
+	if (npcm_aes_init(AES_OP_ENCRYPT))
 		return;
 
-	npcmX50_aes_load_iv(iv);
+	npcm_aes_load_iv(iv);
 
-	npcmX50_aes_load_key(key_exp);
+	npcm_aes_load_key(key_exp);
 
-	npcmX50_aes_feed(num_aes_blocks, (u32 *) src, (u32 *) dst);
+	npcm_aes_feed(num_aes_blocks, (u32 *) src, (u32 *) dst);
 }
 
 void aes_cbc_decrypt_blocks(u32 key_size, u8 *key_exp, u8 *iv, u8 *src, u8 *dst,
 			    u32 num_aes_blocks)
 {
-	if (npcmX50_aes_init(AES_OP_DECRYPT))
+	if (npcm_aes_init(AES_OP_DECRYPT))
 		return;
 
-	npcmX50_aes_load_iv(iv);
+	npcm_aes_load_iv(iv);
 
-	npcmX50_aes_load_key(key_exp);
+	npcm_aes_load_key(key_exp);
 
-	npcmX50_aes_feed(num_aes_blocks, (u32 *) src, (u32 *) dst);
+	npcm_aes_feed(num_aes_blocks, (u32 *) src, (u32 *) dst);
 }
 
-static int npcmX50_aes_bind(struct udevice *dev)
+static int npcm_aes_bind(struct udevice *dev)
 {
-	aes_priv = calloc(1, sizeof(struct npcmX50_aes_priv));
+	aes_priv = calloc(1, sizeof(struct npcm_aes_priv));
 	if (!aes_priv)
 		return -ENOMEM;
 
@@ -290,20 +290,20 @@ static int npcmX50_aes_bind(struct udevice *dev)
 		return -EINVAL;
 	}
 
-	printk(KERN_INFO "AES: NPCM750 AES module bind OK\n");
+	printk(KERN_INFO "AES: NPCM AES module bind OK\n");
 
 	return 0;
 }
 
-static const struct udevice_id npcmX50_aes_ids[] = {
-	{ .compatible = "nuvoton,npcmX50-aes" },
+static const struct udevice_id npcm_aes_ids[] = {
+	{ .compatible = "nuvoton,npcm845-aes" },
 	{ }
 };
 
-U_BOOT_DRIVER(npcmX50_aes) = {
-	.name = "npcmX50_aes",
+U_BOOT_DRIVER(npcm_aes) = {
+	.name = "npcm_aes",
 	.id = UCLASS_MISC,
-	.of_match = npcmX50_aes_ids,
-	.priv_auto = sizeof(struct npcmX50_aes_priv),
-	.bind = npcmX50_aes_bind,
+	.of_match = npcm_aes_ids,
+	.priv_auto = sizeof(struct npcm_aes_priv),
+	.bind = npcm_aes_bind,
 };

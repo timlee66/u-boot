@@ -17,13 +17,13 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 /* Information about a serial port */
-struct npcmX50_serial_platdata {
-	struct npcmX50_uart *reg;  /* address of registers in physical memory */
+struct npcm_serial_platdata {
+	struct npcm_uart *reg;  /* address of registers in physical memory */
 	u8 port_id;     /* uart port number */
 	u32 uart_clk;
 };
 
-int npcmX50_serial_init(struct npcmX50_uart *uart)
+int npcm_serial_init(struct npcm_uart *uart)
 {
 	u8 val;
 
@@ -47,10 +47,10 @@ int npcmX50_serial_init(struct npcmX50_uart *uart)
 	return 0;
 }
 
-static int npcmX50_serial_pending(struct udevice *dev, bool input)
+static int npcm_serial_pending(struct udevice *dev, bool input)
 {
-	struct npcmX50_serial_platdata *plat = dev->plat_;
-	struct npcmX50_uart *const uart = plat->reg;
+	struct npcm_serial_platdata *plat = dev->plat_;
+	struct npcm_uart *const uart = plat->reg;
 
 	if (input)
 		return (readb(&uart->lsr) & LSR_RFDR);
@@ -58,10 +58,10 @@ static int npcmX50_serial_pending(struct udevice *dev, bool input)
 		return !(readb(&uart->lsr) & LSR_THRE);
 }
 
-static int npcmX50_serial_putc(struct udevice *dev, const char ch)
+static int npcm_serial_putc(struct udevice *dev, const char ch)
 {
-	struct npcmX50_serial_platdata *plat = dev->plat_;
-	struct npcmX50_uart *const uart = plat->reg;
+	struct npcm_serial_platdata *plat = dev->plat_;
+	struct npcm_uart *const uart = plat->reg;
 
 	while (!(readl(&uart->lsr) & LSR_THRE));
 
@@ -70,20 +70,20 @@ static int npcmX50_serial_putc(struct udevice *dev, const char ch)
 	return 0;
 }
 
-static int npcmX50_serial_getc(struct udevice *dev)
+static int npcm_serial_getc(struct udevice *dev)
 {
-	struct npcmX50_serial_platdata *plat = dev->plat_;
-	struct npcmX50_uart *const uart = plat->reg;
+	struct npcm_serial_platdata *plat = dev->plat_;
+	struct npcm_uart *const uart = plat->reg;
 
 	while (!(readl(&uart->lsr) & LSR_RFDR));
 
 	return (int)(readb(&uart->rbr) & 0xff);
 }
 
-static int npcmX50_serial_setbrg(struct udevice *dev, int baudrate)
+static int npcm_serial_setbrg(struct udevice *dev, int baudrate)
 {
-	struct npcmX50_serial_platdata *plat = dev->plat_;
-	struct npcmX50_uart *const uart = plat->reg;
+	struct npcm_serial_platdata *plat = dev->plat_;
+	struct npcm_uart *const uart = plat->reg;
 	int ret = 0;
 	s32 divisor;
 	u32 uart_clock;
@@ -93,7 +93,7 @@ static int npcmX50_serial_setbrg(struct udevice *dev, int baudrate)
 
 	/* BaudOut = UART Clock  / (16 * [Divisor + 2]) */
 	divisor = ((s32)uart_clock / ((s32)baudrate * 16)) - 2;
-	
+
 	divisor = 0;    /* Maximum Baudrate possible  500000000/2/10/32/1000 = 781  */
 #else
 	/* 24MHz = 960MHz(PLL2) / 2 / (19 + 1) */
@@ -121,15 +121,15 @@ static int npcmX50_serial_setbrg(struct udevice *dev, int baudrate)
 	return ret;
 }
 
-static int npcmX50_serial_probe(struct udevice *dev)
+static int npcm_serial_probe(struct udevice *dev)
 {
-	struct npcmX50_serial_platdata *plat = dev->plat_;
-	struct npcmX50_uart *const uart = plat->reg;
+	struct npcm_serial_platdata *plat = dev->plat_;
+	struct npcm_uart *const uart = plat->reg;
 	uint clkd[2]; /* clk_id and clk_no, UART clk_no is 1. */
 	struct clk clk;
 	int ret;
 
-	npcmX50_serial_init(uart);
+	npcm_serial_init(uart);
 
 	plat->uart_clk = fdtdec_get_uint(gd->fdt_blob, dev_of_offset(dev),
 					"clock-frequency", 115200);
@@ -156,40 +156,41 @@ static int npcmX50_serial_probe(struct udevice *dev)
 	return 0;
 }
 
-static int npcmX50_serial_ofdata_to_platdata(struct udevice *dev)
+static int npcm_serial_ofdata_to_platdata(struct udevice *dev)
 {
-	struct npcmX50_serial_platdata *plat = dev->plat_;
+	struct npcm_serial_platdata *plat = dev->plat_;
 	void *addr;
 
 	addr = dev_read_addr_ptr(dev);
 	if (addr == NULL)
 		return -EINVAL;
 
-	plat->reg = (struct npcmX50_uart *)addr;
+	plat->reg = (struct npcm_uart *)addr;
 	plat->port_id = fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
 					"id", dev->seq_);
 	return 0;
 }
 
-static const struct dm_serial_ops npcmX50_serial_ops = {
-	.getc = npcmX50_serial_getc,
-	.setbrg = npcmX50_serial_setbrg,
-	.putc = npcmX50_serial_putc,
-	.pending = npcmX50_serial_pending,
+static const struct dm_serial_ops npcm_serial_ops = {
+	.getc = npcm_serial_getc,
+	.setbrg = npcm_serial_setbrg,
+	.putc = npcm_serial_putc,
+	.pending = npcm_serial_pending,
 };
 
-static const struct udevice_id npcmX50_serial_ids[] = {
-	{ .compatible = "nuvoton,npcmX50-uart" },
+static const struct udevice_id npcm_serial_ids[] = {
+	{ .compatible = "nuvoton,npcm750-uart" },
+	{ .compatible = "nuvoton,npcm845-uart" },
 	{ }
 };
 
-U_BOOT_DRIVER(serial_npcmX50) = {
-	.name	= "serial_npcmX50",
+U_BOOT_DRIVER(serial_npcm) = {
+	.name	= "serial_npcm",
 	.id	= UCLASS_SERIAL,
-	.of_match = npcmX50_serial_ids,
-	.of_to_plat = npcmX50_serial_ofdata_to_platdata,
-	.plat_auto  = sizeof(struct npcmX50_serial_platdata),
-	.probe = npcmX50_serial_probe,
-	.ops	= &npcmX50_serial_ops,
+	.of_match = npcm_serial_ids,
+	.of_to_plat = npcm_serial_ofdata_to_platdata,
+	.plat_auto  = sizeof(struct npcm_serial_platdata),
+	.probe = npcm_serial_probe,
+	.ops	= &npcm_serial_ops,
 	.flags = DM_FLAG_PRE_RELOC,
 };

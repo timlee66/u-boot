@@ -523,8 +523,8 @@ config SYS_I2C_IHS
         help
           Support for gdsys IHS I2C driver on FPGA bus.
 
-config NPCMX50_I2C
-	bool "Nuvoton I2C driver"
+config NPCM_I2C
+	bool "Nuvoton NPCM I2C driver"
 	help
 	  Support for Nuvoton I2C controller driver.
 

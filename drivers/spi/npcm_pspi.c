@@ -32,23 +32,23 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #define MAX_DIV	127
-struct npcmX50_pspi_platdata {
+struct npcm_pspi_platdata {
 	phys_addr_t regs;
 	u32 max_hz;
 	u32 dev_num;
 	struct gpio_desc cs_gpio;
 };
 
-struct npcmX50_pspi_priv {
-	struct npcmX50_pspi_regs *pspi_regs;
+struct npcm_pspi_priv {
+	struct npcm_pspi_regs *pspi_regs;
 	struct clk pspi_clk;
 	u32 cs;
 	enum pspi_dev pspi_dev_num;
 };
 
-static void dump_regs(struct npcmX50_pspi_priv *priv)
+static void dump_regs(struct npcm_pspi_priv *priv)
 {
-	struct npcmX50_pspi_regs *regs = priv->pspi_regs;
+	struct npcm_pspi_regs *regs = priv->pspi_regs;
 
 	printf("pspi_stat=0x%02x\n", readb(&regs->pspi_stat));
 	printf("pspi_ctl1=0x%04x\n", readw(&regs->pspi_ctl1));
@@ -57,7 +57,7 @@ static void dump_regs(struct npcmX50_pspi_priv *priv)
 static void spi_cs_activate(struct udevice *dev)
 {
 	struct udevice *bus = dev->parent;
-	struct npcmX50_pspi_platdata *plat = dev_get_plat(bus);
+	struct npcm_pspi_platdata *plat = dev_get_plat(bus);
 
 	dm_gpio_set_value(&plat->cs_gpio, 0);
 
@@ -67,7 +67,7 @@ static void spi_cs_activate(struct udevice *dev)
 static void spi_cs_deactivate(struct udevice *dev)
 {
 	struct udevice *bus = dev->parent;
-	struct npcmX50_pspi_platdata *plat = dev_get_plat(bus);
+	struct npcm_pspi_platdata *plat = dev_get_plat(bus);
 
 	dm_gpio_set_value(&plat->cs_gpio, 1);
 
@@ -75,22 +75,22 @@ static void spi_cs_deactivate(struct udevice *dev)
 }
 
 
-static int npcmX50_pspi_claim_bus(struct udevice *dev)
+static int npcm_pspi_claim_bus(struct udevice *dev)
 {
 	return 0;
 }
 
-static int npcmX50_pspi_release_bus(struct udevice *dev)
+static int npcm_pspi_release_bus(struct udevice *dev)
 {
 	return 0;
 }
 
-static int npcmX50_pspi_xfer(struct udevice *dev, unsigned int bitlen,
+static int npcm_pspi_xfer(struct udevice *dev, unsigned int bitlen,
 			const void *dout, void *din, unsigned long flags)
 {
 	struct udevice *bus = dev->parent;
-	struct npcmX50_pspi_priv *priv = dev_get_priv(bus);
-	struct npcmX50_pspi_regs *regs = priv->pspi_regs;
+	struct npcm_pspi_priv *priv = dev_get_priv(bus);
+	struct npcm_pspi_regs *regs = priv->pspi_regs;
 	unsigned int bytes = bitlen / 8;
 	const unsigned char *tx = dout;
 	unsigned char *rx = din;
@@ -169,10 +169,10 @@ err:
 	return ret;
 }
 
-static int npcmX50_pspi_set_speed(struct udevice *bus, uint speed)
+static int npcm_pspi_set_speed(struct udevice *bus, uint speed)
 {
-	struct npcmX50_pspi_priv *priv = dev_get_priv(bus);
-	struct npcmX50_pspi_platdata *plat = dev_get_plat(bus);
+	struct npcm_pspi_priv *priv = dev_get_priv(bus);
+	struct npcm_pspi_platdata *plat = dev_get_plat(bus);
 	u32 divisor;
 	u32 apb_clock;
 
@@ -212,9 +212,9 @@ static int npcmX50_pspi_set_speed(struct udevice *bus, uint speed)
 	return 0;
 }
 
-static int npcmX50_pspi_set_mode(struct udevice *bus, uint mode)
+static int npcm_pspi_set_mode(struct udevice *bus, uint mode)
 {
-	struct npcmX50_pspi_priv *priv = dev_get_priv(bus);
+	struct npcm_pspi_priv *priv = dev_get_priv(bus);
 	unsigned short pspi_mode;
 
 	/* Disabling the module for configuration */
@@ -245,9 +245,9 @@ static int npcmX50_pspi_set_mode(struct udevice *bus, uint mode)
 	return 0;
 }
 
-static int npcmX50_spi_ofdata_to_platdata(struct udevice *bus)
+static int npcm_spi_ofdata_to_platdata(struct udevice *bus)
 {
-	struct npcmX50_pspi_platdata *plat = dev_get_plat(bus);
+	struct npcm_pspi_platdata *plat = dev_get_plat(bus);
 	const void *blob = gd->fdt_blob;
 	int node = dev_of_offset(bus);
 
@@ -260,10 +260,10 @@ static int npcmX50_spi_ofdata_to_platdata(struct udevice *bus)
 	return 0;
 }
 
-static int npcmX50_pspi_probe(struct udevice *bus)
+static int npcm_pspi_probe(struct udevice *bus)
 {
-	struct npcmX50_pspi_platdata *plat = dev_get_plat(bus);
-	struct npcmX50_pspi_priv *priv = dev_get_priv(bus);
+	struct npcm_pspi_platdata *plat = dev_get_plat(bus);
+	struct npcm_pspi_priv *priv = dev_get_priv(bus);
 	int node = dev_of_offset(bus);
 	int ret;
 
@@ -274,7 +274,7 @@ static int npcmX50_pspi_probe(struct udevice *bus)
 	}
 
 	priv->pspi_dev_num = (enum pspi_dev)plat->dev_num;
-	priv->pspi_regs = (struct npcmX50_pspi_regs *)plat->regs;
+	priv->pspi_regs = (struct npcm_pspi_regs *)plat->regs;
 
 	gpio_request_by_name_nodev(offset_to_ofnode(node), "cs-gpios", 0,
 				&plat->cs_gpio, GPIOD_IS_OUT);
@@ -283,30 +283,30 @@ static int npcmX50_pspi_probe(struct udevice *bus)
 }
 
 
-static const struct dm_spi_ops npcmX50_pspi_ops = {
-	.claim_bus      = npcmX50_pspi_claim_bus,
-	.release_bus    = npcmX50_pspi_release_bus,
-	.xfer           = npcmX50_pspi_xfer,
-	.set_speed      = npcmX50_pspi_set_speed,
-	.set_mode       = npcmX50_pspi_set_mode,
+static const struct dm_spi_ops npcm_pspi_ops = {
+	.claim_bus      = npcm_pspi_claim_bus,
+	.release_bus    = npcm_pspi_release_bus,
+	.xfer           = npcm_pspi_xfer,
+	.set_speed      = npcm_pspi_set_speed,
+	.set_mode       = npcm_pspi_set_mode,
 	/*
 	 * cs_info is not needed, since we require all chip selects to be
 	 * in the device tree explicitly
 	 */
 };
 
-static const struct udevice_id npcmX50_pspi_ids[] = {
-	{ .compatible = "nuvoton,npcmX50-pspi"},
+static const struct udevice_id npcm_pspi_ids[] = {
+	{ .compatible = "nuvoton,npcm845-pspi"},
 	{ }
 };
 
-U_BOOT_DRIVER(npcmX50_pspi) = {
-	.name   = "npcmX50_pspi",
+U_BOOT_DRIVER(npcm_pspi) = {
+	.name   = "npcm_pspi",
 	.id     = UCLASS_SPI,
-	.of_match = npcmX50_pspi_ids,
-	.ops    = &npcmX50_pspi_ops,
-	.of_to_plat = npcmX50_spi_ofdata_to_platdata,
-	.plat_auto = sizeof(struct npcmX50_pspi_platdata),
-	.priv_auto = sizeof(struct npcmX50_pspi_priv),
-	.probe  = npcmX50_pspi_probe,
+	.of_match = npcm_pspi_ids,
+	.ops    = &npcm_pspi_ops,
+	.of_to_plat = npcm_spi_ofdata_to_platdata,
+	.plat_auto = sizeof(struct npcm_pspi_platdata),
+	.priv_auto = sizeof(struct npcm_pspi_priv),
+	.probe  = npcm_pspi_probe,
 };

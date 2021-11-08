@@ -1033,7 +1033,7 @@ dtb-$(CONFIG_TARGET_DURIAN) += phytium-durian.dtb
 dtb-$(CONFIG_TARGET_PRESIDIO_ASIC) += ca-presidio-engboard.dtb
 
 dtb-$(CONFIG_TARGET_ARBEL_EVB) += \
-	nuvoton-npcm850-evb.dtb
+	nuvoton-npcm845-evb.dtb
 
 targets += $(dtb-y)
 

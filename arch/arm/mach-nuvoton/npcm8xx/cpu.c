@@ -54,20 +54,20 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int print_cpuinfo (void)
 {
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
 	unsigned int id = 0;
 	unsigned long mpidr_val = 0;
 	unsigned int mdlr = 0;
 
 	asm volatile("mrs %0, mpidr_el1" : "=r" (mpidr_val));
-	
+
 	mdlr = readl(&gcr->mdlr);
-		
+
 	printf("CPU-%d: ", (unsigned int)(mpidr_val & 0x3));
 
 	switch(mdlr) {
-	case ARBEL_NPCM850:
-		printf("NPCM850 ");
+	case ARBEL_NPCM845:
+		printf("NPCM845 ");
 		break;
 	case ARBEL_NPCM830:
 		printf("NPCM830 ");
@@ -115,7 +115,7 @@ int arch_cpu_init(void)
 }
 #endif	/* CONFIG_SYS_DCACHE_OFF */
 
-static struct mm_region npcm850_mem_map[1 + CONFIG_NR_DRAM_BANKS + 1] = {
+static struct mm_region npcm_mem_map[1 + CONFIG_NR_DRAM_BANKS + 1] = {
 	{
 		/* DRAM */
 		.phys = 0x0UL,
@@ -138,7 +138,7 @@ static struct mm_region npcm850_mem_map[1 + CONFIG_NR_DRAM_BANKS + 1] = {
 	}
 };
 
-struct mm_region *mem_map = npcm850_mem_map;
+struct mm_region *mem_map = npcm_mem_map;
 
 u32 cpu_pos_mask(void)
 {

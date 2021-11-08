@@ -1,7 +1,7 @@
-#ifndef _ARBEL_TIMER_H_
-#define _ARBEL_TIMER_H_
+#ifndef _NPCM_TIMER_H_
+#define _NPCM_TIMER_H_
 
-struct npcmX50_gptimer_regs {
+struct npcm_gptimer_regs {
 	unsigned int tcsr0;
 	unsigned int tcsr1;
 	unsigned int ticr0;

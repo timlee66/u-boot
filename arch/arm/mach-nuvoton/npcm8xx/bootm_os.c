@@ -9,22 +9,22 @@
 #include <asm/arch/gcr.h>
 
 
-#define NPCM850_GCR_INTCR2_SELFTEST_PASSED		BIT(11)
-#define NPCM850_GCR_INTCR2_WDC				BIT(21)
+#define NPCM_GCR_INTCR2_SELFTEST_PASSED		BIT(11)
+#define NPCM_GCR_INTCR2_WDC				BIT(21)
 
-#define NPCM850_GCR_FLOCKR1_UPDATE_APPROVE		BIT(28)
-#define NPCM850_GCR_FLOCKR1_UPDATE_APPROVE_LOCK		BIT(29)
+#define NPCM_GCR_FLOCKR1_UPDATE_APPROVE		BIT(28)
+#define NPCM_GCR_FLOCKR1_UPDATE_APPROVE_LOCK		BIT(29)
 
-static int npcm850_check_selftest (void)
+static int npcm_check_selftest (void)
 {
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
 	int ret = 0;
 	int val = 0;
 
-	if (readl(&gcr->intcr2) & NPCM850_GCR_INTCR2_SELFTEST_PASSED)
+	if (readl(&gcr->intcr2) & NPCM_GCR_INTCR2_SELFTEST_PASSED)
 	{
 		val = readl(&gcr->flockr1);
-		val |= NPCM850_GCR_FLOCKR1_UPDATE_APPROVE;
+		val |= NPCM_GCR_FLOCKR1_UPDATE_APPROVE;
 		writel(val, &gcr->flockr1);
 
 		/* this will clear INTCR2.WDC */
@@ -36,11 +36,11 @@ static int npcm850_check_selftest (void)
 	else
 	{
 		val = readl(&gcr->flockr1);
-		val &= ~NPCM850_GCR_FLOCKR1_UPDATE_APPROVE;
+		val &= ~NPCM_GCR_FLOCKR1_UPDATE_APPROVE;
 		writel(val, &gcr->flockr1);
 
 		val = readl(&gcr->flockr1);
-		val |= NPCM850_GCR_FLOCKR1_UPDATE_APPROVE_LOCK;
+		val |= NPCM_GCR_FLOCKR1_UPDATE_APPROVE_LOCK;
 		writel(val, &gcr->flockr1);
 	}
 	return ret;
@@ -50,6 +50,6 @@ static int npcm850_check_selftest (void)
 void arch_preboot_os(void)
 {
 	/* please define platform specific arch_preboot_os() */
-	npcm850_check_selftest();
+	npcm_check_selftest();
 }
 

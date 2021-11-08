@@ -11,7 +11,6 @@
 #include <asm/mach-types.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/otp.h>
-#include <asm/arch/info.h>
 #include <common.h>
 #include <dm.h>
 #include <fdtdec.h>
@@ -58,14 +57,14 @@ int get_board_version_id(void)
 			switch(pcb_version)
 			{
 				case 3:
-					printf("NPCM850 EVB PCB version ID 0x%01x -> version X00 \n", pcb_version);
+					printf("NPCM845 EVB PCB version ID 0x%01x -> version X00 \n", pcb_version);
 				break;
 				case 2:
-					printf("NPCM850 EVB PCB version ID 0x%01x -> version X01 \n", pcb_version);
+					printf("NPCM845 EVB PCB version ID 0x%01x -> version X01 \n", pcb_version);
 				break;
 
 				default:
-					printf("NPCM850 EVB PCB version ID 0x%01x -> unknown version ID \n", pcb_version);
+					printf("NPCM845 EVB PCB version ID 0x%01x -> unknown version ID \n", pcb_version);
 				break;
 			}
 			gpio_free(PCB_VER_ID0);
@@ -80,7 +79,7 @@ int get_board_version_id(void)
 void ESPI_ConfigAutoHandshake (u32 AutoHsCfg)
 {
 	writel( AutoHsCfg,
-	        NPCM850_ESPI_BA + ESPIHINDP);
+	        NPCM_ESPI_BA + ESPIHINDP);
 }
 
 void ESPI_Config (
@@ -89,12 +88,12 @@ void ESPI_Config (
         u32           ch_supp
 )
 {
-	u32 var = readl(NPCM850_ESPI_BA + ESPICFG);
+	u32 var = readl(NPCM_ESPI_BA + ESPICFG);
 	var |= ioMode << ESPICFG_IOMODE;
 	var |= maxFreq << ESPICFG_MAXFREQ;
 	var |= ((ch_supp & ESPICFG_CHNSUPP_MASK) << ESPICFG_CHNSUPP_SHFT);
 	writel( var,
-	        NPCM850_ESPI_BA + ESPICFG);
+	        NPCM_ESPI_BA + ESPICFG);
 }
 
 int board_init(void)
@@ -104,8 +103,8 @@ int board_init(void)
 #ifdef CONFIG_ETH_DESIGNWARE
 	unsigned int start;
 
-	struct clk_ctl *clkctl = (struct clk_ctl *)(uintptr_t)npcm850_get_base_clk();
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)(uintptr_t)npcm850_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)(uintptr_t)npcm_get_base_clk();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)(uintptr_t)npcm_get_base_gcr();
 
     /* Power voltage select setup  TBD  move to dts */
 	writel( 0x40004800, &gcr->vsrcr);
@@ -229,7 +228,7 @@ int board_init(void)
 
 int dram_init(void)
 {
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)(uintptr_t)npcm850_get_base_gcr();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)(uintptr_t)npcm_get_base_gcr();
 
 	// get dram active size value from bootblock. Value sent using scrpad_02 register.
 	// feature available in bootblock 0.0.6 and above.
@@ -272,7 +271,7 @@ int checkboard(void)
 #ifdef SECURE_BOOT
 static bool is_security_enabled(void)
 {
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)(uintptr_t)npcm850_get_base_gcr();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)(uintptr_t)npcm_get_base_gcr();
 
 	if ((readl(&gcr->pwron) & (1 << PWRON_SECEN))) {
 		printf("Security is enabled\n");
@@ -324,7 +323,7 @@ static int secure_boot_configuration(void)
 	if (((u32*)(uintptr_t)(addr + SA_TAG_FLASH_IMAGE_OFFSET))[0] == ((u32*)tag)[0] &&
 		((u32*)(uintptr_t)(addr + SA_TAG_FLASH_IMAGE_OFFSET))[1] == ((u32*)tag)[1]) {
 
-		u8 fuse_arrays[2 * NPCMX50_OTP_ARR_BYTE_SIZE];
+		u8 fuse_arrays[2 * NPCM_OTP_ARR_BYTE_SIZE];
 		u32 fustrap_orig;
 
 		printf("%s(): fuse array image was found on flash in address 0x%x\n", __func__, addr);
@@ -337,7 +336,7 @@ static int secure_boot_configuration(void)
 
 		printf("%s(): program fuse key array from address 0x%x\n", __func__, addr + SA_KEYS_FLASH_IMAGE_OFFSET);
 
-		rc = fuse_prog_image(NPCMX50_KEY_SA, (u32)(uintptr_t)(fuse_arrays + SA_KEYS_FLASH_IMAGE_OFFSET));
+		rc = fuse_prog_image(NPCM_KEY_SA, (u32)(uintptr_t)(fuse_arrays + SA_KEYS_FLASH_IMAGE_OFFSET));
 		if (rc != 0)
 			return rc;
 
@@ -348,7 +347,7 @@ static int secure_boot_configuration(void)
 
 		printf("%s(): program fuse strap array from address 0x%x\n", __func__, addr + SA_FUSE_FLASH_IMAGE_OFFSET);
 
-		rc = fuse_prog_image(NPCMX50_FUSE_SA, (u32)(uintptr_t)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET));
+		rc = fuse_prog_image(NPCM_FUSE_SA, (u32)(uintptr_t)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET));
 		if (rc != 0)
 			return rc;
 
@@ -384,7 +383,7 @@ static int secure_boot_configuration(void)
 		// programm SECBOOT bit if required
 		if (fustrap_orig & FUSTRAP_O_SECBOOT) {
 			printf("%s(): program secure boot bit to FUSTRAP\n", __func__);
-			rc = fuse_program_data(NPCMX50_FUSE_SA, 0, (u8*)(uintptr_t)&fustrap_orig, sizeof(fustrap_orig));
+			rc = fuse_program_data(NPCM_FUSE_SA, 0, (u8*)(uintptr_t)&fustrap_orig, sizeof(fustrap_orig));
 		} else {
 			printf("%s(): secure boot bit is not set in the flash image, secure boot will not be enabled\n", __func__);
 		}

@@ -1,6 +1,6 @@
 /dts-v1/;
 #include "nuvoton-common-npcm8xx.dtsi"
-#include "nuvoton-npcm850-pincfg.dtsi"
+#include "nuvoton-npcm845-pincfg.dtsi"
 
 
 /* Comment below for selecting OHCI_HOST1/2 */
@@ -9,8 +9,8 @@
 
 
 / {
-	model = "Nuvoton npcm850 EVB Development Board";
-	compatible = "nuvoton,arbel", "nuvoton,npcm850";
+	model = "Nuvoton npcm845 EVB Development Board";
+	compatible = "nuvoton,arbel", "nuvoton,npcm845";
 
 	chosen {
 		stdout-path = &serial0;
@@ -76,6 +76,10 @@
 		eth3 = &gmac4;
 	};
 
+	serial0: serial0@f0000000 {
+		status = "okay";
+	};
+
 	fiu0: fiu0@fb000000 {
 		status = "okay";
 		spi_flash@0 {
@@ -139,10 +143,6 @@
 	};
 
 	gmac2: gmac2 {   /* GMAC2- RGMII or RMII3 */
-		status = "okay";
-	};
-
-	gmac3: gmac3 {   /* GMAC3- RMII1 */
 		status = "okay";
 	};
 

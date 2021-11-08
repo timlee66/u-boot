@@ -131,7 +131,7 @@ static int npcm_gpio_probe(struct udevice *dev)
 
 /* .data = the number of GPIO banks */
 static const struct udevice_id npcm_gpio_match[] = {
-	{ .compatible = "nuvoton,npcmX50-gpio" },
+	{ .compatible = "nuvoton,npcm845-gpio" },
 	{ /* sentinel */ }
 };
 

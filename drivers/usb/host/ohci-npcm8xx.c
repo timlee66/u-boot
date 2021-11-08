@@ -10,7 +10,6 @@
 #include <asm/arch/gcr.h>
 #include <asm/mach-types.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/info.h>
 #include <dm.h>
 #include <usb.h>
 #include "ohci.h"
@@ -28,8 +27,8 @@ struct ohci_npcm8xx_priv {
 
 int usb_cpu_init(void)
 {
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
-	struct clk_ctl *clkctl = (struct clk_ctl *)npcm850_get_base_clk();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm_get_base_clk();
 
 
 	if ((readl(&clkctl->ipsrst3) & (1 << IPSRST3_USBPHY2)) != 0) {
@@ -91,7 +90,7 @@ int usb_cpu_init(void)
 
 int usb_cpu_stop(void)
 {
-	struct clk_ctl *clkctl = (struct clk_ctl *)npcm850_get_base_clk();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm_get_base_clk();
 
 	writel(readl(&clkctl->ipsrst3) & ~(1 << IPSRST3_USBPHY2), &clkctl->ipsrst3);
 	writel(readl(&clkctl->ipsrst3) & ~(1 << IPSRST3_USBPHY1), &clkctl->ipsrst3);

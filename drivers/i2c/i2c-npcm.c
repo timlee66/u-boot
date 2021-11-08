@@ -36,7 +36,7 @@ enum {
 
 struct npcm_i2c_bus {
 	struct udevice			*dev;
-	struct npcmX50_smb_regs *reg;
+	struct npcm_smb_regs *reg;
 	int	module_num;
 	u32 apb_clk;
 	u32 freq;
@@ -45,7 +45,7 @@ struct npcm_i2c_bus {
 
 static void npcm_dump_regs(struct npcm_i2c_bus *bus)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 
 	printf("\n");
 	printf("SMBST=0x%x\n", readb(&reg->st));
@@ -56,7 +56,7 @@ static void npcm_dump_regs(struct npcm_i2c_bus *bus)
 
 static int npcm_smb_wait_nack(struct npcm_i2c_bus *bus, int timeout)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int err = SMB_ERR_TIMEOUT;
 
 	while (--timeout > 0) {
@@ -71,7 +71,7 @@ static int npcm_smb_wait_nack(struct npcm_i2c_bus *bus, int timeout)
 
 static int npcm_smb_check_sda(struct npcm_i2c_bus *bus)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int timeout = 10000;
 	int err = SMB_ERR_TIMEOUT;
 	u8 val;
@@ -102,7 +102,7 @@ static int npcm_smb_check_sda(struct npcm_i2c_bus *bus)
 
 static int npcm_smb_send_start(struct npcm_i2c_bus *bus, int timeout)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int err = SMB_ERR_TIMEOUT;
 	debug("START\n");
 
@@ -125,7 +125,7 @@ static int npcm_smb_send_start(struct npcm_i2c_bus *bus, int timeout)
 
 static int npcm_smb_send_stop(struct npcm_i2c_bus *bus, int timeout)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int err = SMB_ERR_TIMEOUT;
 
 	debug("STOP\n");
@@ -153,7 +153,7 @@ static int npcm_smb_send_stop(struct npcm_i2c_bus *bus, int timeout)
 
 static void npcm_smb_reset(struct npcm_i2c_bus *bus)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 
 	printf("npcm_smb_reset: module %d\n", bus->module_num);
 	/* disable & enable SMB moudle */
@@ -184,7 +184,7 @@ static void npcm_smb_recovery(struct npcm_i2c_bus *bus, u32 addr)
 {
 	u8 val;
 	int iter = 27;
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int err;
 
 	val = readb(&reg->ctl3);
@@ -224,7 +224,7 @@ static void npcm_smb_recovery(struct npcm_i2c_bus *bus, u32 addr)
 static int npcm_smb_send_address(struct npcm_i2c_bus *bus, u8 addr,
 		int stall)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	u8 val;
 	int timeout = 1000;
 #if 0
@@ -274,7 +274,7 @@ static int npcm_smb_send_address(struct npcm_i2c_bus *bus, u8 addr,
 
 static int npcm_smb_read_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int i;
 	int err = 0;
 
@@ -341,7 +341,7 @@ static int npcm_smb_read_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 
 static int npcm_smb_send_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	u8 val;
 	int i;
 	int err = 0;
@@ -372,7 +372,7 @@ static int npcm_smb_send_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 static int npcm_smb_read(struct npcm_i2c_bus *bus, u32 addr, u8 *data,
 			      u32 len)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int err, stall ;
 	debug("i2c_read: slave addr 0x%x, %u bytes\n", addr, len);
 
@@ -407,7 +407,7 @@ static int npcm_smb_read(struct npcm_i2c_bus *bus, u32 addr, u8 *data,
 static int npcm_smb_write(struct npcm_i2c_bus *bus, u32 addr, u8 *data,
 			      u32 len)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int err, stall;
 
 	debug("smb_write: slave addr 0x%x, %u bytes\n", addr, len);
@@ -445,7 +445,7 @@ static int npcm_smb_xfer(struct udevice *dev,
 			      struct i2c_msg *msg, int nmsgs)
 {
 	struct npcm_i2c_bus *bus = dev_get_priv(dev);
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	int ret = 0, err = 0;
 
 	if (nmsgs < 1 || nmsgs > 2) {
@@ -480,7 +480,7 @@ static int npcm_smb_xfer(struct udevice *dev,
 
 static int npcm_smb_init_clk(struct npcm_i2c_bus *bus, u32 bus_freq)
 {
-	struct npcmX50_smb_regs *reg = bus->reg;
+	struct npcm_smb_regs *reg = bus->reg;
 	u16  sclfrq	= 0;
 	u8   hldt		= 7;
 	u32  source_clock_freq;
@@ -538,11 +538,11 @@ static int npcm_smb_set_bus_speed(struct udevice *dev,
 static int npcm_smb_probe(struct udevice *dev)
 {
 	struct npcm_i2c_bus *bus = dev_get_priv(dev);
-	struct npcmX50_smb_regs *reg;
+	struct npcm_smb_regs *reg;
 	struct clk clk;
 	int ret;
 #if defined (CONFIG_ARCH_NPCM8XX)
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
 #endif
 
 	ret = clk_get_by_index(dev, 0, &clk);
@@ -558,7 +558,7 @@ static int npcm_smb_probe(struct udevice *dev)
 	clk_free(&clk);
 
 	bus->module_num = dev->seq_;
-	bus->reg = (struct npcmX50_smb_regs *)dev_read_addr_ptr(dev);
+	bus->reg = (struct npcm_smb_regs *)dev_read_addr_ptr(dev);
 	bus->freq = dev_read_u32_default(dev, "clock-frequency", 100000);
 	bus->started = 0;
 	reg = bus->reg;
@@ -595,12 +595,12 @@ static const struct dm_i2c_ops nuvoton_i2c_ops = {
 };
 
 static const struct udevice_id nuvoton_i2c_of_match[] = {
-	{ .compatible = "nuvoton,npcmX50-i2c-bus" },
+	{ .compatible = "nuvoton,npcm845-i2c-bus" },
 	{}
 };
 
-U_BOOT_DRIVER(npcmX50_i2c_bus) = {
-	.name = "npcmX50-i2c",
+U_BOOT_DRIVER(npcm_i2c_bus) = {
+	.name = "npcm-i2c",
 	.id = UCLASS_I2C,
 	.of_match = nuvoton_i2c_of_match,
 	.probe = npcm_smb_probe,

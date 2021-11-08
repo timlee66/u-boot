@@ -65,7 +65,7 @@ struct smb_bank1_regs {
 	u8 rxf_ctl;
 };
 
-struct npcmX50_smb_regs {
+struct npcm_smb_regs {
 	u16	sda;
 	u16 st;
 	u16 cst;

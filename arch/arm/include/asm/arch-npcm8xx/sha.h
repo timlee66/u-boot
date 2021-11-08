@@ -1,5 +1,5 @@
-#ifndef _POLEG_SHA_H_
-#define _POLEG_SHA_H_
+#ifndef _NPCM_SHA_H_
+#define _NPCM_SHA_H_
 
 #define HASH_DIG_H_NUM        8
 
@@ -8,10 +8,10 @@
 /*----------------------------------------------------------------------------*/
 typedef enum
 {
-  npcm750_sha_type_sha2 = 0,	/*do not change - match SHA arch spec */
-  npcm750_sha_type_sha1,
-  npcm750_sha_type_num
-} npcm750_sha_type;
+  npcm_sha_type_sha2 = 0,	/*do not change - match SHA arch spec */
+  npcm_sha_type_sha1,
+  npcm_sha_type_num
+} npcm_sha_type;
 
 struct poleg_sha_regs {
 	unsigned int hash_data_in;              // 0x00
@@ -30,7 +30,7 @@ struct poleg_sha_regs {
 
 #define HASH_CFG_SHA1_SHA2              (1 << 0)
 
-int npcm750_sha_calc(npcm750_sha_type type, const u8* inBuff, u32 len, u8* hashDigest);
-int npcm750_sha_selftest(npcm750_sha_type type);
+int npcm_sha_calc(npcm_sha_type type, const u8* inBuff, u32 len, u8* hashDigest);
+int npcm_sha_selftest(npcm_sha_type type);
 
 #endif //_POLEG_SHA_H_

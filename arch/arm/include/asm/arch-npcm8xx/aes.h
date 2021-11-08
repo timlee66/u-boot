@@ -1,5 +1,5 @@
-#ifndef _ARBEL_AES_H_
-#define _ARBEL_AES_H_
+#ifndef _NPCM_AES_H_
+#define _NPCM_AES_H_
 
 #define AES_OP_ENCRYPT          0
 #define AES_OP_DECRYPT          1
@@ -48,6 +48,6 @@ struct poleg_aes_regs {
 #define DIN_FIFO_OVERFLOW       (1 << 4)
 #define DOUT_FIFO_UNDERFLOW     (1 << 5)
 
-int npcmX50_aes_select_key(u8 fkeyind);
+int npcm_aes_select_key(u8 fkeyind);
 
 #endif

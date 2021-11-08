@@ -1,7 +1,7 @@
-#ifndef _ARBEL_RNG_H_
-#define _ARBEL_RNG_H_
+#ifndef _NPCM_RNG_H_
+#define _NPCM_RNG_H_
 
-struct npcmX50_rng_regs {
+struct npcm_rng_regs {
 	unsigned int rngcs;
 	unsigned int rngd;
 	unsigned int rngmode;
@@ -37,7 +37,7 @@ typedef enum
 	RNG_NUM_OF_CLKP
 } RNG_CLKP_T;
 
-void npcmX50_rng_init(void);
-void npcmX50_rng_disable(void);
+void npcm_rng_init(void);
+void npcm_rng_disable(void);
 
 #endif

@@ -1,23 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
- *copyright (c) 2017 Nuvoton Technology Corp.
- *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
 #include <common.h>
@@ -29,15 +12,15 @@
 #include <asm/arch/clock.h>
 
 #if defined (CONFIG_ARCH_NPCM8XX)
-#define NPCMX50_EMMC        0
-#define NPCMX50_SD         -1    // SD card not existed in Arbel
+#define NPCM_EMMC        0
+#define NPCM_SD         -1    // SD card not existed in Arbel
 #elif defined (CONFIG_TARGET_POLEG)
-#define NPCMX50_SD          0
-#define NPCMX50_EMMC        1
+#define NPCM_SD          0
+#define NPCM_EMMC        1
 #endif
 
 #ifdef CONFIG_DM_MMC
-struct npcmx50_sdhci_plat {
+struct npcm_sdhci_plat {
 	struct mmc_config cfg;
 	struct mmc mmc;
 };
@@ -45,29 +28,24 @@ struct npcmx50_sdhci_plat {
 DECLARE_GLOBAL_DATA_PTR;
 #endif
 
-static int npcmx50_sdhci_init(int index)
+static int npcm_sdhci_init(int index)
 {
-#if defined (CONFIG_ARCH_NPCM8XX)
-	struct npcm850_gcr *gcr = (struct npcm850_gcr *)npcm850_get_base_gcr();
-	struct clk_ctl *clkctl = (struct clk_ctl *)npcm850_get_base_clk();
-#elif defined (CONFIG_TARGET_POLEG)
-	struct npcm750_gcr *gcr = (struct npcm750_gcr *)npcm750_get_base_gcr();
-	struct clk_ctl *clkctl = (struct clk_ctl *)npcm750_get_base_clk();
-#endif
+	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
+	struct clk_ctl *clkctl = (struct clk_ctl *)npcm_get_base_clk();
 
-	if (index == NPCMX50_SD) {
+	if (index == NPCM_SD) {
 #if defined (CONFIG_TARGET_POLEG)
 		writel(readl(&gcr->mfsel3) | (1 << MFSEL3_SD1SEL), &gcr->mfsel3);
 #endif
 		writel(readl(&clkctl->ipsrst2) | (1 << IPSRST2_SDHC), &clkctl->ipsrst2);
 		writel(readl(&clkctl->ipsrst2) & ~(1 << IPSRST2_SDHC), &clkctl->ipsrst2);
 	}
-	else if (index == NPCMX50_EMMC) {
+	else if (index == NPCM_EMMC) {
 
 #if defined (CONFIG_ARCH_NPCM8XX)
 		writel(readl(&gcr->flockr2) & ~(1 << FLOCKR2_MMCRST), &gcr->flockr2);
 		writel(readl(&gcr->flockr2) | (1 << FLOCKR2_MMCRST), &gcr->flockr2);
-#ifdef _NPCM850_EXT_SD_
+#ifdef _NPCM_EXT_SD_
 		writel(readl((volatile uint32_t *)(0xf0800efc)) | (1 << 6), (volatile uint32_t *)(0xf0800efc));
 		printf("BIT6=1 SD  SCRCHPAD63=0x%x  \n", *(volatile uint32_t *)(0xf0800efc));
 #else
@@ -77,7 +55,7 @@ static int npcmx50_sdhci_init(int index)
 #endif
 
 #if defined (CONFIG_ARCH_NPCM8XX)
-#ifdef _NPCM850_EXT_SD_
+#ifdef _NPCM_EXT_SD_
 		writel((readl(&gcr->mfsel3) & ~(1 << MFSEL3_MMCCDSEL) ) | (1 << MFSEL3_MMCSEL), &gcr->mfsel3);
 #else
 		writel((readl(&gcr->mfsel3) & ~(1 << MFSEL3_MMCCDSEL) ) | (1 << MFSEL3_MMCSEL) | (1 << MFSEL3_MMC8SEL), &gcr->mfsel3);
@@ -93,14 +71,14 @@ static int npcmx50_sdhci_init(int index)
 }
 
 #ifdef CONFIG_DM_MMC
-static int npcmx50_sdhci_probe(struct udevice *dev)
+static int npcm_sdhci_probe(struct udevice *dev)
 {
-	struct npcmx50_sdhci_plat *plat = dev_get_plat(dev);
+	struct npcm_sdhci_plat *plat = dev_get_plat(dev);
 	struct mmc_uclass_priv *upriv = dev_get_uclass_priv(dev);
 	struct sdhci_host *host = dev_get_priv(dev);
 	int ret;
 
-	ret = npcmx50_sdhci_init(host->index);
+	ret = npcm_sdhci_init(host->index);
 
 	if (ret)
 		return ret;
@@ -111,10 +89,10 @@ static int npcmx50_sdhci_probe(struct udevice *dev)
 	host->voltages = MMC_VDD_32_33 | MMC_VDD_33_34 | MMC_VDD_165_195;
 
 #if defined (CONFIG_TARGET_POLEG)
-	if (host->index == NPCMX50_SD)
+	if (host->index == NPCM_SD)
 #endif
 	{
-#if defined (CONFIG_TARGET_POLEG) || defined (_NPCM850_EXT_SD_)
+#if defined (CONFIG_TARGET_POLEG) || defined (_NPCM_EXT_SD_)
 		unsigned int status;
 
 		sdhci_writeb(host, SDHCI_CTRL_CD_TEST_INS | SDHCI_CTRL_CD_TEST,
@@ -148,13 +126,13 @@ static int npcmx50_sdhci_probe(struct udevice *dev)
 	return sdhci_probe(dev);
 }
 
-static int npcmx50_ofdata_to_platdata(struct udevice *dev)
+static int npcm_ofdata_to_platdata(struct udevice *dev)
 {
 	struct sdhci_host *host = dev_get_priv(dev);
 
 	host->name = strdup(dev->name);
 	host->ioaddr = (void *)dev_read_addr(dev);
-#ifdef _NPCM850_EXT_SD_
+#ifdef _NPCM_EXT_SD_
 	host->bus_width = 4;
 #else
 	host->bus_width = fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
@@ -171,33 +149,33 @@ static int npcmx50_ofdata_to_platdata(struct udevice *dev)
 	return 0;
 }
 
-static int npcmx50_sdhci_bind(struct udevice *dev)
+static int npcm_sdhci_bind(struct udevice *dev)
 {
-	struct npcmx50_sdhci_plat *plat = dev_get_plat(dev);
+	struct npcm_sdhci_plat *plat = dev_get_plat(dev);
 	return sdhci_bind(dev, &plat->mmc, &plat->cfg);
 }
 
-static int npcmx50_sdhci_remove(struct udevice *dev)
+static int npcm_sdhci_remove(struct udevice *dev)
 {
 	return 0;
 }
 
-static const struct udevice_id npcmx50_mmc_ids[] = {
-	{ .compatible = "nuvoton,npcmx50-sdhci-SD" },
-	{ .compatible = "nuvoton,npcmx50-sdhci-eMMC"},
+static const struct udevice_id npcm_mmc_ids[] = {
+	{ .compatible = "nuvoton,npcm845-sdhci-SD" },
+	{ .compatible = "nuvoton,npcm845-sdhci-eMMC"},
 	{ }
 };
 
-U_BOOT_DRIVER(npcmx50_sdc_drv) = {
-	.name           = "npcmx50_sdhci",
+U_BOOT_DRIVER(npcm_sdc_drv) = {
+	.name           = "npcm_sdhci",
 	.id             = UCLASS_MMC,
-	.of_match       = npcmx50_mmc_ids,
-	.of_to_plat     = npcmx50_ofdata_to_platdata,
+	.of_match       = npcm_mmc_ids,
+	.of_to_plat     = npcm_ofdata_to_platdata,
 	.ops            = &sdhci_ops,
-	.bind           = npcmx50_sdhci_bind,
-	.probe          = npcmx50_sdhci_probe,
-	.remove         = npcmx50_sdhci_remove,
+	.bind           = npcm_sdhci_bind,
+	.probe          = npcm_sdhci_probe,
+	.remove         = npcm_sdhci_remove,
 	.priv_auto      = sizeof(struct sdhci_host),
-	.plat_auto      = sizeof(struct npcmx50_sdhci_plat),
+	.plat_auto      = sizeof(struct npcm_sdhci_plat),
 };
 #endif

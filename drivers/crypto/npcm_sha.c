@@ -1,5 +1,5 @@
 /*
- * NUVOTON Poleg SHA driver
+ * NUVOTON NPCM SHA driver
  *
  * Copyright (C) 2019, NUVOTON, Incorporated
  *
@@ -15,11 +15,11 @@
 #include <asm/arch/sha.h>
 #include <malloc.h>
 
-struct npcm750_sha_priv {
+struct npcm_sha_priv {
     struct poleg_sha_regs* regs;
 };
 
-static struct npcm750_sha_priv *sha_priv;
+static struct npcm_sha_priv *sha_priv;
 
 #ifdef SHA_DEBUG_MODULE
 #define sha_print(fmt,args...)  printf(fmt ,##args)
@@ -30,7 +30,7 @@ static struct npcm750_sha_priv *sha_priv;
 #define SHA_BLOCK_LENGTH        (512/8)
 #define SHA_2_HASH_LENGTH       (256/8)
 #define SHA_1_HASH_LENGTH       (160/8)
-#define SHA_HASH_LENGTH(type)   ((type == npcm750_sha_type_sha2) ? \
+#define SHA_HASH_LENGTH(type)   ((type == npcm_sha_type_sha2) ? \
                                  (SHA_2_HASH_LENGTH) : (SHA_1_HASH_LENGTH))
 
 #define SHA_SECRUN_BUFF_SIZE    64
@@ -51,7 +51,7 @@ typedef struct SHA_HANDLE_T
     u32                 length0;
     u32                 length1;
     u32                 block[SHA_BLOCK_LENGTH / sizeof(u32)];
-    npcm750_sha_type    type;
+    npcm_sha_type    type;
     bool                active;
 } SHA_HANDLE_T;
 
@@ -116,14 +116,14 @@ typedef struct SHA_HANDLE_T
 
 static void SHA_FlushLocalBuffer_l (const u32* buff);
 static int  SHA_BusyWait_l(void);
-static void SHA_GetShaDigest_l(u8* hashDigest, npcm750_sha_type type);
-static void SHA_SetShaDigest_l(const u32* hashDigest, npcm750_sha_type type);
+static void SHA_GetShaDigest_l(u8* hashDigest, npcm_sha_type type);
+static void SHA_SetShaDigest_l(const u32* hashDigest, npcm_sha_type type);
 static void SHA_SetBlock_l(const u8* data,u32 len, u16 position, u32* block);
 static void SHA_ClearBlock_l(u16 len, u16 position, u32* block);
 static void SHA_SetLength32_l(const SHA_HANDLE_T* handlePtr, u32* block);
 
 static int SHA_Init(SHA_HANDLE_T* handlePtr);
-static int SHA_Start(SHA_HANDLE_T* handlePtr, npcm750_sha_type type);
+static int SHA_Start(SHA_HANDLE_T* handlePtr, npcm_sha_type type);
 static int SHA_Update(SHA_HANDLE_T* handlePtr, const u8* buffer, u32 len);
 static int SHA_Finish(SHA_HANDLE_T* handlePtr, u8* hashDigest);
 static int SHA_Reset(void);
@@ -149,7 +149,7 @@ void hw_sha256(const uchar * in_addr, uint buflen,
             uchar * out_addr, uint chunk_size)
 {
     puts("\nhw_sha256 using BMC HW accelerator\t");
-    npcm750_sha_calc(npcm750_sha_type_sha2, (u8 *)in_addr, buflen, (u8 *)out_addr);
+    npcm_sha_calc(npcm_sha_type_sha2, (u8 *)in_addr, buflen, (u8 *)out_addr);
     return;
 }
 
@@ -167,7 +167,7 @@ void hw_sha1(const uchar * in_addr, uint buflen,
             uchar * out_addr, uint chunk_size)
 {
     puts("\nhw_sha1 using BMC HW accelerator\t");
-    npcm750_sha_calc(npcm750_sha_type_sha1, (u8 *)in_addr, buflen, (u8 *)out_addr);
+    npcm_sha_calc(npcm_sha_type_sha1, (u8 *)in_addr, buflen, (u8 *)out_addr);
     return;
 }
 
@@ -187,9 +187,9 @@ int hw_sha_init(struct hash_algo *algo, void **ctxp)
     SHA_Power(true);
     SHA_Reset();
     if (!strcmp(algo_name1, algo->name))
-        return SHA_Start(&sha_handle, npcm750_sha_type_sha1);
+        return SHA_Start(&sha_handle, npcm_sha_type_sha1);
     else if (!strcmp(algo_name2, algo->name))
-        return SHA_Start(&sha_handle, npcm750_sha_type_sha2);
+        return SHA_Start(&sha_handle, npcm_sha_type_sha2);
     else
         return -EPROTO;
 }
@@ -231,7 +231,7 @@ int hw_sha_finish(struct hash_algo *algo, void *ctx, void *dest_buf,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm750_sha_calc                                          */
+/* Function:        npcm_sha_calc                                          */
 /*                                                                            */
 /* Parameters:      type - SHA module type                                    */
 /*                  inBuff  - Pointer to a buffer containing the data to      */
@@ -246,7 +246,7 @@ int hw_sha_finish(struct hash_algo *algo, void *ctx, void *dest_buf,
 /*                  This routine performs complete SHA calculation in one     */
 /*                  step                                                      */
 /*----------------------------------------------------------------------------*/
-int npcm750_sha_calc(npcm750_sha_type type, const u8* inBuff, u32 len, u8* hashDigest)
+int npcm_sha_calc(npcm_sha_type type, const u8* inBuff, u32 len, u8* hashDigest)
 {
     SHA_HANDLE_T handle;
 
@@ -288,7 +288,7 @@ static int SHA_Init(SHA_HANDLE_T* handlePtr)
 /* Description:                                                               */
 /*                  This routine start a single SHA process                   */
 /*----------------------------------------------------------------------------*/
-static int SHA_Start(SHA_HANDLE_T* handlePtr, npcm750_sha_type type)
+static int SHA_Start(SHA_HANDLE_T* handlePtr, npcm_sha_type type)
 {
     struct poleg_sha_regs *regs = sha_priv->regs;
 
@@ -574,7 +574,7 @@ static void SHA_PrintVersion(void)
 #endif
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm750_sha_selftest                                      */
+/* Function:        npcm_sha_selftest                                      */
 /*                                                                            */
 /* Parameters:      type - SHA module type                                    */
 /* Returns:         0 on success or other int error code on error             */
@@ -582,7 +582,7 @@ static void SHA_PrintVersion(void)
 /* Description:                                                               */
 /*                  This routine performs various tests on the SHA HW and SW  */
 /*----------------------------------------------------------------------------*/
-int npcm750_sha_selftest(npcm750_sha_type type)
+int npcm_sha_selftest(npcm_sha_type type)
 {
     SHA_HANDLE_T handle;
     u8 hashDigest[max(SHA_1_HASH_LENGTH, SHA_2_HASH_LENGTH)];
@@ -680,17 +680,17 @@ int npcm750_sha_selftest(npcm750_sha_type type)
           0x04, 0x6D, 0x39, 0xCC, 0xC7, 0x11, 0x2C, 0xD0 }
     };
 
-    if (type == npcm750_sha_type_sha1) {
+    if (type == npcm_sha_type_sha1) {
         /*--------------------------------------------------------------------*/
         /* SHA 1 TESTS                                                        */
         /*--------------------------------------------------------------------*/
         for (i = 0; i < SHA1_NUM_OF_SELF_TESTS; i++) {
             if (i != 3) {
-                SHA_RET_CHECK(npcm750_sha_calc(npcm750_sha_type_sha1, sha1SelfTestBuff[i], sha1SelfTestBuffLen[i], hashDigest));
+                SHA_RET_CHECK(npcm_sha_calc(npcm_sha_type_sha1, sha1SelfTestBuff[i], sha1SelfTestBuffLen[i], hashDigest));
             } else {
                 SHA_Power(true);
                 SHA_Reset();
-                SHA_RET_CHECK(SHA_Start(&handle, npcm750_sha_type_sha1));
+                SHA_RET_CHECK(SHA_Start(&handle, npcm_sha_type_sha1));
                 SHA_RET_CHECK(SHA_Update(&handle, sha1SelfTestBuff[i],73));
                 SHA_RET_CHECK(SHA_Update(&handle, &(sha1SelfTestBuff[i][73]),sha1SelfTestBuffLen[i] - 73));
                 SHA_RET_CHECK(SHA_Finish(&handle, hashDigest));
@@ -710,7 +710,7 @@ int npcm750_sha_selftest(npcm750_sha_type type)
         for (i = 0; i < SHA2_NUM_OF_SELF_TESTS; i++) {
             SHA_Power(true);
             SHA_Reset();
-            SHA_RET_CHECK(SHA_Start(&handle, npcm750_sha_type_sha2));
+            SHA_RET_CHECK(SHA_Start(&handle, npcm_sha_type_sha2));
             if (i == 2) {
                 for (j = 0; j < 10000; j++ ) { //not working
                     SHA_RET_CHECK(SHA_Update(&handle, sha2SelfTestBuff[i], sha2SelfTestBuffLen[i]));
@@ -725,7 +725,7 @@ int npcm750_sha_selftest(npcm750_sha_type type)
                 return -1;
             }
 
-            npcm750_sha_calc(npcm750_sha_type_sha2, sha2SelfTestBuff[i], sha2SelfTestBuffLen[i], hashDigest);
+            npcm_sha_calc(npcm_sha_type_sha2, sha2SelfTestBuff[i], sha2SelfTestBuffLen[i], hashDigest);
             if (memcmp(hashDigest, sha2SelfTestExpRes[i], SHA_2_HASH_LENGTH)) {
                 return -1;
             }
@@ -781,7 +781,7 @@ static int SHA_BusyWait_l(void)
 /* Description:     This routine copy the hash digest from the hardware       */
 /*                  and into given buffer (in ram)                            */
 /*----------------------------------------------------------------------------*/
-static void SHA_GetShaDigest_l(u8* hashDigest, npcm750_sha_type type)
+static void SHA_GetShaDigest_l(u8* hashDigest, npcm_sha_type type)
 {
     struct poleg_sha_regs *regs = sha_priv->regs;
     u16 j;
@@ -802,7 +802,7 @@ static void SHA_GetShaDigest_l(u8* hashDigest, npcm750_sha_type type)
 /* Description:     This routine set the hash digest in the hardware from     */
 /*                  a given buffer (in ram)                                   */
 /*----------------------------------------------------------------------------*/
-static void SHA_SetShaDigest_l(const u32* hashDigest, npcm750_sha_type type)
+static void SHA_SetShaDigest_l(const u32* hashDigest, npcm_sha_type type)
 {
     struct poleg_sha_regs *regs = sha_priv->regs;
     u16 j;
@@ -877,9 +877,9 @@ static void SHA_SetLength32_l(const SHA_HANDLE_T* handlePtr, u32* block)
         ((handlePtr->length1 >> (16-3)) >> 8) | ((u16) (handlePtr->length1 >> (16-3)) << 8);
 }
 
-static int npcm750_sha_bind(struct udevice *dev)
+static int npcm_sha_bind(struct udevice *dev)
 {
-    sha_priv = calloc(1, sizeof(struct npcm750_sha_priv));
+    sha_priv = calloc(1, sizeof(struct npcm_sha_priv));
     if (!sha_priv)
         return -ENOMEM;
 
@@ -889,20 +889,20 @@ static int npcm750_sha_bind(struct udevice *dev)
         return -EINVAL;
     }
 
-    printk(KERN_INFO "SHA: NPCMX50 SHA module bind OK\n");
+    printk(KERN_INFO "SHA: NPCM SHA module bind OK\n");
 
     return 0;
 }
 
-static const struct udevice_id npcm750_sha_ids[] = {
-    { .compatible = "nuvoton,npcmX50-sha" },
+static const struct udevice_id npcm_sha_ids[] = {
+    { .compatible = "nuvoton,npcm845-sha" },
     { }
 };
 
-U_BOOT_DRIVER(npcm750_sha) = {
-    .name = "npcm750_sha",
+U_BOOT_DRIVER(npcm_sha) = {
+    .name = "npcm_sha",
     .id = UCLASS_MISC,
-    .of_match = npcm750_sha_ids,
-    .priv_auto = sizeof(struct npcm750_sha_priv),
-    .bind = npcm750_sha_bind,
+    .of_match = npcm_sha_ids,
+    .priv_auto = sizeof(struct npcm_sha_priv),
+    .bind = npcm_sha_bind,
 };
