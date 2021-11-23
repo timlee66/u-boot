@@ -425,7 +425,7 @@ static int do_mem_cp(struct cmd_tbl *cmdtp, int flag, int argc,
 		 * v                                          v
 		 * | <-- secotr_offset--> | <## chunk_sz ##>  |
 		 *                        ^
-		 * ----------------------> dest_addr
+		 *                      dest_addr
 		 */
 
 		buf = memalign(ARCH_DMA_MINALIGN, flash->erase_size);
@@ -434,10 +434,16 @@ static int do_mem_cp(struct cmd_tbl *cmdtp, int flag, int argc,
 
 		while (dest_addr < end_addr) {
 			sector_offset = dest_addr % flash->erase_size;
+			sector_addr = dest_addr - sector_offset;
 			chunk_sz = min(len, (flash->erase_size - sector_offset));
 
-			if (memcmp(src, (void *)(dest_addr + flash_base),
-				chunk_sz) == 0) {
+			/* read sector to buf */
+			ret = spi_flash_read(flash, sector_addr, flash->erase_size, buf);
+			if (ret) {
+				printf("Read ERROR @ %#x\n", sector_addr);
+				break;
+			}
+			if (memcmp(src, buf + sector_offset, chunk_sz) == 0) {
 				printf(".");
 				if (--newline == 0) {
 					printf("\n");
@@ -450,16 +456,11 @@ static int do_mem_cp(struct cmd_tbl *cmdtp, int flag, int argc,
 				continue;
 			}
 
-			sector_addr = dest_addr - sector_offset;
 			if (chunk_sz < flash->erase_size) {
-
-				/* read sector to buf */
-				memcpy(buf, (void *)(sector_addr + flash_base),
-					flash->erase_size);
 
 				/* erase sector */
 				ret = spi_flash_erase(flash, sector_addr, flash->erase_size);
-				printf("SF: %zu bytes @ %#x Erased: %s\n", (size_t)flash->erase_size,
+				debug("SF: %zu bytes @ %#x Erased: %s\n", (size_t)flash->erase_size,
 						sector_addr, ret ? "ERROR" : "OK");
 
 				/* update buf */
@@ -467,7 +468,7 @@ static int do_mem_cp(struct cmd_tbl *cmdtp, int flag, int argc,
 
 				/* program sector */
 				ret = spi_flash_write(flash, sector_addr, flash->erase_size, buf);
-				printf("SF: %zu bytes @ %#x Written: %s\n", (size_t)flash->erase_size,
+				debug("SF: %zu bytes @ %#x Written: %s\n", (size_t)flash->erase_size,
 						sector_addr, ret ? "ERROR" : "OK");
 			} else {
 				printf("#");
