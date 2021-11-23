@@ -234,6 +234,7 @@ static struct spi_nor *mtd_to_spi_nor(struct mtd_info *mtd)
 	return mtd->priv;
 }
 
+#ifndef CONFIG_SPI_FLASH_BAR
 static u8 spi_nor_convert_opcode(u8 opcode, const u8 table[][2], size_t size)
 {
 	size_t i;
@@ -312,6 +313,7 @@ static void spi_nor_set_4byte_opcodes(struct spi_nor *nor,
 	nor->program_opcode = spi_nor_convert_3to4_program(nor->program_opcode);
 	nor->erase_opcode = spi_nor_convert_3to4_erase(nor->erase_opcode);
 }
+#endif /* !CONFIG_SPI_FLASH_BAR */
 
 /* Enable/disable 4-byte addressing mode. */
 static int set_4byte(struct spi_nor *nor, const struct flash_info *info,
@@ -2613,13 +2615,6 @@ int spi_nor_scan(struct spi_nor *nor)
 	ret = read_bar(nor, info);
 	if (ret < 0)
 		return ret;
-
-	if (JEDEC_MFR(info) == SNOR_MFR_MACRONIX &&
-			info->flags & SPI_NOR_4B_OPCODES) {
-		/* use 4B opcode in case flash is already in 4B mode */
-		nor->addr_width = 4;
-		spi_nor_set_4byte_opcodes(nor, info);
-	}
 #endif
 	} else {
 		nor->addr_width = 3;
