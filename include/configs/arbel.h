@@ -79,7 +79,7 @@
 #define PCB_VER_ID1   79
 
 /* Default environemnt variables */
-//#define CONFIG_BOOTCOMMAND "run common_bootargs; run romboot"
+#define CONFIG_BOOTCOMMAND "run common_bootargs; run romboot"
 
 #define CONFIG_BITBANGMII_MULTI
 #define CONFIG_SERVERIP                 10.191.20.49
@@ -109,8 +109,9 @@
 		"gmacloopb=0\0"    \
 		"romboot=echo Booting Kernel from flash; echo +++ uimage at 0x${uimage_flash_addr}; " \
 		"echo Using bootargs: ${bootargs};bootm ${uimage_flash_addr}\0" \
-		"autostart=yes\0"   \
 		"eth_num=0\0"    \
+		"earlycon=uart8250,mmio32,0xf0000000\0" \
+		"console=ttyS0,115200n8\0" \
 		"common_bootargs=setenv bootargs earlycon=${earlycon} root=/dev/ram console=${console} mem=${mem} ramdisk_size=48000 basemac=${ethaddr} oops=panic panic=20\0"   \
 		"ftp_prog=setenv ethact eth${eth_num}; dhcp; tftp 10000000 image-bmc; cp.b 10000000 80000000 ${filesize}\0"   \
 		"ftp_run=setenv ethact eth${eth_num}; dhcp; tftp 10000000 image-bmc; bootm 10200000\0"   \
