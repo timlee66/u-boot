@@ -240,6 +240,15 @@ int dram_init(void)
 #ifdef CONFIG_BOARD_EARLY_INIT_F
 int board_early_init_f(void)
 {
+	struct clk_ctl *clkctl = (struct clk_ctl *)(uintptr_t)npcm_get_base_clk();
+
+	/* init uart clock */
+	writel((readl(&clkctl->clkdiv1) & ~(0x1f << CLKDIV1_UARTDIV))
+		| (19 << CLKDIV1_UARTDIV), &clkctl->clkdiv1);
+	writel((readl(&clkctl->clksel) & ~(3 << CLKSEL_UARTCKSEL))
+		| (CLKSEL_UARTCKSEL_PLL2 << CLKSEL_UARTCKSEL),
+		&clkctl->clksel);
+
 	return 0;
 }
 #endif
