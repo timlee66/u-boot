@@ -23,7 +23,6 @@ static int npcm_fiu_spi_set_mode(struct udevice *bus, uint mode)
 	return 0;
 }
 
-
 static int fiu_uma_read(struct udevice *bus, u8 *buf, u32 data_size)
 {
 	struct npcm_fiu_priv *priv = dev_get_priv(bus);
@@ -36,12 +35,11 @@ static int fiu_uma_read(struct udevice *bus, u8 *buf, u32 data_size)
 	writel((data_size << FIU_UMA_CFG_RDATSIZ), &regs->uma_cfg);
 
 	/* Initiate the read */
-	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE),
-		&regs->uma_cts);
+	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE), &regs->uma_cts);
 
 	/* wait for indication that transaction has terminated */
 	ret = readl_poll_timeout(&regs->uma_cts, val,
-			!(val & (1 << FIU_UMA_CTS_EXEC_DONE)), 1000000);
+				 !(val & (1 << FIU_UMA_CTS_EXEC_DONE)), 1000000);
 	if (ret) {
 		printf("npcm_fiu: read timeout\n");
 		return ret;
@@ -86,12 +84,11 @@ static int fiu_uma_write(struct udevice *bus, const u8 *buf, u32 data_size)
 		writel(data_reg[3], &regs->uma_dw3);
 
 	/* Initiate the transaction */
-	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE),
-		&regs->uma_cts);
+	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE), &regs->uma_cts);
 
 	/* wait for indication that transaction has terminated */
 	ret = readl_poll_timeout(&regs->uma_cts, val,
-			!(val & (1 << FIU_UMA_CTS_EXEC_DONE)), 1000000);
+				 !(val & (1 << FIU_UMA_CTS_EXEC_DONE)), 1000000);
 	if (ret)
 		printf("npcm_fiu: write timeout\n");
 
@@ -99,7 +96,7 @@ static int fiu_uma_write(struct udevice *bus, const u8 *buf, u32 data_size)
 }
 
 static int npcm_fiu_spi_xfer(struct udevice *dev, unsigned int bitlen,
-		const void *dout, void *din, unsigned long flags)
+			     const void *dout, void *din, unsigned long flags)
 {
 	struct udevice *bus = dev->parent;
 	struct npcm_fiu_priv *priv = dev_get_priv(bus);
@@ -145,7 +142,6 @@ static int npcm_fiu_spi_probe(struct udevice *bus)
 {
 	struct npcm_fiu_priv *priv = dev_get_priv(bus);
 
-	debug("%s\n", __func__);
 	priv->regs = (struct npcm_fiu_regs *)dev_read_addr_ptr(bus);
 
 	return 0;
@@ -159,6 +155,7 @@ static const struct dm_spi_ops npcm_fiu_spi_ops = {
 
 static const struct udevice_id npcm_fiu_spi_ids[] = {
 	{ .compatible = "nuvoton,npcm845-fiu" },
+	{ .compatible = "nuvoton,npcm750-fiu" },
 	{ }
 };
 
