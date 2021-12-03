@@ -50,7 +50,7 @@
 		spi3 = &fiu3;
 		spi4 = &fiux;
 		spi5 = &pspi;
-		mmc0 = &sdhci0;
+		mmc0 = &sdhci;
 		gpio0 = &gpio0;
 		gpio1 = &gpio1;
 		gpio2 = &gpio2;
@@ -118,7 +118,7 @@
 	};
 
 
-	sdhci0: sdhci0@f0842000 {
+	sdhci: sdhci@f0842000 {
 		status = "okay";
 	};
 

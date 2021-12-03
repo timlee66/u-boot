@@ -610,6 +610,7 @@ config MMC_SDHCI_S5P
 config MMC_SDHCI_NPCM
 	bool "SDHCI support on Nuvoton NPCM device"
 	depends on MMC_SDHCI
+	depends on DM_MMC
 	help
 	  This selects the Secure Digital Host Controller Interface (SDHCI)
 	  on Nuvoton NPCM devic
