@@ -1,9 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * NUVOTON NPCM RNG driver
- *
- * Copyright (C) 2019, NUVOTON, Incorporated
- *
- * SPDX-License-Identifier: GPL-2.0+
+ * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
 #include <common.h>
@@ -11,12 +8,11 @@
 #include <rng.h>
 #include <uboot_aes.h>
 #include <asm/io.h>
-#include <asm/arch/cpu.h>
 #include <asm/arch/rng.h>
 #include <malloc.h>
 
 struct npcm_rng_priv {
-	struct npcm_rng_regs * regs;
+	struct npcm_rng_regs *regs;
 };
 
 static struct npcm_rng_priv *rng_priv;
@@ -30,7 +26,7 @@ void npcm_rng_init(void)
 	init = readb(&regs->rngcs);
 	if ((init & RNGCS_RNGE) == 0) {
 		/* init rng */
-		writeb(RNGCS_CLKP(RNG_CLKP_20_25_MHz) | RNGCS_RNGE, &(regs->rngcs));
+		writeb(RNGCS_CLKP(RNG_CLKP_20_25_MHZ) | RNGCS_RNGE, &regs->rngcs);
 		writeb(RNGMODE_M1ROSEL_VAL, &regs->rngmode);
 	}
 }
@@ -47,7 +43,6 @@ void npcm_rng_disable(void)
 void srand(unsigned int seed)
 {
 	/* no need to seed for now */
-	return;
 }
 
 int npcm_rng_read(struct udevice *dev, void *data, size_t max)
@@ -56,14 +51,16 @@ int npcm_rng_read(struct udevice *dev, void *data, size_t max)
 	int  i;
 	int ret_val = 0;
 	char *buf = data;
+
 	npcm_rng_init();
 
 	printf("NPCM HW RNG\n");
 	/* Wait for RNG done (max bytes) */
-	for (i = 0; i < max ;i++) {
+	for (i = 0; i < max; i++) {
 		 /* wait until DVALID is set */
-		while ((readb(&regs->rngcs) & RNGCS_DVALID) == 0);
-		buf[i]= ((unsigned int)readb(&regs->rngd) & 0x000000FF);
+		while ((readb(&regs->rngcs) & RNGCS_DVALID) == 0)
+			;
+		buf[i] = ((unsigned int)readb(&regs->rngd) & 0x000000FF);
 	}
 
 	return ret_val;
@@ -78,9 +75,10 @@ unsigned int rand_r(unsigned int *seedp)
 	npcm_rng_init();
 
 	/* Wait for RNG done (4 bytes) */
-	for (i = 0; i < 4 ;i++) {
+	for (i = 0; i < 4 ; i++) {
 		/* wait until DVALID is set */
-		while ((readb(&regs->rngcs) & RNGCS_DVALID) == 0);
+		while ((readb(&regs->rngcs) & RNGCS_DVALID) == 0)
+			;
 		ret_val |= (((unsigned int)readb(&regs->rngd) & 0x000000FF) << (i * 8));
 	}
 
@@ -104,13 +102,14 @@ static int npcm_rng_bind(struct udevice *dev)
 		return -EINVAL;
 	}
 
-	printk(KERN_INFO "RNG: NPCM RNG module bind OK\n");
+	printf("RNG: NPCM RNG module bind OK\n");
 
 	return 0;
 }
 
 static const struct udevice_id npcm_rng_ids[] = {
 	{ .compatible = "nuvoton,npcm845-rng" },
+	{ .compatible = "nuvoton,npcm750-rng" },
 	{ }
 };
 

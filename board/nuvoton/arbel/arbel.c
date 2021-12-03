@@ -411,7 +411,7 @@ static int secure_boot_configuration(void)
 
 		printf("%s(): program fuse key array from address 0x%x\n", __func__, addr + SA_KEYS_FLASH_IMAGE_OFFSET);
 
-		rc = fuse_prog_image(NPCM_KEY_SA, (u32)(uintptr_t)(fuse_arrays + SA_KEYS_FLASH_IMAGE_OFFSET));
+		rc = fuse_prog_image(NPCM_KEY_SA, (uintptr_t)(fuse_arrays + SA_KEYS_FLASH_IMAGE_OFFSET));
 		if (rc != 0)
 			return rc;
 
@@ -422,7 +422,7 @@ static int secure_boot_configuration(void)
 
 		printf("%s(): program fuse strap array from address 0x%x\n", __func__, addr + SA_FUSE_FLASH_IMAGE_OFFSET);
 
-		rc = fuse_prog_image(NPCM_FUSE_SA, (u32)(uintptr_t)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET));
+		rc = fuse_prog_image(NPCM_FUSE_SA, (uintptr_t)(fuse_arrays + SA_FUSE_FLASH_IMAGE_OFFSET));
 		if (rc != 0)
 			return rc;
 
@@ -458,7 +458,7 @@ static int secure_boot_configuration(void)
 		// programm SECBOOT bit if required
 		if (fustrap_orig & FUSTRAP_O_SECBOOT) {
 			printf("%s(): program secure boot bit to FUSTRAP\n", __func__);
-			rc = fuse_program_data(NPCM_FUSE_SA, 0, (u8*)(uintptr_t)&fustrap_orig, sizeof(fustrap_orig));
+			rc = fuse_program_data(NPCM_FUSE_SA, 0, (uintptr_t)&fustrap_orig, sizeof(fustrap_orig));
 		} else {
 			printf("%s(): secure boot bit is not set in the flash image, secure boot will not be enabled\n", __func__);
 		}

@@ -1,9 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * NUVOTON NPCM OTP driver
- *
- * Copyright (C) 2019, NUVOTON, Incorporated
- *
- * SPDX-License-Identifier: GPL-2.0+
+ * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
 #include <common.h>
@@ -17,20 +14,16 @@
 #include <linux/delay.h>
 
 struct npcm_otp_priv {
-#if defined (CONFIG_ARCH_NPCM8XX)
-	struct npcm_otp_regs *regs[1];
-#else
 	struct npcm_otp_regs *regs[2];
-#endif
 };
 
 static struct npcm_otp_priv *otp_priv;
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_check_inputs                                  */
+/* Function:        npcm_otp_check_inputs                                     */
 /*                                                                            */
 /* Parameters:      arr - fuse array number to check                          */
-/*                  word - fuse word (offset) to chcek                        */
+/*                  word - fuse word (offset) to check                        */
 /* Returns:         int                                                       */
 /* Side effects:                                                              */
 /* Description:     Checks is arr and word are illegal and do not exceed      */
@@ -38,18 +31,17 @@ static struct npcm_otp_priv *otp_priv;
 /*----------------------------------------------------------------------------*/
 static int npcm_otp_check_inputs(npcm_otp_storage_array arr, u32 word)
 {
-
 	if (arr >= NPCM_NUM_OF_SA) {
-#if defined (CONFIG_ARCH_NPCM8XX)
-		printf("\nError: npcm8XX otp includs only one bank: 0\n");
-#else
-		printf("\nError: npcm7XX otp includs only two banks: 0 and 1\n");
-#endif
+		if (IS_ENABLED(CONFIG_ARCH_NPCM8XX))
+			printf("\nError: npcm8XX otp includs only one bank: 0\n");
+		if (IS_ENABLED(CONFIG_ARCH_NPCM7XX))
+			printf("\nError: npcm7XX otp includs only two banks: 0 and 1\n");
 		return -1;
 	}
 
 	if (word >= NPCM_OTP_ARR_BYTE_SIZE) {
-		printf("\nError: npcm otp array comprises only %d bytes, numbered from 0 to %d\n",NPCM_OTP_ARR_BYTE_SIZE,NPCM_OTP_ARR_BYTE_SIZE-1);
+		printf("\nError: npcm otp array comprises only %d bytes, numbered from 0 to %d\n",
+		       NPCM_OTP_ARR_BYTE_SIZE, NPCM_OTP_ARR_BYTE_SIZE - 1);
 		return -1;
 	}
 
@@ -57,18 +49,17 @@ static int npcm_otp_check_inputs(npcm_otp_storage_array arr, u32 word)
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_wait_for_otp_ready                            */
+/* Function:        npcm_otp_wait_for_otp_ready                               */
 /*                                                                            */
 /* Parameters:      array - fuse array to wait for                            */
 /* Returns:         int                                                       */
 /* Side effects:                                                              */
 /* Description:     Initialize the Fuse HW module.                            */
 /*----------------------------------------------------------------------------*/
-static int npcm_otp_wait_for_otp_ready(npcm_otp_storage_array arr,
-										  u32 timeout)
+static int npcm_otp_wait_for_otp_ready(npcm_otp_storage_array arr, u32 timeout)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
-	volatile u32 time = timeout;
+	u32 time = timeout;
 
 	/*------------------------------------------------------------------------*/
 	/* check parameters validity                                              */
@@ -91,7 +82,7 @@ static int npcm_otp_wait_for_otp_ready(npcm_otp_storage_array arr,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_read_byte                                     */
+/* Function:        npcm_otp_read_byte                                        */
 /*                                                                            */
 /* Parameters:      arr  - Storage Array type [input].                        */
 /*                  addr - Byte-address to read from [input].                 */
@@ -100,8 +91,7 @@ static int npcm_otp_wait_for_otp_ready(npcm_otp_storage_array arr,
 /* Side effects:                                                              */
 /* Description:     Read 8-bit data from an OTP storage array.                */
 /*----------------------------------------------------------------------------*/
-static void npcm_otp_read_byte(npcm_otp_storage_array arr, u32 addr,
-								  u8 *data)
+static void npcm_otp_read_byte(npcm_otp_storage_array arr, u32 addr, u8 *data)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
 
@@ -121,47 +111,48 @@ static void npcm_otp_read_byte(npcm_otp_storage_array arr, u32 addr,
 	*data = readl(&regs->fdata) & FDATA_MASK;
 
 	/* Clean FDATA contents to prevent unauthorized software from reading
-	   sensitive information */
+	 * sensitive information
+	 */
 	writel(FDATA_CLEAN_VALUE, &regs->fdata);
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_bit_is_programmed                             */
+/* Function:        npcm_otp_bit_is_programmed                                */
 /*                                                                            */
 /* Parameters:      arr     - Storage Array type [input].                     */
-/*                  byteNum - Byte offset in array [input].                   */
-/*                  bitNum  - Bit offset in byte [input].                     */
+/*                  byte_offset - Byte offset in array [input].               */
+/*                  bit_offset  - Bit offset in byte [input].                 */
 /* Returns:         Nonzero if bit is programmed, zero otherwise.             */
 /* Side effects:                                                              */
 /* Description:     Check if a bit is programmed in an OTP storage array.     */
 /*----------------------------------------------------------------------------*/
 static bool npcm_otp_bit_is_programmed(npcm_otp_storage_array  arr,
-										  u32 byteNum, u8 bitNum)
+				       u32 byte_offset, u8 bit_offset)
 {
 	u32 data = 0;
 
 	/* Read the entire byte you wish to program */
-	npcm_otp_read_byte(arr, byteNum, (u8*)&data);
+	npcm_otp_read_byte(arr, byte_offset, (u8 *)&data);
 
 	/* Check whether the bit is already programmed */
-	if (data & (1 << bitNum))
+	if (data & (1 << bit_offset))
 		return true;
 
 	return false;
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_program_bit                                   */
+/* Function:        npcm_otp_program_bit                                      */
 /*                                                                            */
 /* Parameters:      arr     - Storage Array type [input].                     */
-/*                  byteNum - Byte offset in array [input].                   */
-/*                  bitNum  - Bit offset in byte [input].                     */
+/*                  byte)offset - Byte offset in array [input].               */
+/*                  bit_offset  - Bit offset in byte [input].                 */
 /* Returns:         int                                                       */
 /* Side effects:                                                              */
 /* Description:     Program (set to 1) a bit in an OTP storage array.         */
 /*----------------------------------------------------------------------------*/
-static int npcm_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
-								   u8 bitNum)
+static int npcm_otp_program_bit(npcm_otp_storage_array arr, u32 byte_offset,
+				u8 bit_offset)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
 	int count;
@@ -171,11 +162,11 @@ static int npcm_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
 	npcm_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 	/* Make sure the bit is not already programmed */
-	if (npcm_otp_bit_is_programmed(arr, byteNum, bitNum))
+	if (npcm_otp_bit_is_programmed(arr, byte_offset, bit_offset))
 		return 0;
 
 	/* Configure the bit address in the fuse array for program operation */
-	writel(FADDR_VAL(byteNum, bitNum), &regs->faddr);
+	writel(FADDR_VAL(byte_offset, bit_offset), &regs->faddr);
 	writel(readl(&regs->faddr) | FADDR_IN_PROG, &regs->faddr);
 
 	// program up to MAX_PROGRAM_PULSES
@@ -199,46 +190,46 @@ static int npcm_otp_program_bit(npcm_otp_storage_array arr, u32 byteNum,
 			read_data = readl(&regs->fdata) & FDATA_MASK;
 
 			/* If the bit is set the sequence ended correctly */
-			if (read_data & (1 << bitNum))
+			if (read_data & (1 << bit_offset))
 				break;
 		}
 	}
 
 	// check if programmking failed
-	if (count > MAX_PROGRAM_PULSES)
-	{
+	if (count > MAX_PROGRAM_PULSES) {
 		printf("program fail\n");
 		return -EINVAL;
 	}
 
-	/* Clean FDATA contents to prevent unauthorized software from reading
-	   sensitive information
-	*/
+	/*
+	 * Clean FDATA contents to prevent unauthorized software from reading
+	 * sensitive information
+	 */
 	writel(FDATA_CLEAN_VALUE, &regs->fdata);
 
 	return 0;
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_ProgramByte                                   */
+/* Function:        npcm_otp_program_byte                                     */
 /*                                                                            */
 /* Parameters:      arr     - Storage Array type [input].                     */
-/*                  byteNum - Byte offset in array [input].                   */
+/*                  byte_offset - Byte offset in array [input].               */
 /*                  value   - Byte to program [input].                        */
 /* Returns:         int                                                       */
 /* Side effects:                                                              */
 /* Description:     Program (set to 1) a given byte's relevant bits in an     */
 /*                  OTP storage array.                                        */
 /*----------------------------------------------------------------------------*/
-static int npcm_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
-								   u8 value)
+static int npcm_otp_program_byte(npcm_otp_storage_array arr, u32 byte_offset,
+				 u8 value)
 {
 	int status = 0;
 	unsigned int i;
 	u8 data = 0;
 	int rc;
 
-	rc = npcm_otp_check_inputs(arr, byteNum);
+	rc = npcm_otp_check_inputs(arr, byte_offset);
 	if (rc != 0)
 		return rc;
 
@@ -246,7 +237,7 @@ static int npcm_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
 	npcm_otp_wait_for_otp_ready(arr, 0xDEADBEEF);
 
 	/* Read the entire byte you wish to program */
-	npcm_otp_read_byte(arr, byteNum, &data);
+	npcm_otp_read_byte(arr, byte_offset, &data);
 
 	/* In case all relevant bits are already programmed - nothing to do */
 	if ((~data & value) == 0)
@@ -256,7 +247,7 @@ static int npcm_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
 	for (i = 0; i < 8; i++) {
 		if (value & (1 << i)) {
 			/* Program (set to 1) the relevant bit */
-			int last_status = npcm_otp_program_bit(arr, byteNum, (u8)i);
+			int last_status = npcm_otp_program_bit(arr, byte_offset, (u8)i);
 
 			if (last_status != 0)
 				status = last_status;
@@ -266,7 +257,7 @@ static int npcm_otp_ProgramByte(npcm_otp_storage_array arr, u32 byteNum,
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_is_fuse_array_disabled                        */
+/* Function:        npcm_otp_is_fuse_array_disabled                           */
 /*                                                                            */
 /* Parameters:      arr - Storage Array type [input].                         */
 /* Returns:         bool                                                      */
@@ -281,44 +272,32 @@ bool npcm_otp_is_fuse_array_disabled(npcm_otp_storage_array arr)
 	return (readl(&regs->fcfg) & FCFG_FDIS) != 0;
 }
 
-/*---------------------------------------------------------------------------------------------------------*/
-/* Function:        npcm_otp_select_key                                                                 */
-/*                                                                                                         */
-/* Parameters:                                                                                             */
-/*                  key_index - AES key index in the key array (in 128-bit steps) [input]                  */
-/* Returns:         int                                                                                    */
-/* Side effects:                                                                                           */
-/* Description:     Returns 0 on successful selection, -1 otherwise                                        */
-/*---------------------------------------------------------------------------------------------------------*/
 int npcm_otp_select_key(u8 key_index)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[NPCM_KEY_SA];
-	u32 fKeyInd = 0;
-	volatile u32 time = 0xDAEDBEEF;
+	u32 idx = 0;
+	u32 time = 0xDAEDBEEF;
 
 	if (key_index >= 4)
-        return -1;
+		return -1;
 
 	/* Do not destroy ECCDIS bit */
-	fKeyInd = readl(&regs->fustrap_fkeyind);
+	idx = readl(&regs->fustrap_fkeyind);
 
 	/* Configure the key size */
-	fKeyInd &= ~FKEYIND_KSIZE_MASK;
-	fKeyInd |= FKEYIND_KSIZE_256;
+	idx &= ~FKEYIND_KSIZE_MASK;
+	idx |= FKEYIND_KSIZE_256;
 
 	/* Configure the key index (0 to 3) */
-	fKeyInd &= ~FKEYIND_KIND_MASK;
-	fKeyInd |= FKEYIND_KIND_KEY(key_index);
+	idx &= ~FKEYIND_KIND_MASK;
+	idx |= FKEYIND_KIND_KEY(key_index);
 
-	writel(fKeyInd, &regs->fustrap_fkeyind);
+	writel(idx, &regs->fustrap_fkeyind);
 
-	/*-----------------------------------------------------------------------------------------------------*/
-	/* Wait for selection completetion                                                                     */
-	/*-----------------------------------------------------------------------------------------------------*/
+	/* Wait for selection completetion */
 	while (--time > 1) {
-        if (readl(&regs->fustrap_fkeyind) & FKEYIND_KVAL)
-            return 0;
-
+		if (readl(&regs->fustrap_fkeyind) & FKEYIND_KVAL)
+			return 0;
 		udelay(1);
 	}
 
@@ -326,7 +305,7 @@ int npcm_otp_select_key(u8 key_index)
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_nibble_parity_ecc_encode                      */
+/* Function:        npcm_otp_nibble_parity_ecc_encode                         */
 /*                                                                            */
 /* Parameters:      datain - pointer to decoded data buffer                   */
 /*                  dataout - pointer to encoded data buffer (buffer size     */
@@ -340,37 +319,38 @@ int npcm_otp_select_key(u8 key_index)
 /*----------------------------------------------------------------------------*/
 void npcm_otp_nibble_parity_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 {
-	u32 i;
+	u32 i, idx;
 	u8 E0, E1, E2, E3;
 
 	for (i = 0; i < (size / 2); i++) {
-
 		E0 = (datain[i] >> 0) & 0x01;
 		E1 = (datain[i] >> 1) & 0x01;
 		E2 = (datain[i] >> 2) & 0x01;
 		E3 = (datain[i] >> 3) & 0x01;
 
-		dataout[i*2] = datain[i] & 0x0f;
-		dataout[i*2] |= (E0 ^ E1) << 4;
-		dataout[i*2] |= (E2 ^ E3) << 5;
-		dataout[i*2] |= (E0 ^ E2) << 6;
-		dataout[i*2] |= (E1 ^ E3) << 7;
+		idx = i * 2;
+		dataout[idx] = datain[i] & 0x0f;
+		dataout[idx] |= (E0 ^ E1) << 4;
+		dataout[idx] |= (E2 ^ E3) << 5;
+		dataout[idx] |= (E0 ^ E2) << 6;
+		dataout[idx] |= (E1 ^ E3) << 7;
 
 		E0 = (datain[i] >> 4) & 0x01;
 		E1 = (datain[i] >> 5) & 0x01;
 		E2 = (datain[i] >> 6) & 0x01;
 		E3 = (datain[i] >> 7) & 0x01;
 
-		dataout[i*2+1] = (datain[i] & 0xf0) >> 4;
-		dataout[i*2+1] |= (E0 ^ E1) << 4;
-		dataout[i*2+1] |= (E2 ^ E3) << 5;
-		dataout[i*2+1] |= (E0 ^ E2) << 6;
-		dataout[i*2+1] |= (E1 ^ E3) << 7;
+		idx = i * 2 + 1;
+		dataout[idx] = (datain[i] & 0xf0) >> 4;
+		dataout[idx] |= (E0 ^ E1) << 4;
+		dataout[idx] |= (E2 ^ E3) << 5;
+		dataout[idx] |= (E0 ^ E2) << 6;
+		dataout[idx] |= (E1 ^ E3) << 7;
 	}
 }
 
 /*----------------------------------------------------------------------------*/
-/* Function:        npcm_otp_majority_rule_ecc_encode                      */
+/* Function:        npcm_otp_majority_rule_ecc_encode                         */
 /*                                                                            */
 /* Parameters:      datain - pointer to decoded data buffer                   */
 /*                  dataout - pointer to encoded data buffer (buffer size     */
@@ -391,17 +371,16 @@ void npcm_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 
 	for (byte = 0; byte < decoded_size; byte++) {
 		for (bit = 0; bit < 8; bit++) {
-
 			bit_val = (datain[byte] >> bit) & 0x01;
 
 			if (bit_val) {
-				dataout[decoded_size*0+byte] |= (1 << bit);
-				dataout[decoded_size*1+byte] |= (1 << bit);
-				dataout[decoded_size*2+byte] |= (1 << bit);
+				dataout[byte] |= (1 << bit);
+				dataout[decoded_size + byte] |= (1 << bit);
+				dataout[decoded_size * 2 + byte] |= (1 << bit);
 			} else {
-				dataout[decoded_size*0+byte] &= ~(1 << bit);
-				dataout[decoded_size*1+byte] &= ~(1 << bit);
-				dataout[decoded_size*2+byte] &= ~(1 << bit);
+				dataout[byte] &= ~(1 << bit);
+				dataout[decoded_size + byte] &= ~(1 << bit);
+				dataout[decoded_size * 2 + byte] &= ~(1 << bit);
 			}
 		}
 	}
@@ -436,7 +415,7 @@ int fuse_program_data(u32 bank, u32 word, u8 *data, u32 size)
 		if (val == 0) // optimization
 			continue;
 
-		rc = npcm_otp_ProgramByte(arr, word + byte, data[byte]);
+		rc = npcm_otp_program_byte(arr, word + byte, data[byte]);
 		if (rc != 0)
 			return rc;
 
@@ -450,19 +429,20 @@ int fuse_program_data(u32 bank, u32 word, u8 *data, u32 size)
 	return 0;
 }
 
-int fuse_prog_image(u32 bank, u32 address)
+int fuse_prog_image(u32 bank, uintptr_t address)
 {
-	return fuse_program_data(bank, 0, (u8*)(uintptr_t)address, NPCM_OTP_ARR_BYTE_SIZE);
+	return fuse_program_data(bank, 0, (u8 *)address, NPCM_OTP_ARR_BYTE_SIZE);
 }
 
 int fuse_read(u32 bank, u32 word, u32 *val)
 {
 	int rc = npcm_otp_check_inputs(bank, word);
+
 	if (rc != 0)
 		return rc;
 
 	*val = 0;
-	npcm_otp_read_byte((npcm_otp_storage_array)bank, word, (u8*)val);
+	npcm_otp_read_byte((npcm_otp_storage_array)bank, word, (u8 *)val);
 
 	return 0;
 }
@@ -481,8 +461,7 @@ int fuse_prog(u32 bank, u32 word, u32 val)
 	if (rc != 0)
 		return rc;
 
-	return npcm_otp_ProgramByte((npcm_otp_storage_array)bank, word,
-								   (u8)val);
+	return npcm_otp_program_byte((npcm_otp_storage_array)bank, word, (u8)val);
 }
 
 int fuse_override(u32 bank, u32 word, u32 val)
@@ -493,35 +472,35 @@ int fuse_override(u32 bank, u32 word, u32 val)
 
 static int npcm_otp_bind(struct udevice *dev)
 {
-	struct npcm_otp_regs *pRegs;
+	struct npcm_otp_regs *regs;
 
 	otp_priv = calloc(1, sizeof(struct npcm_otp_priv));
 	if (!otp_priv)
 		return -ENOMEM;
 
-	pRegs = NULL;
-	pRegs = dev_remap_addr_index(dev, 0);
-	if (!pRegs) {
+	regs = dev_remap_addr_index(dev, 0);
+	if (!regs) {
 		printf("Cannot find reg address (arr #0), binding failed\n");
 		return -EINVAL;
 	}
-	otp_priv->regs[0] = pRegs;
-#if defined (CONFIG_TARGET_POLEG)
-	pRegs = NULL;
-	pRegs = dev_remap_addr_index(dev, 1);
-	if (!pRegs) {
-		printf("Cannot find reg address (arr #1), binding failed\n");
-		return -EINVAL;
+	otp_priv->regs[0] = regs;
+
+	if (IS_ENABLED(CONFIG_ARCH_NPCM7XX)) {
+		regs = dev_remap_addr_index(dev, 1);
+		if (!regs) {
+			printf("Cannot find reg address (arr #1), binding failed\n");
+			return -EINVAL;
+		}
+		otp_priv->regs[1] = regs;
 	}
-	otp_priv->regs[1] = pRegs;
-#endif
-	printk(KERN_INFO "OTP: NPCM OTP module bind OK\n");
+	printf("OTP: NPCM OTP module bind OK\n");
 
 	return 0;
 }
 
 static const struct udevice_id npcm_otp_ids[] = {
 	{ .compatible = "nuvoton,npcm845-otp" },
+	{ .compatible = "nuvoton,npcm750-otp" },
 	{ }
 };
 
