@@ -14,7 +14,7 @@
 #define ONE_SECOND 0xC00000
 
 struct npcm_aes_priv {
-	struct poleg_aes_regs *regs;
+	struct npcm_aes_regs *regs;
 };
 
 static struct npcm_aes_priv *aes_priv;
@@ -54,7 +54,7 @@ int npcm_aes_select_key(u8 fkeyind)
 
 static int npcm_aes_init(u8 dec_enc)
 {
-	struct poleg_aes_regs *regs = aes_priv->regs;
+	struct npcm_aes_regs *regs = aes_priv->regs;
 	u32 ctrl, orgctrlval, wrtimeout;
 
 	/* reset hw */
@@ -104,7 +104,7 @@ static int npcm_aes_init(u8 dec_enc)
 
 static inline void npcm_aes_load_iv(u8 *iv)
 {
-	struct poleg_aes_regs *regs = aes_priv->regs;
+	struct npcm_aes_regs *regs = aes_priv->regs;
 	u32 *p = (u32 *)iv;
 	u32 i;
 
@@ -115,7 +115,7 @@ static inline void npcm_aes_load_iv(u8 *iv)
 
 static inline void npcm_aes_load_key(u8 *key)
 {
-	struct poleg_aes_regs *regs = aes_priv->regs;
+	struct npcm_aes_regs *regs = aes_priv->regs;
 	u32 *p = (u32 *)key;
 	u32 i;
 
@@ -142,7 +142,7 @@ static inline void npcm_aes_load_key(u8 *key)
 
 static inline void npcm_aes_write(u32 *in)
 {
-	struct poleg_aes_regs *regs = aes_priv->regs;
+	struct npcm_aes_regs *regs = aes_priv->regs;
 	u32 i;
 
 	/* 16 Byte AES Block is written in 32-bit chunks */
@@ -152,7 +152,7 @@ static inline void npcm_aes_write(u32 *in)
 
 static inline void npcm_aes_read(u32 *out)
 {
-	struct poleg_aes_regs *regs = aes_priv->regs;
+	struct npcm_aes_regs *regs = aes_priv->regs;
 	u32 i;
 
 	/* Data is read in 32-bit chunks */
@@ -162,7 +162,7 @@ static inline void npcm_aes_read(u32 *out)
 
 static void npcm_aes_feed(u32 num_aes_blocks, u32 *datain, u32 *dataout)
 {
-	struct poleg_aes_regs *regs = aes_priv->regs;
+	struct npcm_aes_regs *regs = aes_priv->regs;
 	u32 aes_datablk;
 	u32 total_blocks = num_aes_blocks;
 	u32 blocks_left = num_aes_blocks;

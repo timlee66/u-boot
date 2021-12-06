@@ -15,8 +15,6 @@
 #define NPCM_UART2_BA		0xF0002000
 #define NPCM_UART3_BA		0xF0003000
 
-
-
 #define NPCM_BASE(device, base) \
 static inline unsigned long __attribute__((no_instrument_function)) \
 	npcm_get_base_##device(void) \
@@ -28,6 +26,5 @@ NPCM_BASE(gcr, GCR_BA)
 NPCM_BASE(clk, CLK_BA)
 NPCM_BASE(gpio, GPIO_BA)
 NPCM_BASE(uart, UART0_BA)
-
 
 #endif

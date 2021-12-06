@@ -16,7 +16,7 @@
 #include <malloc.h>
 
 struct npcm_sha_priv {
-    struct poleg_sha_regs* regs;
+    struct npcm_sha_regs* regs;
 };
 
 static struct npcm_sha_priv *sha_priv;
@@ -51,7 +51,7 @@ typedef struct SHA_HANDLE_T
     u32                 length0;
     u32                 length1;
     u32                 block[SHA_BLOCK_LENGTH / sizeof(u32)];
-    npcm_sha_type    type;
+    u8    type;
     bool                active;
 } SHA_HANDLE_T;
 
@@ -116,14 +116,14 @@ typedef struct SHA_HANDLE_T
 
 static void SHA_FlushLocalBuffer_l (const u32* buff);
 static int  SHA_BusyWait_l(void);
-static void SHA_GetShaDigest_l(u8* hashDigest, npcm_sha_type type);
-static void SHA_SetShaDigest_l(const u32* hashDigest, npcm_sha_type type);
+static void SHA_GetShaDigest_l(u8* hashDigest, u8 type);
+static void SHA_SetShaDigest_l(const u32* hashDigest, u8 type);
 static void SHA_SetBlock_l(const u8* data,u32 len, u16 position, u32* block);
 static void SHA_ClearBlock_l(u16 len, u16 position, u32* block);
 static void SHA_SetLength32_l(const SHA_HANDLE_T* handlePtr, u32* block);
 
 static int SHA_Init(SHA_HANDLE_T* handlePtr);
-static int SHA_Start(SHA_HANDLE_T* handlePtr, npcm_sha_type type);
+static int SHA_Start(SHA_HANDLE_T* handlePtr, u8 type);
 static int SHA_Update(SHA_HANDLE_T* handlePtr, const u8* buffer, u32 len);
 static int SHA_Finish(SHA_HANDLE_T* handlePtr, u8* hashDigest);
 static int SHA_Reset(void);
@@ -246,7 +246,7 @@ int hw_sha_finish(struct hash_algo *algo, void *ctx, void *dest_buf,
 /*                  This routine performs complete SHA calculation in one     */
 /*                  step                                                      */
 /*----------------------------------------------------------------------------*/
-int npcm_sha_calc(npcm_sha_type type, const u8* inBuff, u32 len, u8* hashDigest)
+int npcm_sha_calc(u8 type, const u8* inBuff, u32 len, u8* hashDigest)
 {
     SHA_HANDLE_T handle;
 
@@ -288,9 +288,9 @@ static int SHA_Init(SHA_HANDLE_T* handlePtr)
 /* Description:                                                               */
 /*                  This routine start a single SHA process                   */
 /*----------------------------------------------------------------------------*/
-static int SHA_Start(SHA_HANDLE_T* handlePtr, npcm_sha_type type)
+static int SHA_Start(SHA_HANDLE_T* handlePtr, u8 type)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
 
     // Initialize handle
     handlePtr->length0 = 0;
@@ -332,7 +332,7 @@ static int SHA_Start(SHA_HANDLE_T* handlePtr, npcm_sha_type type)
 /*----------------------------------------------------------------------------*/
 static int SHA_Update(SHA_HANDLE_T* handlePtr, const u8* buffer, u32 len)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
     u32 localBuffer[SHA_SECRUN_BUFF_SIZE / sizeof(u32)];
     u32 bufferLen = len;
     u16 pos = 0;
@@ -422,7 +422,7 @@ static int SHA_Update(SHA_HANDLE_T* handlePtr, const u8* buffer, u32 len)
 /*----------------------------------------------------------------------------*/
 static int SHA_Finish(SHA_HANDLE_T* handlePtr, u8* hashDigest)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
     u32 localBuffer[SHA_SECRUN_BUFF_SIZE / sizeof(u32)];
     const u8 lastbyte = SHA_DATA_LAST_BYTE;
     u16 pos;
@@ -496,7 +496,7 @@ static int SHA_Finish(SHA_HANDLE_T* handlePtr, u8* hashDigest)
 /*----------------------------------------------------------------------------*/
 static int SHA_Reset(void)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
 
     writel(readl(&regs->hash_ctr_sts) | HASH_CTR_STS_SHA_RST, &regs->hash_ctr_sts);
 
@@ -514,7 +514,7 @@ static int SHA_Reset(void)
 /*----------------------------------------------------------------------------*/
 static int SHA_Power(bool on)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
     u8 hash_sts;
 
     hash_sts = readb(&regs->hash_ctr_sts) & ~HASH_CTR_STS_SHA_EN;
@@ -536,7 +536,7 @@ static int SHA_Power(bool on)
 static void SHA_PrintRegs(void)
 {
 #ifdef SHA_DEBUG_MODULE
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
 #endif
     unsigned int i;
 
@@ -567,7 +567,7 @@ static void SHA_PrintRegs(void)
 /*----------------------------------------------------------------------------*/
 static void SHA_PrintVersion(void)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
 
     printf("SHA MODULE VER  = %d\n", readb(&regs->hash_ver));
 }
@@ -582,7 +582,7 @@ static void SHA_PrintVersion(void)
 /* Description:                                                               */
 /*                  This routine performs various tests on the SHA HW and SW  */
 /*----------------------------------------------------------------------------*/
-int npcm_sha_selftest(npcm_sha_type type)
+int npcm_sha_selftest(u8 type)
 {
     SHA_HANDLE_T handle;
     u8 hashDigest[max(SHA_1_HASH_LENGTH, SHA_2_HASH_LENGTH)];
@@ -745,7 +745,7 @@ int npcm_sha_selftest(npcm_sha_type type)
 /*----------------------------------------------------------------------------*/
 static void SHA_FlushLocalBuffer_l(const u32* buff)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
     u32 i;
 
     for(i = 0; i < (SHA_BLOCK_LENGTH / sizeof(u32)); i++)
@@ -762,7 +762,7 @@ static void SHA_FlushLocalBuffer_l(const u32* buff)
 /*----------------------------------------------------------------------------*/
 static int SHA_BusyWait_l(void)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
 
     // While SHA module is busy
     BUSY_WAIT_TIMEOUT((readb(&regs->hash_ctr_sts) & HASH_CTR_STS_SHA_BUSY)
@@ -781,9 +781,9 @@ static int SHA_BusyWait_l(void)
 /* Description:     This routine copy the hash digest from the hardware       */
 /*                  and into given buffer (in ram)                            */
 /*----------------------------------------------------------------------------*/
-static void SHA_GetShaDigest_l(u8* hashDigest, npcm_sha_type type)
+static void SHA_GetShaDigest_l(u8* hashDigest, u8 type)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
     u16 j;
     u8 len = SHA_HASH_LENGTH(type) / sizeof(u32);
 
@@ -802,9 +802,9 @@ static void SHA_GetShaDigest_l(u8* hashDigest, npcm_sha_type type)
 /* Description:     This routine set the hash digest in the hardware from     */
 /*                  a given buffer (in ram)                                   */
 /*----------------------------------------------------------------------------*/
-static void SHA_SetShaDigest_l(const u32* hashDigest, npcm_sha_type type)
+static void SHA_SetShaDigest_l(const u32* hashDigest, u8 type)
 {
-    struct poleg_sha_regs *regs = sha_priv->regs;
+    struct npcm_sha_regs *regs = sha_priv->regs;
     u16 j;
     u8 len = SHA_HASH_LENGTH(type) / sizeof(u32);
 

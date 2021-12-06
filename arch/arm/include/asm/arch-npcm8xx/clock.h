@@ -82,42 +82,42 @@ enum {
 #define CLKDIV4_RCPREFDIV       12
 
 /* PLL Control Register 2 (PLLCON2) */
-#define PLLCONn_LOKI                31
-#define PLLCONn_LOKS                30
-#define PLLCONn_FBDV                16
-#define PLLCONn_OTDV2               13
-#define PLLCONn_PWDEN               12
-#define PLLCONn_OTDV1               8
-#define PLLCONn_INDV                0
+#define PLLCON_LOKI                31
+#define PLLCON_LOKS                30
+#define PLLCON_FBDV                16
+#define PLLCON_OTDV2               13
+#define PLLCON_PWDEN               12
+#define PLLCON_OTDV1               8
+#define PLLCON_INDV                0
 
 /* CPUCKSEL (CPU/AMBA/MC Clock Source Select Bit) */
 #define CLKSEL_CPUCKSEL_PLL0        0x00   /* 0 0: PLL0 clock*/
 #define CLKSEL_CPUCKSEL_PLL1        0x01   /* 0 1: PLL1 clock */
-#define CLKSEL_CPUCKSEL_CLKREF      0x02   /* 1 0: CLKREF input (25 MHz, default) */
+#define CLKSEL_CPUCKSEL_CLKREF      0x02   /* 1 0: CLKREF input (25 MHZ, default) */
 #define CLKSEL_CPUCKSEL_SYSBPCK     0x03   /* 1 1: Bypass clock from pin SYSBPCK */
 
 /* UARTCKSEL (Core and Host UART Clock Source Select Bit). */
 #define CLKSEL_UARTCKSEL_PLL0       0x00  /* 0 0: PLL0    clock. */
 #define CLKSEL_UARTCKSEL_PLL1       0x01  /* 0 1: PLL1    clock. */
-#define CLKSEL_UARTCKSEL_CLKREF     0x02  /* 1 0: CLKREF  clock (25 MHz, default). */
+#define CLKSEL_UARTCKSEL_CLKREF     0x02  /* 1 0: CLKREF  clock (25 MHZ, default). */
 #define CLKSEL_UARTCKSEL_PLL2       0x03  /* 1 1: PLL2    clock divided by 2. */
 
 /* SDCKSEL (SDHC Clock Source Select Bit). */
 #define CLKSEL_SDCKSEL_PLL0         0x00   /* 0 0: PLL0    clock.  */
 #define CLKSEL_SDCKSEL_PLL1         0x01   /* 0 1: PLL1    clock.  */
-#define CLKSEL_SDCKSEL_CLKREF       0x02   /* 1 0: CLKREF clock (25 MHz, default).  */
+#define CLKSEL_SDCKSEL_CLKREF       0x02   /* 1 0: CLKREF clock (25 MHZ, default).  */
 #define CLKSEL_SDCKSEL_PLL2         0x03   /* 1 1: PLL2    clock divided by 2.  */
 
 /* TIMCKSEL (Timer Clock Source Select Bit) */
 #define CLKSEL_TIMCKSEL_PLL0        0x00   /*  0 0: PLL0    clock.  */
 #define CLKSEL_TIMCKSEL_PLL1        0x01   /*  0 1: PLL1    clock.  */
-#define CLKSEL_TIMCKSEL_CLKREF      0x02   /*  1 0: CLKREF clock (25 MHz, default).  */
+#define CLKSEL_TIMCKSEL_CLKREF      0x02   /*  1 0: CLKREF clock (25 MHZ, default).  */
 #define CLKSEL_TIMCKSEL_PLL2        0x03   /*  1 1: PLL2    clock divided by 2.  */
 
 /* CLKOUTSEL (CLOCK-OUT Clock Source Select Bit) */
 #define CLKSEL_CLKOUTSEL_PLL0        0x00   /* 0 0 0: PLL0    clock.  */
 #define CLKSEL_CLKOUTSEL_PLL1        0x01   /* 0 0 1: PLL1    clock.  */
-#define CLKSEL_CLKOUTSEL_CLKREF      0x02   /* 0 1 0: CLKREF  clock (25 MHz, default).  */
+#define CLKSEL_CLKOUTSEL_CLKREF      0x02   /* 0 1 0: CLKREF  clock (25 MHZ, default).  */
 #define CLKSEL_CLKOUTSEL_GFXPLL      0x03   /* 0 1 1: Graphics PLL output clock, divided by 2.  */
 #define CLKSEL_CLKOUTSEL_PLL2        0x04   /* 1 0 0: PLL2    clock divided by 2.  */
 
@@ -153,10 +153,6 @@ enum {
 
 #define EXT_CLOCK_FREQUENCY_KHZ	    25 * 1000 * 1UL
 #define EXT_CLOCK_FREQUENCY_MHZ	    25
-#define _1Hz_           1UL
-#define _1KHz_          (1000 * _1Hz_ )
-#define _1MHz_          (1000 * _1KHz_)
-#define _1GHz_          (1000 * _1MHz_)
 
 struct clk_ctl {
 	unsigned int  clken1;

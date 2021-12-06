@@ -29,7 +29,7 @@ static struct npcm_otp_priv *otp_priv;
 /* Description:     Checks is arr and word are illegal and do not exceed      */
 /*                  their range. Return 0 if they are legal, -1 if not        */
 /*----------------------------------------------------------------------------*/
-static int npcm_otp_check_inputs(npcm_otp_storage_array arr, u32 word)
+static int npcm_otp_check_inputs(u32 arr, u32 word)
 {
 	if (arr >= NPCM_NUM_OF_SA) {
 		if (IS_ENABLED(CONFIG_ARCH_NPCM8XX))
@@ -56,7 +56,7 @@ static int npcm_otp_check_inputs(npcm_otp_storage_array arr, u32 word)
 /* Side effects:                                                              */
 /* Description:     Initialize the Fuse HW module.                            */
 /*----------------------------------------------------------------------------*/
-static int npcm_otp_wait_for_otp_ready(npcm_otp_storage_array arr, u32 timeout)
+static int npcm_otp_wait_for_otp_ready(u32 arr, u32 timeout)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
 	u32 time = timeout;
@@ -91,7 +91,7 @@ static int npcm_otp_wait_for_otp_ready(npcm_otp_storage_array arr, u32 timeout)
 /* Side effects:                                                              */
 /* Description:     Read 8-bit data from an OTP storage array.                */
 /*----------------------------------------------------------------------------*/
-static void npcm_otp_read_byte(npcm_otp_storage_array arr, u32 addr, u8 *data)
+static void npcm_otp_read_byte(u32 arr, u32 addr, u8 *data)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
 
@@ -126,7 +126,7 @@ static void npcm_otp_read_byte(npcm_otp_storage_array arr, u32 addr, u8 *data)
 /* Side effects:                                                              */
 /* Description:     Check if a bit is programmed in an OTP storage array.     */
 /*----------------------------------------------------------------------------*/
-static bool npcm_otp_bit_is_programmed(npcm_otp_storage_array  arr,
+static bool npcm_otp_bit_is_programmed(u32  arr,
 				       u32 byte_offset, u8 bit_offset)
 {
 	u32 data = 0;
@@ -151,7 +151,7 @@ static bool npcm_otp_bit_is_programmed(npcm_otp_storage_array  arr,
 /* Side effects:                                                              */
 /* Description:     Program (set to 1) a bit in an OTP storage array.         */
 /*----------------------------------------------------------------------------*/
-static int npcm_otp_program_bit(npcm_otp_storage_array arr, u32 byte_offset,
+static int npcm_otp_program_bit(u32 arr, u32 byte_offset,
 				u8 bit_offset)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
@@ -221,7 +221,7 @@ static int npcm_otp_program_bit(npcm_otp_storage_array arr, u32 byte_offset,
 /* Description:     Program (set to 1) a given byte's relevant bits in an     */
 /*                  OTP storage array.                                        */
 /*----------------------------------------------------------------------------*/
-static int npcm_otp_program_byte(npcm_otp_storage_array arr, u32 byte_offset,
+static int npcm_otp_program_byte(u32 arr, u32 byte_offset,
 				 u8 value)
 {
 	int status = 0;
@@ -265,7 +265,7 @@ static int npcm_otp_program_byte(npcm_otp_storage_array arr, u32 byte_offset,
 /* Description:     Return true if access to the first 2048 bits of the       */
 /*                  specified fuse array is disabled, false if not            */
 /*----------------------------------------------------------------------------*/
-bool npcm_otp_is_fuse_array_disabled(npcm_otp_storage_array arr)
+bool npcm_otp_is_fuse_array_disabled(u32 arr)
 {
 	struct npcm_otp_regs *regs = otp_priv->regs[arr];
 
@@ -400,7 +400,7 @@ void npcm_otp_majority_rule_ecc_encode(u8 *datain, u8 *dataout, u32 size)
 /*----------------------------------------------------------------------------*/
 int fuse_program_data(u32 bank, u32 word, u8 *data, u32 size)
 {
-	npcm_otp_storage_array arr = (npcm_otp_storage_array)bank;
+	u32 arr = (u32)bank;
 	u32 byte;
 	int rc;
 
@@ -421,7 +421,7 @@ int fuse_program_data(u32 bank, u32 word, u8 *data, u32 size)
 
 		// verify programming of every '1' bit
 		val = 0;
-		npcm_otp_read_byte((npcm_otp_storage_array)bank, byte, &val);
+		npcm_otp_read_byte((u32)bank, byte, &val);
 		if ((data[byte] & ~val) != 0)
 			return -1;
 	}
@@ -442,7 +442,7 @@ int fuse_read(u32 bank, u32 word, u32 *val)
 		return rc;
 
 	*val = 0;
-	npcm_otp_read_byte((npcm_otp_storage_array)bank, word, (u8 *)val);
+	npcm_otp_read_byte((u32)bank, word, (u8 *)val);
 
 	return 0;
 }
@@ -461,7 +461,7 @@ int fuse_prog(u32 bank, u32 word, u32 val)
 	if (rc != 0)
 		return rc;
 
-	return npcm_otp_program_byte((npcm_otp_storage_array)bank, word, (u8)val);
+	return npcm_otp_program_byte(bank, word, (u8)val);
 }
 
 int fuse_override(u32 bank, u32 word, u32 val)

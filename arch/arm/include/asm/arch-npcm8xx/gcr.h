@@ -8,11 +8,11 @@
 
 /* On-Chip ARBEL NPCM8XX VERSIONS */
 
-#define ARBEL_Z1                    0x00A35850
-#define ARBEL_A1                    0x04a35850
-#define ARBEL_NPCM845				0x00000000
-#define ARBEL_NPCM830				0x00300395  /* Update value To Do */
-#define ARBEL_NPCM810				0x00000220  /* Update value To Do */
+#define ARBEL_Z1			0x00A35850
+#define ARBEL_A1			0x04a35850
+#define ARBEL_NPCM845			0x00000000
+#define ARBEL_NPCM830			0x00300395
+#define ARBEL_NPCM810			0x00000220
 
 /* Function Lock Register 2 (FLOCKR2) */
 #define FLOCKR2_MMCRST               12
@@ -20,8 +20,8 @@
 #define FLOCKR2_G35DA2P              18
 
 /* Power-On Setting Register (PWRON) */
-#define PWRON_BSPA             		4         /* STRAP5 */
-#define PWRON_SECEN            		7         /* STRAP8 */
+#define PWRON_BSPA			4         /* STRAP5 */
+#define PWRON_SECEN			7         /* STRAP8 */
 
 /* Multiple Function Pin Select Register 1 (MFSEL1) */
 #define MFSEL1_SIRQSE               31
@@ -108,7 +108,6 @@
 #define MFSEL4_BSPASEL              1
 #define MFSEL4_JTAG2SEL             0
 
-
 /* Multiple Function Pin Select Register 5 (MFSEL5) */
 #define MFSEL5_R3OENSEL             14
 #define MFSEL5_RMII3SEL             11
@@ -119,17 +118,13 @@
 #define MFSEL5_SPI1D23SEL           3
 #define MFSEL5_NSPI1CS1SEL          0
 
-
 /* Multiple Function Pin Select Register 6 (MFSEL6) */
 #define MFSEL6_GPIO1836SEL          19
 #define MFSEL6_FM1SEL               17
 
-
-
 /* Multiple Function Pin Select Register 7 (MFSEL7) */
 #define MFSEL7_SMB15SELB            27
 #define MFSEL7_GPIO1889SEL          25
-
 
 /* USB PHY1 Control Register (USB1PHYCTL) */
 #define USB1PHYCTL_RS				28
@@ -196,33 +191,6 @@
 #define I2CSEGCTL_S4DWE				25
 #define I2CSEGCTL_INIT_VAL		0x9333F000
 
-
-/**************************************************************************************************************************/
-/*   SDHCn Interface Reset Value Register 1 (SDnIRV1) (reg40_dt) Updated for                                              */
-/**************************************************************************************************************************/
-#define  SDnIRV1_corecfg_8bitsupport     27              /* 27 (8-Bit Support). Eight-bit support for embedded devices. The default is 1 (Core supports 8bit MMC interface)       */
-#define  SDnIRV1_corecfg_maxblklength    25             /* 26-25 corecfg_maxblklength (Maximum Block Length). Maximum block length is supported by the Core.                     */
-#define  SDnIRV1_corecfg_timeoutclkunit  24              /* 24 corecfg_timeoutclkunit (Timeout Clock Unit). The timeout clock unit can be either MHz or KHz. The default          */
-#define  SDnIRV1_corecfg_timeoutclkfreq  19             /* 23-19 corecfg_timeoutclkfreq (Timeout Clock Frequency). The default is 25 MHz (see corecfg_timeoutclkunit             */
-#define  SDnIRV1_corecfg_tuningcount     13             /* 18-13 corecfg_tuningcount (Tuning Count). Selects the looped clock phase (tap). Assumes tuning is used (instead       */
-#define  SDnIRV1_test_mode               12              /* 12 test_mode (Test Mode). Enable Test mode. The Test Mode signal is used for DFT purposes. It muxes in the            */
-#define  SDnIRV1_corectrl_otapdlysel     8              /* 11-8 corectrl_otapdlysel (Output Tap Delay). The delay of the output clock to the SD (rxclk_out), for SD sampling.    */
-#define  SDnIRV1_corectrl_otapdlyena     7               /* 7 corectrl_otapdlyena (Output Tap Delay Enable). Not Supported.                                                       */
-#define  SDnIRV1_corectrl_itapchgwin     6               /* 6 corectrl_itapchgwin. Not Supported.                                                                                 */
-#define  SDnIRV1_corectrl_itapdlysel     1              /* 5-1 corectrl_itapdlysel (Input Tap Delay). The delay of the looped clock from SD (rxclk_in). It must be configured    */
-#define  SDnIRV1_corectrl_itapdlyena     0               /* 0 corectrl_itapdlyena (Input Tap Delay Enable). Used to enable selective Tap delay line on the loop-backed SD         */
-
-/**************************************************************************************************************************/
-/*   SDHCn Interface Reset Value Register 2 (SDnIRV2) (reg44_dt) Updated for                                              */
-/**************************************************************************************************************************/
-#define  SDnIRV2_corecfg_asyncwkupena      30              /* 30 corecfg_asyncwkupena (Asynchronous Wake-Up). Determines the wake-up signal generation mode.                        */
-#define  SDnIRV2_corecfg_retuningmodes     26              /* 27-26 corecfg_retuningmodes (Retuning Modes). Must be set to ‘00’ (Mode0 retuning).                                   */
-#define  SDnIRV2_corecfg_tuningforsdr50    25              /* 25 corecfg_tuningforsdr50 (Tuning for SDR50). Set to 1 if the Application wants Tuning be used for SDR50              */
-#define  SDnIRV2_corecfg_retuningtimercnt  21              /* 24-21 corecfg_retuningtimercnt (Timer Count for Retuning). This is the Timer Count for the Retuning timer for         */
-#define  SDnIRV2_corecfg_sdr50support      15              /* 15 corecfg_sdr50support (SDR50 Support). Simple Data Rate: 50 MHz, 50 Mbps.                                           */
-#define  SDnIRV2_corecfg_slottype          13              /* 14-13 corecfg_slottype (Slot Type). Used by the card detection. 1 for eMMC, 0 for SD.                                 */
-#define  SDnIRV2_corecfg_baseclkfreq       0
-
 struct npcm_gcr {
 	unsigned int  pdid;
 	unsigned int  pwron;
@@ -252,7 +220,8 @@ struct npcm_gcr {
 	unsigned int  dscnt;
 	unsigned int  mdlr;
 	unsigned int  scrpad_c;
-	unsigned int  scrpad_b; // holds the active dram size (value set by bootblock)
+	/* scrpad_b: holds the active dram size (value set by bootblock) */
+	unsigned int  scrpad_b;
 	unsigned int  rsvd7[4];
 	unsigned int  daclvlr;
 	unsigned int  intcr3;

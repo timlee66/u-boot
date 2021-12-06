@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
+
 #ifndef _NPCM_SMB_H_
 #define _NPCM_SMB_H_
 
