@@ -18,47 +18,28 @@ enum {
 	SPIX  = 14,
 };
 
-/* Clock Enable 1 Register (CLKEN1) */
-#define CLKEN1_TIMER0_4             19
-#define CLKEN1_TIMER5_9             20
-#define CLKEN1_EMC1                 6
-
-/* Clock Enable 2 Register (CLKEN2) */
-#define CLKEN2_GMAC1                28
-#define CLKEN2_USBIF                27
-#define CLKEN2_USBH1                26
-#define CLKEN2_GMAC2                25
-#define CLKEN2_SDHC                 9
-#define CLKEN2_MMC                  8
-
-/* Clock Enable 2 Register (CLKEN4) */
-#define CLKEN2_USBH2                31
-
 /* Clock Select Register (CLKSEL) */
 #define CLKSEL_RCPCKSEL             27
 #define CLKSEL_RGSEL                25
-#define CLKSEL_DVCSSEL              23
 #define CLKSEL_GFXMSEL              21
 #define CLKSEL_CLKOUTSEL            18
-#define CLKSEL_GFXCKSEL             16
-#define CLKSEL_TIMCKSEL             14
+#define CLKSEL_PCICKSEL             16
+#define CLKSEL_ADCCKSEL             14
 #define CLKSEL_MCCKSEL              12
 #define CLKSEL_SUCKSEL              10
 #define CLKSEL_UARTCKSEL            8
 #define CLKSEL_SDCKSEL              6
 #define CLKSEL_PIXCKSEL             4
-#define CLKSEL_GPRFSEL              2
 #define CLKSEL_CPUCKSEL             0
 
 /* Clock Divider Control Register 1 (CLKDIV1) */
 #define CLKDIV1_ADCCKDIV            28
 #define CLKDIV1_CLK4DIV             26
-#define CLKDIV1_TIMCKDIV            21
+#define CLKDIV1_PRE_ADCCKDIV        21
 #define CLKDIV1_UARTDIV             16
 #define CLKDIV1_MMCCKDIV            11
-#define CLKDIV1_AHB3CKDIV           6
+#define CLKDIV1_SPI3CKDIV           6
 #define CLKDIV1_PCICKDIV            2
-#define CLKDIV1_CLK2DIV             0
 
 /* Clock Divider Control Register 2 (CLKDIV2) */
 #define CLKDIV2_APB4CKDIV           30
@@ -70,16 +51,6 @@ enum {
 #define CLKDIV2_GFXCKDIV            13
 #define CLKDIV2_SUCKDIV             8
 #define CLKDIV2_SU48CKDIV           4
-#define CLKDIV2_SD1CKDIV            0
-
-/* Clock Divider Control Register 3 (CLKDIV3) */
-#define CLKDIV3_SPI1CKDV	    16
-#define CLKDIV3_SPI0CKDV	    6
-#define CLKDIV3_SPIXCKDV	    1
-
-/* Clock Divider Control Register 4 (CLKDIV4) */
-#define CLKDIV4_RGREFDIV	    28
-#define CLKDIV4_RCPREFDIV       12
 
 /* PLL Control Register 2 (PLLCON2) */
 #define PLLCON_LOKI                31
@@ -107,19 +78,6 @@ enum {
 #define CLKSEL_SDCKSEL_PLL1         0x01   /* 0 1: PLL1    clock.  */
 #define CLKSEL_SDCKSEL_CLKREF       0x02   /* 1 0: CLKREF clock (25 MHZ, default).  */
 #define CLKSEL_SDCKSEL_PLL2         0x03   /* 1 1: PLL2    clock divided by 2.  */
-
-/* TIMCKSEL (Timer Clock Source Select Bit) */
-#define CLKSEL_TIMCKSEL_PLL0        0x00   /*  0 0: PLL0    clock.  */
-#define CLKSEL_TIMCKSEL_PLL1        0x01   /*  0 1: PLL1    clock.  */
-#define CLKSEL_TIMCKSEL_CLKREF      0x02   /*  1 0: CLKREF clock (25 MHZ, default).  */
-#define CLKSEL_TIMCKSEL_PLL2        0x03   /*  1 1: PLL2    clock divided by 2.  */
-
-/* CLKOUTSEL (CLOCK-OUT Clock Source Select Bit) */
-#define CLKSEL_CLKOUTSEL_PLL0        0x00   /* 0 0 0: PLL0    clock.  */
-#define CLKSEL_CLKOUTSEL_PLL1        0x01   /* 0 0 1: PLL1    clock.  */
-#define CLKSEL_CLKOUTSEL_CLKREF      0x02   /* 0 1 0: CLKREF  clock (25 MHZ, default).  */
-#define CLKSEL_CLKOUTSEL_GFXPLL      0x03   /* 0 1 1: Graphics PLL output clock, divided by 2.  */
-#define CLKSEL_CLKOUTSEL_PLL2        0x04   /* 1 0 0: PLL2    clock divided by 2.  */
 
 /* IP Software Reset Register 1 (IPSRST1), offset 0x20 */
 #define IPSRST1_USBDEV1             5

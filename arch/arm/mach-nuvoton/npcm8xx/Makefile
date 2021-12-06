@@ -20,5 +20,5 @@
 # MA 02111-1307 USA
 #
 
-obj-y += lowlevel.o reset.o clock.o cpu.o bootm_os.o
+obj-y += lowlevel.o reset.o cpu.o bootm_os.o
 
