@@ -155,7 +155,7 @@ static const unsigned int cp1utxd_pins[] = { 42 };
 static const unsigned int j2j3_pins[] = { 44, 62, 45, 46 };
 
 static const unsigned int r3oen_pins[] = { 58 };
-static const unsigned int r2oen_pins[] = { 90 };
+static const unsigned int r2oen_pins[] = { 90, 249 };
 static const unsigned int r1oen_pins[] = { 56 };
 static const unsigned int bu4b_pins[] = { 98, 99 };
 static const unsigned int bu4_pins[] = { 54, 55 };
@@ -1376,6 +1376,7 @@ static const struct npcm8xx_pincfg pincfgs[] = {
 	NPCM8XX_PINCFG(245,	i3c2, MFSEL5, 21,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		SLEW),
 	NPCM8XX_PINCFG(246,	i3c3, MFSEL5, 23,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		SLEW),
 	NPCM8XX_PINCFG(247,	i3c3, MFSEL5, 23,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		SLEW),
+	NPCM8XX_PINCFG(249,	r2oen, INTCR4, 13,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		SLEW),
 	NPCM8XX_PINCFG(250,	rg2refck, INTCR4, 6,	ddr, MFSEL3, 26,	rmii3, MFSEL5, 14,	none, NONE, 0,		none, NONE, 0,		DS(8, 12) | SLEW),
 };
 
@@ -1636,7 +1637,7 @@ static const struct npcm8xx_pin_desc npcm8xx_pins[] = {
 	NPCM8XX_PIN(246, "GPIO246/I3C3_SCL"),
 	NPCM8XX_PIN(247, "GPIO247/I3C3_SDA"),
 	NPCM8XX_PIN(248, "NA"),
-	NPCM8XX_PIN(249, "NA"),
+	NPCM8XX_PIN(249, "R2_OEN"),
 	NPCM8XX_PIN(250, "GPIO250/RG2_REFCK/DVVSYNC"),
 };
 
