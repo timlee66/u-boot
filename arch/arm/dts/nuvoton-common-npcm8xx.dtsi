@@ -1,14 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0+
+
 #include <dt-bindings/clock/npcm845-clock.h>
 #include <dt-bindings/gpio/gpio.h>
 #include "nuvoton-npcm8xx-pinctrl.dtsi"
-
-#define GMAC2_RGMII
 
 / {
 
 	#address-cells = <2>;
 	#size-cells = <2>;
-
 
 	clks: clock-control@f0801000 {
 		compatible = "nuvoton,npcm845-clock";
@@ -252,23 +251,10 @@
 	gmac2: gmac2 {
 		compatible = "nuvoton,npcm-dwmac";
 		reg = <0x0 0xF0804000 0x0 0x2000>;
-#ifdef GMAC2_RGMII
 		phy-mode = "rgmii";
 		pinctrl-names = "default";
 		pinctrl-0 = <&rg2_pins
-#ifdef GMAC_EXTERNAL_CLK
-			     &rg2refck_pins
-#endif
 			     &rg2mdio_pins>;
-#else   /* GMAC2-RMII3 */
-		phy-mode = "mii";
-		pinctrl-names = "default";
-		pinctrl-0 = <&rmii3_pins
-#ifdef GMAC_EXTERNAL_CLK
-			     &rg2refck_pins
-#endif
-			     &r3rxer_pins>;
-#endif
 		snps,reset-active-low;
 		snps,reset-delays-us = <0 10000 1000000>;
 		snps,reset-gpio = <&gpio5 2 GPIO_ACTIVE_LOW>;    /* gpio162 */
@@ -305,10 +291,11 @@
 
 	usb_dev0: usb-dev0@f0830100 {
 		compatible = "nuvoton,npcm845-usbd";
-		/* change the base address according the device you want to test */
 		reg = <0x0 0xF0830100 0x0 0x200>;
-		usbphy = <1>;      /* choose Phy: 1 for device 0-9 / 2 for device 9 / 3 for device 8 */
-		usbdev = <0>;      /* choose device : 0-9, note the phy limitation above */
+		/* choose Phy: 1 for device 0-9 / 2 for device 9 / 3 for device 8 */
+		usbphy = <1>;
+		/* choose device : 0-9, note the phy limitation above */
+		usbdev = <0>;
 		status = "disabled";
 	};
 
@@ -607,7 +594,7 @@
 	};
 
 	pinctrl: pinctrl@f0800000 {
-		compatible = "nuvoton,npcm8xx-pinctrl";
+		compatible = "nuvoton,npcm845-pinctrl";
 	};
 
 };

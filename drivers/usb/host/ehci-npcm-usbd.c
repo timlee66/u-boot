@@ -28,7 +28,7 @@ static int npcm_usbd_of_to_plat(struct udevice *dev)
 	/*
 	 * phy1: device 0 ~ 9
 	 * phy2: device 9
-	 * phy3: device 8 (for NPMC8xx)
+	 * phy3: device 8 (for NPCM8xx)
 	 */
 	switch (phy_num) {
 	case 1:

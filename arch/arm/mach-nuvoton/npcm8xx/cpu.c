@@ -1,23 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- *  Copyright (c) 2016 Nuvoton Technology Corp.
- *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
 #include <common.h>
@@ -43,16 +26,16 @@ struct sctr_regs {
 	u32 counterid[1];
 };
 
-#define SC_CNTCR_ENABLE		(1 << 0)
-#define SC_CNTCR_HDBG		(1 << 1)
-#define SC_CNTCR_FREQ0		(1 << 8)
-#define SC_CNTCR_FREQ1		(1 << 9)
+#define SC_CNTCR_ENABLE		BIT(0)
+#define SC_CNTCR_HDBG		BIT(1)
+#define SC_CNTCR_FREQ0		BIT(8)
+#define SC_CNTCR_FREQ1		BIT(9)
 
 #define SYSCNT_CTRL_BASE_ADDR   0xF07FC000
 
 DECLARE_GLOBAL_DATA_PTR;
 
-int print_cpuinfo (void)
+int print_cpuinfo(void)
 {
 	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
 	unsigned int id = 0;
@@ -65,7 +48,7 @@ int print_cpuinfo (void)
 
 	printf("CPU-%d: ", (unsigned int)(mpidr_val & 0x3));
 
-	switch(mdlr) {
+	switch (mdlr) {
 	case ARBEL_NPCM845:
 		printf("NPCM845 ");
 		break;
@@ -81,7 +64,7 @@ int print_cpuinfo (void)
 	}
 
 	id = readl(&gcr->pdid);
-	switch(id) {
+	switch (id) {
 	case ARBEL_Z1:
 		printf("Z1 @ ");
 		break;
@@ -96,24 +79,20 @@ int print_cpuinfo (void)
 	return 0;
 }
 
-#ifndef CONFIG_SYS_DCACHE_OFF
 int arch_cpu_init(void)
 {
-	/*
-	 * This function is called before U-Boot relocates itself to speed up
-	 * on system running. It is not necessary to run if performance is not
-	 * critical. Skip if MMU is already enabled by SPL or other means.
-	 */
-	if (get_sctlr() & CR_M)
-		return 0;
+	if (!IS_ENABLED(CONFIG_SYS_DCACHE_OFF)) {
+		/* enable cache to speed up system running */
+		if (get_sctlr() & CR_M)
+			return 0;
 
-	icache_enable();
-	__asm_invalidate_dcache_all();
-	__asm_invalidate_tlb_all();
-	set_sctlr(get_sctlr() | CR_C);
+		icache_enable();
+		__asm_invalidate_dcache_all();
+		__asm_invalidate_tlb_all();
+		set_sctlr(get_sctlr() | CR_C);
+	}
 	return 0;
 }
-#endif	/* CONFIG_SYS_DCACHE_OFF */
 
 static struct mm_region npcm_mem_map[1 + CONFIG_NR_DRAM_BANKS + 1] = {
 	{
@@ -140,30 +119,13 @@ static struct mm_region npcm_mem_map[1 + CONFIG_NR_DRAM_BANKS + 1] = {
 
 struct mm_region *mem_map = npcm_mem_map;
 
-u32 cpu_pos_mask(void)
-{
-	return 0xF;
-}
-
-u32 cpu_mask(void)
-{
-	return 0xF;
-}
-/*
- * Return the number of cores on this SOC.
- */
-int cpu_numcores(void)
-{
-	return hweight32(cpu_mask());
-}
-
 int timer_init(void)
 {
 	struct sctr_regs *sctr = (struct sctr_regs *)SYSCNT_CTRL_BASE_ADDR;
- 	unsigned int cntfrq_el0;
-	
-    __asm__ __volatile__("mrs %0, CNTFRQ_EL0\n\t" : "=r" (cntfrq_el0) : : "memory");
-	writel(cntfrq_el0, &sctr->cntfid0); 
+	unsigned int cntfrq_el0;
+
+	__asm__ __volatile__("mrs %0, CNTFRQ_EL0\n\t" : "=r" (cntfrq_el0) : : "memory");
+	writel(cntfrq_el0, &sctr->cntfid0);
 
 	clrsetbits_le32(&sctr->cntcr, SC_CNTCR_FREQ0 | SC_CNTCR_FREQ1,
 			SC_CNTCR_ENABLE | SC_CNTCR_HDBG);

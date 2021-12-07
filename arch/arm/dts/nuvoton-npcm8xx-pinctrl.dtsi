@@ -315,6 +315,10 @@
 			groups = "r2err";
 			function = "r2err";
 		};
+		r2oen_pins: r2oen-pins {
+			groups = "r2oen";
+			function = "r2oen";
+		};
 		r2md_pins: r2md-pins {
 			groups = "r2md";
 			function = "r2md";

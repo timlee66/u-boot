@@ -9,13 +9,6 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "arbel"
 
-config NIST_VERSION_ADDR
-	hex "Linux NIST version address"
-	default 0x0
-	help
-	  The address of the Linux NIST version, which should be identical
-	  to the u-boot version.
-
 config SYS_MEM_TOP_HIDE
 	hex "Reserved TOP memory"
 	default 0xB000000

@@ -2017,7 +2017,7 @@ static struct pinctrl_ops npcm8xx_pinctrl_ops = {
 };
 
 static const struct udevice_id npcm8xx_pinctrl_ids[] = {
-	{ .compatible = "nuvoton,npcm8xx-pinctrl" },
+	{ .compatible = "nuvoton,npcm845-pinctrl" },
 	{ }
 };
 

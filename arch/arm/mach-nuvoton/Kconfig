@@ -6,6 +6,17 @@ config SYS_ARCH
 config SYS_TEXT_BASE
 	default 0x8000
 
+config NPCM_SECURE_BOOT
+	bool "NPCM Secure Boot"
+	default n
+
+config NIST_VERSION_ADDR
+	hex "Linux NIST version address"
+	depends on NPCM_SECURE_BOOT
+	default 0x0
+	help
+	  The address of the Linux NIST version, which should be identical
+	  to the u-boot version.
 choice
 	prompt "Nuvoton SoC select"
 	default ARCH_NPCM8XX
