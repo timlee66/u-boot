@@ -151,7 +151,7 @@ static int npcm_fiu_uma_operation(struct npcm_fiu_priv *priv, const struct spi_m
 {
 	struct npcm_fiu_regs *regs = priv->regs;
 	u32 uma_cfg = 0, val;
-	u32 *data32;
+	u32 data_reg[4];
 	int ret;
 
 	debug("fiu_uma: opcode 0x%x, dir %d, addr 0x%x, %d bytes\n",
@@ -187,15 +187,16 @@ static int npcm_fiu_uma_operation(struct npcm_fiu_priv *priv, const struct spi_m
 	writel(uma_cfg, &regs->uma_cfg);
 
 	if (op->data.dir == SPI_MEM_DATA_OUT && nbytes) {
-		data32 = (u32 *)tx;
+		memcpy(data_reg, tx, nbytes);
+
 		if (nbytes >= 1)
-			writel(*data32++, &regs->uma_dw0);
+			writel(data_reg[0], &regs->uma_dw0);
 		if (nbytes >= 5)
-			writel(*data32++, &regs->uma_dw1);
+			writel(data_reg[1], &regs->uma_dw1);
 		if (nbytes >= 9)
-			writel(*data32++, &regs->uma_dw2);
+			writel(data_reg[2], &regs->uma_dw2);
 		if (nbytes >= 13)
-			writel(*data32++, &regs->uma_dw3);
+			writel(data_reg[3], &regs->uma_dw3);
 	}
 	/* Initiate the transaction */
 	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE), &regs->uma_cts);
@@ -209,15 +210,16 @@ static int npcm_fiu_uma_operation(struct npcm_fiu_priv *priv, const struct spi_m
 	}
 
 	if (op->data.dir == SPI_MEM_DATA_IN && nbytes) {
-		data32 = (u32 *)rx;
 		if (nbytes >= 1)
-			*data32++ = readl(&regs->uma_dr0);
+			data_reg[0] = readl(&regs->uma_dr0);
 		if (nbytes >= 5)
-			*data32++ = readl(&regs->uma_dr1);
+			data_reg[1] = readl(&regs->uma_dr1);
 		if (nbytes >= 9)
-			*data32++ = readl(&regs->uma_dr2);
+			data_reg[2] = readl(&regs->uma_dr2);
 		if (nbytes >= 13)
-			*data32++ = readl(&regs->uma_dr3);
+			data_reg[3] = readl(&regs->uma_dr3);
+
+		memcpy(rx, data_reg, nbytes);
 	}
 
 	return 0;
