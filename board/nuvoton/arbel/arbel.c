@@ -3,61 +3,20 @@
  * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
-#include <asm/io.h>
-#include <asm/arch/cpu.h>
-#include <asm/arch/gcr.h>
-#include <asm/arch/clock.h>
-#include <asm/mach-types.h>
 #include <common.h>
 #include <dm.h>
+#include <env.h>
 #include <fdtdec.h>
-#include <asm/gpio.h>
+#include <asm/arch/cpu.h>
+#include <asm/arch/clock.h>
 #include <asm/arch/espi.h>
+#include <asm/arch/gcr.h>
+#include <asm/gpio.h>
+#include <asm/io.h>
+#include <asm/mach-types.h>
 #include <linux/delay.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-/*
- * Routine: get_board_version_id
- * Description: Detect board version by reading  GPIO79 (VER_ID1), GPIO78 (VER_ID0).
- *		GPIO79 (VER_ID1), GPIO78 (VER_ID0): 1 1 => X00
- *		GPIO79 (VER_ID1), GPIO78 (VER_ID0): 1 0 => X01
- *		GPIO79 (VER_ID1), GPIO78 (VER_ID0): 0 1 => Reserved
- *		GPIO79 (VER_ID1), GPIO78 (VER_ID0): 0 0 => Reserved
- */
-static int get_board_version_id(void)
-{
-	int pcb_version = 0;
-
-	if (!gpio_request(PCB_VER_ID0, "rev0") &&
-	    !gpio_request(PCB_VER_ID1, "rev1")) {
-		gpio_direction_input(PCB_VER_ID0);
-		gpio_direction_input(PCB_VER_ID1);
-
-		pcb_version = gpio_get_value(PCB_VER_ID1) << 1 | gpio_get_value(PCB_VER_ID0);
-
-		switch (pcb_version) {
-		case 3:
-			printf("NPCM845 EVB PCB version ID 0x%01x -> version X00\n",
-			       pcb_version);
-		break;
-		case 2:
-			printf("NPCM845 EVB PCB version ID 0x%01x -> version X01\n",
-			       pcb_version);
-		break;
-
-		default:
-			printf("NPCM845 EVB PCB version ID 0x%01x -> unknown version ID\n",
-			       pcb_version);
-		break;
-		}
-		gpio_free(PCB_VER_ID0);
-		gpio_free(PCB_VER_ID1);
-	} else {
-		printf("Error: unable to acquire board version GPIOs\n");
-	}
-
-	return pcb_version;
-}
 
 static void espi_config(u8 mode, u8 max_freq, u32 ch_supp)
 {
@@ -168,13 +127,15 @@ static void arbel_eth_init(void)
 {
 	struct npcm_gcr *gcr = (struct npcm_gcr *)(uintptr_t)npcm_get_base_gcr();
 	u32 val;
+	char *evb_ver;
 
 	/* Power voltage select setup */
 	val = readl(&gcr->vsrcr);
 	writel(val | BIT(30), &gcr->vsrcr);
 
 	/* EVB X00 version - need to swap sgmii lane polarity HW issue */
-	if (get_board_version_id() == 3) {
+	evb_ver = env_get("evb_version");
+	if (evb_ver && !strcmp(evb_ver, "X00")) {
 		/* Get access to 0x3F... (VR_MII_MMD_DIG_CTRL1) */
 		writew(0x1F80, 0xF07801FE);
 		/* Swap lane polarity on EVB only */
