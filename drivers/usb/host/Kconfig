@@ -275,12 +275,13 @@ config USB_OHCI_DA8XX
 	help
 	  Enable support for the da850 USB controller.
 
-config USB_OHCI_NPCM8XX
-	bool "Support for Arbel on-chip OHCI USB controller"
-	depends on ARCH_NPCM8XX
+config USB_OHCI_NPCM
+	bool "Support for Nuvoton NPCM on-chip OHCI USB controller"
+	depends on ARCH_NPCM
 	default n
 	---help---
-	  Enable support for Arbel on-chip OHCI USB controller
+	  Enables support for the on-chip OHCI controller on
+	  Nuvoton NPCM chips.
 
 endif # USB_OHCI_HCD
 
