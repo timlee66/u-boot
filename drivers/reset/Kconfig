@@ -197,4 +197,13 @@ config RESET_SCMI
 	  Enable this option if you want to support reset controller
 	  devices exposed by a SCMI agent based on SCMI reset domain
 	  protocol communication with a SCMI server.
+
+config RESET_NPCM
+	bool "NPCM BMC Reset Driver"
+	depends on DM_RESET
+	default ARCH_NPCM
+	help
+	  This enables the reset controller driver for Nuvoton NPCM
+	  BMC SoCs.
+
 endmenu
