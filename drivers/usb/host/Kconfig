@@ -229,19 +229,13 @@ config USB_EHCI_FSL
 	---help---
 	  Enables support for the on-chip EHCI controller on FSL chips.
 
-config USB_EHCI_NPCM_USBD
-	bool "Support for NPCM on-chip USB Device controller"
+config USB_EHCI_NPCM
+	bool "Support for Nuvoton NPCM on-chip EHCI USB controller"
 	depends on ARCH_NPCM
 	default n
 	---help---
-	  Enable support for NPCM on-chip USB Device controller
-
-config USB_EHCI_NPCM8XX
-	bool "Support for Arbel on-chip EHCI USB controller"
-	depends on ARCH_NPCM8XX
-	default n
-	---help---
-	  Enable support for Arbel on-chip EHCI USB controller
+	  Enables support for the on-chip EHCI controller on
+	  Nuvoton NPCM chips.
 
 endif # USB_EHCI_HCD
 
