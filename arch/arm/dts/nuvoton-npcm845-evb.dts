@@ -141,18 +141,6 @@
 		snps,mdio-gpio = <&gpio2 28 GPIO_ACTIVE_HIGH>;    /* gpio92 */
 	};
 
-	usb_dev0: usb-dev0@f0830100 {
-		status = "okay";
-	};
-
-	usb_eh1: usb-eh1@f0828100 {
-		status = "okay";
-	};
-
-	usb_eh2: usb-eh2@f082a100 {
-		status = "okay";
-	};
-
 	i2c0: i2c-bus@f0080000 {
 		status = "okay";
 	};
@@ -261,4 +249,25 @@
 		status = "okay";
 	};
 
+};
+&usbphy1 {
+	status = "okay";
+};
+&usbphy2 {
+	status = "okay";
+};
+&usbphy3 {
+	status = "okay";
+};
+&usb_dev0 {
+	status = "okay";
+	phys = <&usbphy1 0>;
+};
+&usb_eh1 {
+	status = "okay";
+	phys = <&usbphy2 5>;
+};
+&usb_eh2 {
+	status = "okay";
+	phys = <&usbphy3 6>;
 };
