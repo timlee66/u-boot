@@ -33,7 +33,7 @@ config ARCH_NPCM750
 
 endchoice
 
-source "arch/arm/mach-nuvoton/npcm8xx/Kconfig"
-source "arch/arm/mach-nuvoton/npcm750/Kconfig"
+source "arch/arm/mach-npcm/npcm8xx/Kconfig"
+source "arch/arm/mach-npcm/npcm750/Kconfig"
 
 endif

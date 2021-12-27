@@ -67,7 +67,7 @@ struct smb_bank1_regs {
 };
 
 struct npcm_i2c_regs {
-	u16	sda;
+	u16 sda;
 	u16 st;
 	u16 cst;
 	u16 ctl1;

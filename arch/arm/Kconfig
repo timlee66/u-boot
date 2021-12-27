@@ -1960,7 +1960,7 @@ source "arch/arm/mach-imx/Kconfig"
 
 source "arch/arm/mach-nexell/Kconfig"
 
-source "arch/arm/mach-nuvoton/Kconfig"
+source "arch/arm/mach-npcm/Kconfig"
 
 source "board/armltd/total_compute/Kconfig"
 

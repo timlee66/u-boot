@@ -299,20 +299,6 @@ config PINCTRL_K210
 	  supported function to any multifunctional IO pin. It can also perform
 	  basic GPIO functions, such as reading the current value of a pin.
 
-config PINCTRL_NPCM8XX
-  bool "Nuvoton NPCM8xx pin control driver"
-  depends on DM && PINCTRL_GENERIC && ARCH_NPCM8XX
-  default y
-  help
-    Support MFSEL control on Nuvoton NPCM8xx SoC.
-
-config PINCTRL_NPCM7XX
-  bool "Nuvoton NPCM7xx pin control driver"
-  depends on DM && PINCTRL_GENERIC && ARCH_NPCM750
-  default y
-  help
-    Support MFSEL control on Nuvoton NPCM8xx SoC.
-
 endif
 
 source "drivers/pinctrl/broadcom/Kconfig"
@@ -328,5 +314,6 @@ source "drivers/pinctrl/nxp/Kconfig"
 source "drivers/pinctrl/renesas/Kconfig"
 source "drivers/pinctrl/rockchip/Kconfig"
 source "drivers/pinctrl/uniphier/Kconfig"
+source "drivers/pinctrl/nuvoton/Kconfig"
 
 endmenu
