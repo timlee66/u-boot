@@ -8,7 +8,6 @@
 #include <env.h>
 #include <fdtdec.h>
 #include <asm/arch/cpu.h>
-#include <asm/arch/clock.h>
 #include <asm/arch/espi.h>
 #include <asm/arch/gcr.h>
 #include <asm/gpio.h>
