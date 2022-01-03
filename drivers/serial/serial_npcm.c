@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (c) 2021 Nuvoton Technology.
+ * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
 #include <common.h>
 #include <dm.h>
 #include <serial.h>
+#include <clk.h>
 #include <asm/arch/uart.h>
 
 struct npcm_serial_plat {
@@ -90,9 +91,23 @@ static int npcm_serial_probe(struct udevice *dev)
 {
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
 	struct npcm_uart *const uart = plat->reg;
+	struct clk clk;
+	u32 freq;
+	int ret;
 
 	plat->reg = (struct npcm_uart *)dev_read_addr_ptr(dev);
-	plat->uart_clk = dev_read_u32_default(dev, "clock-frequency", 0);
+	freq = dev_read_u32_default(dev, "clock-frequency", 0);
+
+	ret = clk_get_by_index(dev, 0, &clk);
+	if (ret < 0) {
+		printf("Cannot get clk for uart\n");
+		return ret;
+	}
+	ret = clk_set_rate(&clk, freq);
+	if (ret < 0)
+		return ret;
+	plat->uart_clk = ret;
+
 	npcm_serial_init(uart);
 
 	return 0;
