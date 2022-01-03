@@ -41,7 +41,7 @@
 	};
 
 	clks: clock-control@f0801000 {
-		compatible = "nuvoton,npcm845-clock";
+		compatible = "nuvoton,npcm845-clk";
 		#clock-cells = <1>;
 		reg = <0x0 0xf0801000 0x0 0x70>;
 		u-boot,dm-pre-reloc;
@@ -50,7 +50,7 @@
 	serial0: serial0@f0000000 {
 		compatible = "nuvoton,npcm845-uart";
 		reg = <0x0 0xf0000000 0x0 0x20>;
-		clocks = <&clks CLK_UART>;
+		clocks = <&clks CLK_UART1>;
 		clock-frequency = <24000000>;
 		status = "disabled";
 	};
@@ -58,7 +58,7 @@
 	serial1: serial1@f0001000 {
 		compatible = "nuvoton,npcm845-uart";
 		reg = <0x0 0xf0001000 0x0 0x20>;
-		clocks = <&clks CLK_UART>;
+		clocks = <&clks CLK_UART1>;
 		clock-frequency = <24000000>;
 		status = "disabled";
 	};
@@ -66,7 +66,7 @@
 	serial2: serial2@f0002000 {
 		compatible = "nuvoton,npcm845-uart";
 		reg = <0x0 0xf0002000 0x0 0x20>;
-		clocks = <&clks CLK_UART>;
+		clocks = <&clks CLK_UART1>;
 		clock-frequency = <24000000>;
 		status = "disabled";
 	};
@@ -74,7 +74,7 @@
 	serial3: serial3@f0003000 {
 		compatible = "nuvoton,npcm845-uart";
 		reg = <0x0 0xf0003000 0x0 0x20>;
-		clocks = <&clks CLK_UART>;
+		clocks = <&clks CLK_UART1>;
 		clock-frequency = <24000000>;
 		status = "disabled";
 	};
@@ -82,7 +82,7 @@
 	serial4: serial4@f0004000 {
 		compatible = "nuvoton,npcm845-uart";
 		reg = <0x0 0xf0004000 0x0 0x20>;
-		clocks = <&clks CLK_UART>;
+		clocks = <&clks CLK_UART2>;
 		clock-frequency = <24000000>;
 		status = "disabled";
 	};
@@ -90,7 +90,7 @@
 	serial5: serial5@f0005000 {
 		compatible = "nuvoton,npcm845-uart";
 		reg = <0x0 0xf0005000 0x0 0x20>;
-		clocks = <&clks CLK_UART>;
+		clocks = <&clks CLK_UART2>;
 		clock-frequency = <24000000>;
 		status = "disabled";
 	};
@@ -98,7 +98,7 @@
 	serial6: serial6@f0006000 {
 		compatible = "nuvoton,npcm845-uart";
 		reg = <0x0 0xf0006000 0x0 0x20>;
-		clocks = <&clks CLK_UART>;
+		clocks = <&clks CLK_UART2>;
 		clock-frequency = <24000000>;
 		status = "disabled";
 	};
@@ -165,7 +165,7 @@
 	sdhci: sdhci@f0842000 {
 		compatible = "nuvoton,npcm845-sdhci";
 		reg = <0x0 0xf0842000 0x0 0x2000>;
-		clocks = <&clks CLK_EMMC>;
+		clocks = <&clks CLK_SDHC>;
 		clock-frequency = <50000000>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&mmc_pins
