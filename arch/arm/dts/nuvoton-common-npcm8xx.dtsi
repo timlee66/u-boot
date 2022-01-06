@@ -14,24 +14,6 @@
 		compatible = "nuvoton,npcm845-gcr", "syscon",
 			"simple-mfd";
 		reg = <0x0 0xf0800000 0x0 0x1000>;
-		usbphy1: usbphy1 {
-			compatible = "nuvoton,npcm845-usb-phy";
-			#phy-cells = <1>;
-			resets = <&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_USBPHY1>;
-			status = "disabled";
-		};
-		usbphy2: usbphy2 {
-			compatible = "nuvoton,npcm845-usb-phy";
-			#phy-cells = <1>;
-			resets =<&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_USBPHY2>;
-			status = "disabled";
-		};
-		usbphy3: usbphy3 {
-			compatible = "nuvoton,npcm845-usb-phy";
-			#phy-cells = <1>;
-			resets =<&rstc NPCM8XX_RESET_IPSRST4 NPCM8XX_RESET_USBPHY3>;
-			status = "disabled";
-		};
 	};
 
 	rstc: rstc@f0801000 {
@@ -318,6 +300,34 @@
 		snps,reset-delays-us = <0 10000 1000000>;
 		snps,reset-gpio = <&gpio2 29 GPIO_ACTIVE_LOW>;    /* gpio93 */
 		status = "disabled";
+	};
+
+	usbphy {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		syscon = <&gcr>;
+		usbphy1: usbphy1 {
+			compatible = "nuvoton,npcm845-usb-phy";
+			#phy-cells = <1>;
+			reg = <1>;
+			resets = <&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_USBPHY1>;
+			status = "disabled";
+		};
+		usbphy2: usbphy2 {
+			compatible = "nuvoton,npcm845-usb-phy";
+			#phy-cells = <1>;
+			reg = <2>;
+			resets =<&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_USBPHY2>;
+			status = "disabled";
+		};
+		usbphy3: usbphy3 {
+			compatible = "nuvoton,npcm845-usb-phy";
+			#phy-cells = <1>;
+			reg = <3>;
+			resets =<&rstc NPCM8XX_RESET_IPSRST4 NPCM8XX_RESET_USBPHY3>;
+			status = "disabled";
+		};
 	};
 
 	usb_dev0: usb-dev0@f0830100 {

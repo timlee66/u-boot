@@ -265,9 +265,9 @@
 };
 &usb_eh1 {
 	status = "okay";
-	phys = <&usbphy2 5>;
+	phys = <&usbphy2 3>;
 };
 &usb_eh2 {
 	status = "okay";
-	phys = <&usbphy3 6>;
+	phys = <&usbphy3 4>;
 };
