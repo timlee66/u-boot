@@ -13,7 +13,7 @@
 #include <linux/delay.h>
 #include <linux/log2.h>
 #include <linux/kernel.h>
-#include <dt-bindings/clock/npcm845-clock.h>
+#include <dt-bindings/clock/nuvoton,npcm8xx-clock.h>
 
 /* Register offsets */
 #define CLKSEL		0x04
@@ -61,7 +61,6 @@
 #define PRE_DIV2	BIT(3)	/* Pre divider 2 */
 #define POST_DIV2	BIT(4)	/* Post divider 2 */
 
-#define REFCLK_25M	25000000UL
 #define NONE		(-1)
 
 struct npcm_clk_priv {
@@ -84,33 +83,33 @@ struct npcm_clk_map {
 	u8 clksel;
 };
 
-#define CLK_MAP_SIZE	3
+#define NPCM8XX_CLK_MAP_SIZE	3
 /* clksel to clkid mapping */
-static const struct npcm_clk_map npcm8xx_cpu_clksel_map[CLK_MAP_SIZE] = {
-	{CLK_PLL0,	CPUCKSEL_PLL0, },
-	{CLK_PLL1,	CPUCKSEL_PLL1, },
-	{CLK_PLL2,	CPUCKSEL_PLL2, },
+static const struct npcm_clk_map npcm8xx_cpu_clksel_map[NPCM8XX_CLK_MAP_SIZE] = {
+	{NPCM8XX_CLK_PLL0,	CPUCKSEL_PLL0, },
+	{NPCM8XX_CLK_PLL1,	CPUCKSEL_PLL1, },
+	{NPCM8XX_CLK_PLL2,	CPUCKSEL_PLL2, },
 };
 
-static const struct npcm_clk_map npcm8xx_clksel_map[CLK_MAP_SIZE] = {
-	{CLK_PLL0,	CKSEL_PLL0, },
-	{CLK_PLL1,	CKSEL_PLL1, },
-	{CLK_PLL2DIV2,	CKSEL_PLL2, },
+static const struct npcm_clk_map npcm8xx_clksel_map[NPCM8XX_CLK_MAP_SIZE] = {
+	{NPCM8XX_CLK_PLL0,	CKSEL_PLL0, },
+	{NPCM8XX_CLK_PLL1,	CKSEL_PLL1, },
+	{NPCM8XX_CLK_PLL2DIV2,	CKSEL_PLL2, },
 };
 
-/* npcm8xx clock table, Fout = ((Fin / PRE_DIV2) / div) / POST_DIV2 */
+/* npcm8xx clock table, Fout = ((Fin / PRE_DIV) / div) / POST_DIV */
 static struct npcm_clk npcm8xx_clks[] = {
-	/* id, parent id,		DIV reg, mask		SEL mask, val,	flag */
-	{CLK_PLL0, CLK_REFCLK,		PLLCON0, NONE,		NONE, NONE, FIXED_SRC },
-	{CLK_PLL1, CLK_REFCLK,		PLLCON1, NONE,		NONE, NONE, FIXED_SRC },
-	{CLK_PLL2, CLK_REFCLK,		PLLCON2, NONE,		NONE, NONE, FIXED_SRC },
-	{CLK_PLL2DIV2, CLK_REFCLK,	PLLCON2, NONE,		NONE, NONE, FIXED_SRC | POST_DIV2 },
-	{CLK_AHB, NONE,			CLKDIV1, CLK4DIV,	CPUCKSEL, NONE, DIV_TYPE1 | PRE_DIV2 },
-	{CLK_APB2, CLK_AHB,		CLKDIV2, APB2CKDIV,	NONE, NONE, FIXED_SRC | DIV_TYPE2 },
-	{CLK_APB5, CLK_AHB,		CLKDIV2, APB5CKDIV,	NONE, NONE, FIXED_SRC | DIV_TYPE2 },
-	{CLK_UART1, CLK_PLL2DIV2,	CLKDIV1, UARTDIV1,	UARTCKSEL, CKSEL_PLL2, DIV_TYPE1 },
-	{CLK_UART2, CLK_PLL2DIV2,	CLKDIV3, UARTDIV2,	UARTCKSEL, CKSEL_PLL2, DIV_TYPE1 },
-	{CLK_SDHC, CLK_PLL0,		CLKDIV1, MMCCKDIV,	SDCKSEL, CKSEL_PLL0, DIV_TYPE1 },
+	/* id, parent id,				DIV reg, mask		SEL mask, val,	flag */
+	{NPCM8XX_CLK_PLL0, NPCM8XX_CLK_REFCLK,		PLLCON0, NONE,		NONE, NONE, FIXED_SRC },
+	{NPCM8XX_CLK_PLL1, NPCM8XX_CLK_REFCLK,		PLLCON1, NONE,		NONE, NONE, FIXED_SRC },
+	{NPCM8XX_CLK_PLL2, NPCM8XX_CLK_REFCLK,		PLLCON2, NONE,		NONE, NONE, FIXED_SRC },
+	{NPCM8XX_CLK_PLL2DIV2, NPCM8XX_CLK_REFCLK,	PLLCON2, NONE,		NONE, NONE, FIXED_SRC | POST_DIV2 },
+	{NPCM8XX_CLK_AHB, NONE,			CLKDIV1, CLK4DIV,	CPUCKSEL, NONE, DIV_TYPE1 | PRE_DIV2 },
+	{NPCM8XX_CLK_APB2, NPCM8XX_CLK_AHB,		CLKDIV2, APB2CKDIV,	NONE, NONE, FIXED_SRC | DIV_TYPE2 },
+	{NPCM8XX_CLK_APB5, NPCM8XX_CLK_AHB,		CLKDIV2, APB5CKDIV,	NONE, NONE, FIXED_SRC | DIV_TYPE2 },
+	{NPCM8XX_CLK_UART, NPCM8XX_CLK_PLL2DIV2,	CLKDIV1, UARTDIV1,	UARTCKSEL, CKSEL_PLL2, DIV_TYPE1 },
+	{NPCM8XX_CLK_UART2, NPCM8XX_CLK_PLL2DIV2,	CLKDIV3, UARTDIV2,	UARTCKSEL, CKSEL_PLL2, DIV_TYPE1 },
+	{NPCM8XX_CLK_SDHC, NPCM8XX_CLK_PLL0,		CLKDIV1, MMCCKDIV,	SDCKSEL, CKSEL_PLL0, DIV_TYPE1 },
 };
 
 static int clksel_to_clkid(u8 clksel, u32 mask)
@@ -123,7 +122,7 @@ static int clksel_to_clkid(u8 clksel, u32 mask)
 	else
 		map = &npcm8xx_clksel_map[0];
 
-	for (i = 0; i < CLK_MAP_SIZE; i++) {
+	for (i = 0; i < NPCM8XX_CLK_MAP_SIZE; i++) {
 		if (map[i].clksel == clksel)
 			return map[i].clkid;
 	}
@@ -256,19 +255,27 @@ static ulong npcm_clk_get_pll_rate(struct npcm_clk_priv *priv, u32 id)
 static ulong npcm_clk_get_rate(struct clk *clk)
 {
 	struct npcm_clk_priv *priv = dev_get_priv(clk->dev);
+	struct clk refclk;
+	int ret;
 
 	debug("%s: id %lu\n", __func__, clk->id);
 	switch (clk->id) {
-	case CLK_REFCLK:
-		return REFCLK_25M;
-	case CLK_PLL0:
-	case CLK_PLL1:
-	case CLK_PLL2:
-	case CLK_PLL2DIV2:
+	case NPCM8XX_CLK_REFCLK:
+		ret = clk_get_by_name(priv->dev, "refclk", &refclk);
+		if (!ret)
+			return clk_get_rate(&refclk);
+		else
+			return ret;
+	case NPCM8XX_CLK_PLL0:
+	case NPCM8XX_CLK_PLL1:
+	case NPCM8XX_CLK_PLL2:
+	case NPCM8XX_CLK_PLL2DIV2:
 		return npcm_clk_get_pll_rate(priv, clk->id);
-	case CLK_AHB:
-	case CLK_APB2:
-	case CLK_APB5:
+	case NPCM8XX_CLK_AHB:
+	case NPCM8XX_CLK_APB2:
+	case NPCM8XX_CLK_APB5:
+	case NPCM8XX_CLK_UART:
+	case NPCM8XX_CLK_UART2:
 		return npcm_clk_get_fout(priv, clk->id);
 	default:
 		return -ENOSYS;
@@ -282,9 +289,9 @@ static ulong npcm_clk_set_rate(struct clk *clk, ulong rate)
 
 	debug("%s: id %lu, rate %lu\n", __func__, clk->id, rate);
 	switch (clk->id) {
-	case CLK_SDHC:
-	case CLK_UART1:
-	case CLK_UART2:
+	case NPCM8XX_CLK_SDHC:
+	case NPCM8XX_CLK_UART:
+	case NPCM8XX_CLK_UART2:
 		fout =  npcm_clk_set_fout(priv, clk->id, rate);
 		return fout;
 	default:
@@ -294,7 +301,7 @@ static ulong npcm_clk_set_rate(struct clk *clk, ulong rate)
 
 static int npcm_clk_request(struct clk *clk)
 {
-	if (clk->id >= CLK_COUNT)
+	if (clk->id >= NPCM8XX_NUM_CLOCKS)
 		return -EINVAL;
 
 	return 0;
@@ -330,4 +337,5 @@ U_BOOT_DRIVER(clk_npcm) = {
 	.ops            = &npcm_clk_ops,
 	.priv_auto	= sizeof(struct npcm_clk_priv),
 	.probe          = npcm_clk_probe,
+	.flags = DM_FLAG_PRE_RELOC,
 };

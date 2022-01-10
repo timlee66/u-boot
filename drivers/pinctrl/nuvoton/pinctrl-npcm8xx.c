@@ -288,7 +288,7 @@ static const unsigned int uart2_pins[] = { 48, 49, 50, 51, 52, 53, 54, 55 };
 static const unsigned int bu2_pins[] = { 96, 97};
 
 /* RGMII 1 MD interface pin group */
-static const unsigned int sg1mdio_pins[] = { 108, 109 };
+static const unsigned int rg1mdio_pins[] = { 108, 109 };
 
 /* RGMII 2 pin group */
 static const unsigned int rg2_pins[] = { 110, 111, 112, 113, 208, 209, 210, 211, 212,
@@ -565,7 +565,7 @@ struct npcm8xx_group {
 	NPCM8XX_GRP(pwm10), \
 	NPCM8XX_GRP(pwm11), \
 	NPCM8XX_GRP(bu2), \
-	NPCM8XX_GRP(sg1mdio), \
+	NPCM8XX_GRP(rg1mdio), \
 	NPCM8XX_GRP(rg2), \
 	NPCM8XX_GRP(rg2refck), \
 	NPCM8XX_GRP(rg2mdio), \
@@ -815,7 +815,7 @@ NPCM8XX_SFUNC(pwm9);
 NPCM8XX_SFUNC(pwm10);
 NPCM8XX_SFUNC(pwm11);
 NPCM8XX_SFUNC(bu2);
-NPCM8XX_SFUNC(sg1mdio);
+NPCM8XX_SFUNC(rg1mdio);
 NPCM8XX_SFUNC(rg2);
 NPCM8XX_SFUNC(rg2refck);
 NPCM8XX_SFUNC(rg2mdio);
@@ -1040,7 +1040,7 @@ static struct npcm8xx_func npcm8xx_funcs[] = {
 	NPCM8XX_MKFUNC(pwm10),
 	NPCM8XX_MKFUNC(pwm11),
 	NPCM8XX_MKFUNC(bu2),
-	NPCM8XX_MKFUNC(sg1mdio),
+	NPCM8XX_MKFUNC(rg1mdio),
 	NPCM8XX_MKFUNC(rg2),
 	NPCM8XX_MKFUNC(rg2refck),
 	NPCM8XX_MKFUNC(rg2mdio),
@@ -1244,8 +1244,8 @@ static const struct npcm8xx_pincfg pincfgs[] = {
 	NPCM8XX_PINCFG(105,	vgadig, MFSEL7, 29,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		0),
 	NPCM8XX_PINCFG(106,	i3c5, MFSEL3, 22,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		SLEW),
 	NPCM8XX_PINCFG(107,	i3c5, MFSEL3, 22,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		SLEW),
-	NPCM8XX_PINCFG(108,	sg1mdio, MFSEL4, 21,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		0),
-	NPCM8XX_PINCFG(109,	sg1mdio, MFSEL4, 21,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		0),
+	NPCM8XX_PINCFG(108,	rg1mdio, MFSEL4, 21,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		0),
+	NPCM8XX_PINCFG(109,	rg1mdio, MFSEL4, 21,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		0),
 	NPCM8XX_PINCFG(110,	rg2, MFSEL4, 24,	ddr, MFSEL3, 26,	rmii3, MFSEL5, 11,	none, NONE, 0,		none, NONE, 0,		0),
 	NPCM8XX_PINCFG(111,	rg2, MFSEL4, 24,	ddr, MFSEL3, 26,	rmii3, MFSEL5, 11,	none, NONE, 0,		none, NONE, 0,		0),
 	NPCM8XX_PINCFG(112,	rg2, MFSEL4, 24,	ddr, MFSEL3, 26,	none, NONE, 0,		none, NONE, 0,		none, NONE, 0,		0),

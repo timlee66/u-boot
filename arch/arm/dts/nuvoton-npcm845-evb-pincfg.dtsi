@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: GPL-2.0
+// Copyright (c) 2018 Nuvoton Technology
+
+/ {
+	pinctrl: pinctrl@f0800000 {
+		gpio91o_pins: gpio91o-pins {
+			pins = "GPIO91/R2_MDC/CP1_GPIO6/TP_GPIO0";
+			bias-disable;
+			output-high;
+		};
+		gpio92o_pins: gpio92o-pins {
+			pins = "GPIO92/R2_MDIO/CP1_GPIO7/TP_GPIO1";
+			bias-disable;
+			output-high;
+		};
+	};
+};
