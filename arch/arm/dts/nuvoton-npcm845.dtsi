@@ -71,7 +71,7 @@
 	};
 
 	ahb {
-		udc0:udc@f0830000 {
+		udc0:udc@f0830100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0830100 0x0 0x100
 			       0x0 0xfffb0000 0x0 0x800>;
@@ -82,7 +82,7 @@
 			status = "disable";
 		};
 
-		udc1:udc@f0831000 {
+		udc1:udc@f0831100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0831100 0x0 0x100
 			       0x0 0xfffb0800 0x0 0x800>;
@@ -93,7 +93,7 @@
 			status = "disable";
 		};
 
-		udc2:udc@f0832000 {
+		udc2:udc@f0832100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0832100 0x0 0x100
 			       0x0 0xfffb1000 0x0 0x800>;
@@ -104,7 +104,7 @@
 			status = "disable";
 		};
 
-		udc3:udc@f0833000 {
+		udc3:udc@f0833100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0833100 0x0 0x100
 			       0x0 0xfffb1800 0x0 0x800>;
@@ -115,7 +115,7 @@
 			status = "disable";
 		};
 
-		udc4:udc@f0834000 {
+		udc4:udc@f0834100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0834100 0x0 0x100
 			       0x0 0xfffb2000 0x0 0x800>;
@@ -126,7 +126,7 @@
 			status = "disable";
 		};
 
-		udc5:udc@f0835000 {
+		udc5:udc@f0835100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0835100 0x0 0x100
 			       0x0 0xfffb2800 0x0 0x800>;
@@ -137,7 +137,7 @@
 			status = "disable";
 		};
 
-		udc6:udc@f0836000 {
+		udc6:udc@f0836100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0836100 0x0 0x100
 			       0x0 0xfffb3000 0x0 0x800>;
@@ -148,7 +148,7 @@
 			status = "disable";
 		};
 
-		udc7:udc@f0837000 {
+		udc7:udc@f0837100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0837100 0x0 0x100
 			       0x0 0xfffb3800 0x0 0x800>;
@@ -159,7 +159,7 @@
 			status = "disable";
 		};
 
-		udc8:udc@f0838000 {
+		udc8:udc@f0838100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0838100 0x0 0x100
 			       0x0 0xfffb4000 0x0 0x800>;
@@ -170,7 +170,7 @@
 			status = "disable";
 		};
 
-		udc9:udc@f0839000 {
+		udc9:udc@f0839100 {
 			compatible = "nuvoton,npcm845-udc";
 			reg = <0x0 0xf0839100 0x0 0x100
 			       0x0 0xfffb4800 0x0 0x800>;

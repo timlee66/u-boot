@@ -161,21 +161,21 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			syscon = <&gcr>;
-			usbphy1: usbphy1 {
+			usbphy1: usbphy@1 {
 				compatible = "nuvoton,npcm845-usb-phy";
 				#phy-cells = <1>;
 				reg = <1>;
 				resets = <&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_USBPHY1>;
 				status = "disabled";
 			};
-			usbphy2: usbphy2 {
+			usbphy2: usbphy@2 {
 				compatible = "nuvoton,npcm845-usb-phy";
 				#phy-cells = <1>;
 				reg = <2>;
 				resets =<&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_USBPHY2>;
 				status = "disabled";
 			};
-			usbphy3: usbphy3 {
+			usbphy3: usbphy@3 {
 				compatible = "nuvoton,npcm845-usb-phy";
 				#phy-cells = <1>;
 				reg = <3>;
@@ -550,6 +550,70 @@
 				clocks = <&clk NPCM8XX_CLK_APB4>;
 				reg = <0x188000 0x5C>;
 				#thermal-sensor-cells = <1>;
+			};
+
+			gpio0: gpio0@10000 {
+				compatible = "nuvoton,npcm845-gpio";
+				reg = <0x10000 0xB0>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				gpio-bank-name = "gpio0";
+			};
+
+			gpio1: gpio1@11000 {
+				compatible = "nuvoton,npcm845-gpio";
+				reg = <0x11000 0xB0>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				gpio-bank-name = "gpio1";
+			};
+
+			gpio2: gpio2@12000 {
+				compatible = "nuvoton,npcm845-gpio";
+				reg = <0x12000 0xB0>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				gpio-bank-name = "gpio2";
+			};
+
+			gpio3: gpio3@13000 {
+				compatible = "nuvoton,npcm845-gpio";
+				reg = <0x13000 0xB0>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				gpio-bank-name = "gpio3";
+			};
+
+			gpio4: gpio4@14000 {
+				compatible = "nuvoton,npcm845-gpio";
+				reg = <0x14000 0xB0>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				gpio-bank-name = "gpio4";
+			};
+
+			gpio5: gpio5@15000 {
+				compatible = "nuvoton,npcm845-gpio";
+				reg = <0x15000 0xB0>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				gpio-bank-name = "gpio5";
+			};
+
+			gpio6: gpio6@16000 {
+				compatible = "nuvoton,npcm845-gpio";
+				reg = <0x16000 0xB0>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				gpio-bank-name = "gpio6";
+			};
+
+			gpio7: gpio7@17000 {
+				compatible = "nuvoton,npcm845-gpio";
+				reg = <0x17000 0xB0>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				gpio-bank-name = "gpio7";
 			};
 
 			sgpio1: sgpio@101000 {
@@ -1097,70 +1161,6 @@
 				};
 			};
 		};
-	};
-
-	gpio0: gpio0@f0010000 {
-		compatible = "nuvoton,npcm845-gpio";
-		reg = <0x0 0xf0010000 0x0 0x1000>;
-		#gpio-cells = <2>;
-		gpio-controller;
-		gpio-bank-name = "gpio0";
-	};
-
-	gpio1: gpio1@f0011000 {
-		compatible = "nuvoton,npcm845-gpio";
-		reg = <0x0 0xf0011000 0x0 0x1000>;
-		#gpio-cells = <2>;
-		gpio-controller;
-		gpio-bank-name = "gpio1";
-	};
-
-	gpio2: gpio2@f0012000 {
-		compatible = "nuvoton,npcm845-gpio";
-		reg = <0x0 0xf0012000 0x0 0x1000>;
-		#gpio-cells = <2>;
-		gpio-controller;
-		gpio-bank-name = "gpio2";
-	};
-
-	gpio3: gpio3@f0013000 {
-		compatible = "nuvoton,npcm845-gpio";
-		reg = <0x0 0xf0013000 0x0 0x1000>;
-		#gpio-cells = <2>;
-		gpio-controller;
-		gpio-bank-name = "gpio3";
-	};
-
-	gpio4: gpio4@f0014000 {
-		compatible = "nuvoton,npcm845-gpio";
-		reg = <0x0 0xf0014000 0x0 0x1000>;
-		#gpio-cells = <2>;
-		gpio-controller;
-		gpio-bank-name = "gpio4";
-	};
-
-	gpio5: gpio5@f0015000 {
-		compatible = "nuvoton,npcm845-gpio";
-		reg = <0x0 0xf0015000 0x0 0x1000>;
-		#gpio-cells = <2>;
-		gpio-controller;
-		gpio-bank-name = "gpio5";
-	};
-
-	gpio6: gpio6@f0016000 {
-		compatible = "nuvoton,npcm845-gpio";
-		reg = <0x0 0xf0016000 0x0 0x1000>;
-		#gpio-cells = <2>;
-		gpio-controller;
-		gpio-bank-name = "gpio6";
-	};
-
-	gpio7: gpio7@f0017000 {
-		compatible = "nuvoton,npcm845-gpio";
-		reg = <0x0 0xf0017000 0x0 0x1000>;
-		#gpio-cells = <2>;
-		gpio-controller;
-		gpio-bank-name = "gpio7";
 	};
 
 	pinctrl: pinctrl@f0800000 {
