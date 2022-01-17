@@ -4,32 +4,22 @@
  */
 
 #include <common.h>
-#include <clk.h>
 #include <dm.h>
 #include <serial.h>
+#include <clk.h>
+//#include <asm/arch/uart.h>
 
-struct npcm_uart {
-	union {
-		u32	rbr;
-		u32	thr;
-		u32	dll;
-	};
-	union {
-		u32	ier;
-		u32	dlm;
-	};
-	union {
-		u32	iir;
-		u32	fcr;
-	};
-	u32	lcr;
-	u32	mcr;
-	u32	lsr;
-	u32	msr;
-	u32	tor;
-};
+/* Register offsets */
+#define RBR	0x00	/* Receive Buffer Register */
+#define THR	0x00	/* Transmit Holding Register */
+#define IER	0x04	/* Interrupt Enable Register */
+#define FCR	0x08	/* FIFO Control Register */
+#define LCR	0x0C	/* Line Control Register */
+#define LSR	0x14	/* Line Status Control Register */
 
+/* Register fields */
 #define LCR_WLS_8BITS	3
+//#define	FCR_RFITL_4B	(4 << 4)
 #define	FCR_TFR		BIT(2)
 #define	FCR_RFR		BIT(1)
 #define	FCR_FME		BIT(0)
@@ -38,30 +28,47 @@ struct npcm_uart {
 #define	LCR_DLAB	BIT(7)
 
 struct npcm_serial_plat {
-	struct npcm_uart *reg;
+	//struct npcm_uart *reg;
+	void __iomem *base;
 	u32 uart_clk;
 };
+#if 0
+static int npcm_serial_init(struct npcm_uart *uart)
+{
+	//u8 val;
 
+	/* Disable all UART interrupt */
+	writeb(0, &uart->ier);
+
+	/* Set port for 8 bit, 1 stop, no parity */
+	//val = LCR_WLS_8b;
+	writeb(LCR_WLS_8BITS, &uart->lcr);
+
+	/* Reset RX, TX FIFO */
+	//val = FCR_FME | FCR_RFR | FCR_TFR | FCR_RFITL_4B;
+	writeb(FCR_FME | FCR_RFR | FCR_TFR, &uart->fcr);
+
+	return 0;
+}
+#endif
 static int npcm_serial_pending(struct udevice *dev, bool input)
 {
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
-	struct npcm_uart *uart = plat->reg;
 
 	if (input)
-		return (readb(&uart->lsr) & LSR_RFDR);
+		return (readb(plat->reg + LSR) & LSR_RFDR);
 	else
-		return !(readb(&uart->lsr) & LSR_THRE);
+		return !(readb(plat->reg + LSR) & LSR_THRE);
 }
 
 static int npcm_serial_putc(struct udevice *dev, const char ch)
 {
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
-	struct npcm_uart *uart = plat->reg;
 
-	while (!(readb(&uart->lsr) & LSR_THRE))
+	while (!(readb(plat->reg + LSR) & LSR_THRE))
 		;
 
-	writeb(ch, &uart->thr);
+	writeb(ch, plat->reg + THR);
 
 	return 0;
 }
@@ -69,27 +76,25 @@ static int npcm_serial_putc(struct udevice *dev, const char ch)
 static int npcm_serial_getc(struct udevice *dev)
 {
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
-	struct npcm_uart *uart = plat->reg;
 
-	while (!(readb(&uart->lsr) & LSR_RFDR))
+	while (!(readb(plat->reg + LSR) & LSR_RFDR))
 		;
 
-	return readb(&uart->rbr);
+	return (readb(plat->reg + RBR);
 }
 
 static int npcm_serial_setbrg(struct udevice *dev, int baudrate)
 {
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
-	struct npcm_uart *uart = plat->reg;
-	u16 divisor;
+	u32 divisor;
 
 	/* BaudOut = UART Clock  / (16 * [Divisor + 2]) */
 	divisor = DIV_ROUND_CLOSEST(plat->uart_clk, 16 * baudrate + 2) - 2;
 
-	setbits_8(&uart->lcr, LCR_DLAB);
+	setbits_8(plat->reg + LCR, LCR_DLAB);
 	writeb(divisor & 0xff, &uart->dll);
 	writeb(divisor >> 8, &uart->dlm);
-	clrbits_8(&uart->lcr, LCR_DLAB);
+	clrbits_8(plat->reg + LCR, LCR_DLAB);
 
 	return 0;
 }
@@ -97,7 +102,7 @@ static int npcm_serial_setbrg(struct udevice *dev, int baudrate)
 static int npcm_serial_probe(struct udevice *dev)
 {
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
-	struct npcm_uart *uart = plat->reg;
+	//struct npcm_uart *const uart = plat->reg;
 	struct clk clk;
 	u32 freq;
 	int ret;
@@ -116,13 +121,13 @@ static int npcm_serial_probe(struct udevice *dev)
 	plat->uart_clk = ret;
 
 	/* Disable all interrupt */
-	writeb(0, &uart->ier);
+	writeb(0, plat->reg + IER);
 
 	/* Set 8 bit, 1 stop, no parity */
-	writeb(LCR_WLS_8BITS, &uart->lcr);
+	writeb(LCR_WLS_8BITS, plat->reg + LCR);
 
 	/* Reset RX/TX FIFO */
-	writeb(FCR_FME | FCR_RFR | FCR_TFR, &uart->fcr);
+	writeb(FCR_FME | FCR_RFR | FCR_TFR, plat->reg + FCR);
 
 	return 0;
 }
