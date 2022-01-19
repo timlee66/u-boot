@@ -35,18 +35,16 @@ enum reset_type npcm8xx_reset_reason(void)
 	if (value == 0)
 		value = ~readl(&gcr->intcr2);
 
-	value &= RESSR_MASK;
-
 	if (value & CORST)
-		type = CORST;
+		type = CORST_TYPE;
 	if (value & WD0RST)
-		type = WD0RST;
+		type = WD0RST_TYPE;
 	if (value & WD1RST)
-		type = WD1RST;
+		type = WD1RST_TYPE;
 	if (value & WD2RST)
-		type = WD2RST;
+		type = WD2RST_TYPE;
 	if (value & PORST)
-		type = PORST;
+		type = PORST_TYPE;
 
 	return type;
 }

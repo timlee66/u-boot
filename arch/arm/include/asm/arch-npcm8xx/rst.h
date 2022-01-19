@@ -16,16 +16,15 @@ enum reset_type {
 	UNKNOWN_TYPE  = 0x10,
 };
 
-#define PORST 0x80000000
-#define CORST 0x40000000
-#define WD0RST 0x20000000
-#define SWR1ST 0x10000000
-#define SWR2ST 0x08000000
-#define SWR3ST 0x04000000
-#define SWR4ST 0x02000000
-#define WD1RST 0x01000000
-#define WD2RST 0x00800000
-#define RESSR_MASK 0xff800000
+#define PORST		BIT(31)
+#define CORST		BIT(30)
+#define WD0RST		BIT(29)
+#define SW1RST		BIT(28)
+#define SW2RST		BIT(27)
+#define SW3RST		BIT(26)
+#define TIPRST		BIT(25)
+#define WD1RST		BIT(24)
+#define WD2RST		BIT(23)
 
 enum reset_type npcm8xx_reset_reason(void);
 
