@@ -15,6 +15,7 @@
 #include <asm/mach-types.h>
 #include <linux/delay.h>
 
+#define SR_MII_CTRL_SWR_BIT15   15
 DECLARE_GLOBAL_DATA_PTR;
 
 static void espi_config(u8 mode, u8 max_freq, u32 ch_supp)
@@ -63,6 +64,7 @@ static void arbel_eth_init(void)
 	struct npcm_gcr *gcr = (struct npcm_gcr *)(uintptr_t)npcm_get_base_gcr();
 	u32 val;
 	char *evb_ver;
+	unsigned int start;
 
 	/* Power voltage select setup */
 	val = readl(&gcr->vsrcr);
@@ -79,6 +81,20 @@ static void arbel_eth_init(void)
 		writel(readl(0xf001305) | 0x3000, 0xf001305c);
 		printf("EVB-X00 SGMII Work-Around\n");
 	}
+
+	/* SGMII PHY reset */
+	writew(0x1F00, 0xF07801FE); /* Get access to 0x3E... (SR_MII_CTRL) */
+	writew(readw(0xF0780000) | (1 << SR_MII_CTRL_SWR_BIT15), 0xF0780000);
+	start = get_timer(0);
+
+	printf("SGMII PCS PHY reset wait\n");
+	while (readw(0xF0780000) & (1 << SR_MII_CTRL_SWR_BIT15)) {
+		if (get_timer(start) >= 3 * CONFIG_SYS_HZ) {
+			printf("SGMII PHY reset timeout\n");
+			return;
+		}
+		mdelay(1);
+	};
 }
 
 int board_init(void)
