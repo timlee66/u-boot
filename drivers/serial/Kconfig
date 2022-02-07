@@ -865,6 +865,15 @@ config MPC8XX_CONS
 	depends on MPC8xx
 	default y
 
+config NPCM_SERIAL
+	bool "UART driver for Nuvoton NPCM BMC"
+	depends on DM_SERIAL
+	help
+	  Select this to enable UART support for Nuvoton BMCs
+	  (NPCM7xx and NPCM8xx).
+	  The driver enables the onboard serial port with 8-N-1
+	  configuration.
+
 config XEN_SERIAL
 	bool "XEN serial support"
 	depends on XEN
@@ -919,11 +928,5 @@ config SYS_SDMR
 	hex "SDMR Value"
 	depends on MPC8XX_CONS
 	default 0
-
-config NPCM_SERIAL
-	depends on DM_SERIAL
-	bool "NUVOTON on-chip USB-UART"
-	help
-	  This driver supports the npcm UART.
 
 endmenu

@@ -10,36 +10,36 @@
 
 struct npcm_uart {
 	union {
-		u32	rbr;
-		u32	thr;
-		u32	dll;
+		u32	rbr;	/* Receive Buffer Register */
+		u32	thr;	/* Transmit Holding Register */
+		u32	dll;	/* Divisor Latch (Low Byte) Register */
 	};
 	union {
-		u32	ier;
-		u32	dlm;
+		u32	ier;	/* Interrupt Enable Register */
+		u32	dlm;	/* Divisor Latch (Low Byte) Register */
 	};
 	union {
-		u32	iir;
-		u32	fcr;
+		u32	iir;	/* Interrupt Identification Register */
+		u32	fcr;	/* FIFO Control Register */
 	};
-	u32	lcr;
-	u32	mcr;
-	u32	lsr;
-	u32	msr;
-	u32	tor;
+	u32	lcr;		/* Line Control Register */
+	u32	mcr;		/* Modem Control Register */
+	u32	lsr;		/* Line Status Control Register */
+	u32	msr;		/* Modem Status Register */
+	u32	tor;		/* Timeout Register */
 };
 
-#define LCR_WLS_8BITS	3
-#define	FCR_TFR		BIT(2)
-#define	FCR_RFR		BIT(1)
-#define	FCR_FME		BIT(0)
-#define	LSR_THRE	BIT(5)
-#define	LSR_RFDR	BIT(0)
-#define	LCR_DLAB	BIT(7)
+#define	LCR_WLS_8BITS	3	/* 8-bit word length select */
+#define	FCR_TFR		BIT(2)	/* TxFIFO reset */
+#define	FCR_RFR		BIT(1)	/* RxFIFO reset */
+#define	FCR_FME		BIT(0)	/* FIFO mode enable */
+#define	LSR_THRE	BIT(5)	/* Status of TxFIFO empty */
+#define	LSR_RFDR	BIT(0)	/* Status of RxFIFO data ready */
+#define	LCR_DLAB	BIT(7)	/* Divisor latch access bit */
 
 struct npcm_serial_plat {
 	struct npcm_uart *reg;
-	u32 uart_clk;
+	u32 uart_clk;		/* frequency of uart clock source */
 };
 
 static int npcm_serial_pending(struct udevice *dev, bool input)
@@ -48,9 +48,9 @@ static int npcm_serial_pending(struct udevice *dev, bool input)
 	struct npcm_uart *uart = plat->reg;
 
 	if (input)
-		return (readb(&uart->lsr) & LSR_RFDR);
+		return readb(&uart->lsr) & LSR_RFDR ? 1 : 0;
 	else
-		return !(readb(&uart->lsr) & LSR_THRE);
+		return readb(&uart->lsr) & LSR_THRE ? 0 : 1;
 }
 
 static int npcm_serial_putc(struct udevice *dev, const char ch)
@@ -58,8 +58,8 @@ static int npcm_serial_putc(struct udevice *dev, const char ch)
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
 	struct npcm_uart *uart = plat->reg;
 
-	while (!(readb(&uart->lsr) & LSR_THRE))
-		;
+	if (!(readb(&uart->lsr) & LSR_THRE))
+		return -EAGAIN;
 
 	writeb(ch, &uart->thr);
 
@@ -71,8 +71,8 @@ static int npcm_serial_getc(struct udevice *dev)
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
 	struct npcm_uart *uart = plat->reg;
 
-	while (!(readb(&uart->lsr) & LSR_RFDR))
-		;
+	if (!(readb(&uart->lsr) & LSR_RFDR))
+		return -EAGAIN;
 
 	return readb(&uart->rbr);
 }
@@ -83,7 +83,7 @@ static int npcm_serial_setbrg(struct udevice *dev, int baudrate)
 	struct npcm_uart *uart = plat->reg;
 	u16 divisor;
 
-	/* BaudOut = UART Clock  / (16 * [Divisor + 2]) */
+	/* BaudOut = UART Clock / (16 * [Divisor + 2]) */
 	divisor = DIV_ROUND_CLOSEST(plat->uart_clk, 16 * baudrate + 2) - 2;
 
 	setbits_8(&uart->lcr, LCR_DLAB);
@@ -106,10 +106,9 @@ static int npcm_serial_probe(struct udevice *dev)
 	freq = dev_read_u32_default(dev, "clock-frequency", 0);
 
 	ret = clk_get_by_index(dev, 0, &clk);
-	if (ret < 0) {
-		printf("Cannot get clk for uart\n");
+	if (ret < 0)
 		return ret;
-	}
+
 	ret = clk_set_rate(&clk, freq);
 	if (ret < 0)
 		return ret;
