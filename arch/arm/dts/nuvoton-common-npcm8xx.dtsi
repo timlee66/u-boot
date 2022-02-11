@@ -39,12 +39,6 @@
 			reg = <0x0 0xf0801000 0x0 0xC4>;
 		};
 
-		fuse:fuse@f0189000 {
-			compatible = "nuvoton,npcm845-fuse", "syscon",
-				"simple-mfd";
-			reg = <0x0 0xf0189000 0x0 0x1000>;
-		};
-
 		gic: interrupt-controller@dfff9000 {
 			compatible = "arm,gic-400";
 			reg = <0x0 0xdfff9000 0x0 0x1000>,
@@ -57,7 +51,6 @@
 			#address-cells = <0>;
 		};
 	};
-
 
 	ahb {
 		#address-cells = <2>;
@@ -139,23 +132,6 @@
 			status = "disabled";
 		};
 
-		pcie: pcie@e1000000 {
-			compatible = "nuvoton,npcm845-pcie";
-			device_type = "pci";
-			reg = <0x0 0xE1000000 0x0 0x1000>,
-				<0x0 0xE8000000 0x0 0x1000>;
-			bus-range = <0x0 0xF>;
-			#address-cells = <3>;
-			#size-cells = <2>;
-			#interrupt-cells = <1>;
- 			ranges = <0x01000000 0 0xe9000000 0x0 0xe9000000 0 0x01000000
-				  0x02000000 0 0xea000000 0x0 0xea000000 0 0x04000000>;
-			resets = <&rstc NPCM8XX_RESET_IPSRST4 NPCM8XX_RESET_PCIE_RC>;
-			interrupts = <GIC_SPI 127 IRQ_TYPE_LEVEL_HIGH>;
-			interrupt-map-mask = <0 0 0 7>;
-			interrupt-map = <0 0 0 1 &gic GIC_SPI 127 IRQ_TYPE_LEVEL_HIGH>;
-		};
-
 		usbphy {
 			compatible = "simple-bus";
 			#address-cells = <1>;
@@ -235,6 +211,14 @@
 			clock-names = "clk_ahb";
 		};
 
+		sha:sha@f085a000 {
+			compatible = "nuvoton,npcm845-sha";
+			reg = <0x0 0xf085a000 0x0 0x1000>;
+			status = "disabled";
+			clocks = <&clk NPCM8XX_CLK_AHB>;
+			clock-names = "clk_ahb";
+		};
+
 		fiu0: spi@fb000000 {
 			compatible = "nuvoton,npcm845-fiu";
 			#address-cells = <1>;
@@ -287,39 +271,6 @@
 			status = "disabled";
 		};
 
-		vdma: vdma@e0800000 {
-			compatible = "nuvoton,npcm845-vdm";
-			reg = <0x0 0xe0800000 0x0 0x1000
-				   0x0 0xf0822000 0x0 0x1000>;
-			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
-		};
-
-		pcimbox: pcimbox@f0848000 {
-			compatible = "nuvoton,npcm845-pci-mbox",
-					"simple-mfd", "syscon";
-			reg = <0x0 0xf084C000 0x0 0x8
-				0x0 0xf0848000 0x0 0x3F00>;
-			interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
-		};
-
-		vcd: vcd@f0810000 {
-			compatible = "nuvoton,npcm845-vcd";
-			reg = <0x0 0xf0810000 0x0 0x10000>;
-			interrupts = <GIC_SPI 22 IRQ_TYPE_LEVEL_HIGH>;
-			resets = <&rstc NPCM8XX_RESET_IPSRST2 NPCM8XX_RESET_VCD>;
-			status = "disabled";
-			gcr-syscon = <&gcr>;
-			gfxi-syscon = <&gfxi>;
-		};
-
-		ece: ece@f0820000 {
-			compatible = "nuvoton,npcm845-ece";
-			reg = <0x0 0xf0820000 0x0 0x2000>;
-			interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
-			resets = <&rstc NPCM8XX_RESET_IPSRST2 NPCM8XX_RESET_ECE>;
-			status = "disabled";
-		};
-
 		apb {
 			#address-cells = <1>;
 			#size-cells = <1>;
@@ -327,66 +278,6 @@
 			interrupt-parent = <&gic>;
 			ranges = <0x0 0x0 0xf0000000 0x00300000>,
 				<0xfff00000 0x0 0xfff00000 0x00016000>;
-
-			lpc_kcs: lpc_kcs@7000 {
-				compatible = "nuvoton,npcm750-lpc-kcs",
-						"simple-mfd", "syscon";
-				reg = <0x7000 0x40>;
-				reg-io-width = <1>;
-
-				#address-cells = <1>;
-				#size-cells = <1>;
-				ranges = <0x0 0x7000 0x40>;
-
-				kcs1: kcs1@0 {
-					compatible = "nuvoton,npcm845-kcs-bmc";
-					reg = <0x0 0x40>;
-					interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>;
-					kcs_chan = <1>;
-					status = "disabled";
-				};
-
-				kcs2: kcs2@0 {
-					compatible = "nuvoton,npcm845-kcs-bmc";
-					reg = <0x0 0x40>;
-					interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>;
-					kcs_chan = <2>;
-					status = "disabled";
-				};
-
-				kcs3: kcs3@0 {
-					compatible = "nuvoton,npcm845-kcs-bmc";
-					reg = <0x0 0x40>;
-					interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>;
-					kcs_chan = <3>;
-					status = "disabled";
-				};
-			};
-
-			lpc_host: lpc_host@7000 {
-				compatible = "nuvoton,npcm750-lpc-host",
-						"simple-mfd", "syscon";
-				reg = <0x7000 0x60>;
-
-				#address-cells = <1>;
-				#size-cells = <1>;
-				ranges = <0x0 0x7000 0x60>;
-
-				lpc_bpc: lpc_bpc@40 {
-					compatible = "nuvoton,npcm845-lpc-bpc";
-					reg = <0x40 0x20>;
-					interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>;
-					status = "disabled";
-				};
-			};
-
-
-			peci: bus@100000 {
-				compatible = "simple-bus";
-				#address-cells = <1>;
-				#size-cells = <1>;
-				ranges = <0x0 0x100000 0x200>;
-			};
 
 			spi1: spi@201000 {
 				compatible = "nuvoton,npcm845-pspi";
@@ -399,34 +290,6 @@
 				clocks = <&clk NPCM8XX_CLK_APB5>;
 				clock-names = "clk_apb5";
 				resets = <&rstc NPCM8XX_RESET_IPSRST2 NPCM8XX_RESET_PSPI2>;
-				status = "disabled";
-			};
-
-			jtm1: jtm@208000 {
-				compatible = "nuvoton,npcm845-jtm";
-				reg = <0x208000 0x1000>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&jm1_pins>;
-				#address-cells = <1>;
-				#size-cells = <0>;
-				interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
-				clocks = <&clk NPCM8XX_CLK_APB5>;
-				clock-names = "clk_apb5";
-				resets = <&rstc NPCM8XX_RESET_IPSRST4 NPCM8XX_RESET_JTM1>;
-				status = "disabled";
-			};
-
-			jtm2: jtm@209000 {
-				compatible = "nuvoton,npcm845-jtm";
-				reg = <0x209000 0x1000>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&jm2_pins>;
-				#address-cells = <1>;
-				#size-cells = <0>;
-				interrupts = <GIC_SPI 189 IRQ_TYPE_LEVEL_HIGH>;
-				clocks = <&clk NPCM8XX_CLK_APB5>;
-				clock-names = "clk_apb5";
-				resets = <&rstc NPCM8XX_RESET_IPSRST4 NPCM8XX_RESET_JTM2>;
 				status = "disabled";
 			};
 
@@ -507,49 +370,10 @@
 				status = "disabled";
 			};
 
-			adc: adc@c000 {
-				compatible = "nuvoton,npcm845-adc";
-				reg = <0xC000 0x8>;
-				interrupts = <GIC_SPI 0 IRQ_TYPE_LEVEL_HIGH>;
-				clocks = <&clk NPCM8XX_CLK_ADC>;
-				resets = <&rstc NPCM8XX_RESET_IPSRST1 NPCM8XX_RESET_ADC>;
-				syscon = <&fuse>;
+			otp: otp@189000 {
+				compatible = "nuvoton,npcm845-otp";
+				reg = <0x189000 0x1000>;
 				status = "disabled";
-			};
-
-			watchdog0: watchdog@801c {
-				compatible = "nuvoton,npcm845-wdt";
-				interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x801c 0x4>;
-				status = "disabled";
-				clocks = <&clk_refclk>;
-				syscon = <&gcr>;
-			};
-
-			watchdog1: watchdog@901c {
-				compatible = "nuvoton,npcm845-wdt";
-				interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x901c 0x4>;
-				status = "disabled";
-				clocks = <&clk_refclk>;
-				syscon = <&gcr>;
-			};
-
-			watchdog2: watchdog@a01c {
-				compatible = "nuvoton,npcm845-wdt";
-				interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0xa01c 0x4>;
-				status = "disabled";
-				clocks = <&clk_refclk>;
-				syscon = <&gcr>;
-			};
-
-			tmps: tmps@188000 {
-				compatible = "nuvoton,npcm845-thermal";
-				interrupts = <GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>;
-				clocks = <&clk NPCM8XX_CLK_APB4>;
-				reg = <0x188000 0x5C>;
-				#thermal-sensor-cells = <1>;
 			};
 
 			gpio0: gpio0@10000 {
@@ -614,146 +438,6 @@
 				#gpio-cells = <2>;
 				gpio-controller;
 				gpio-bank-name = "gpio7";
-			};
-
-			sgpio1: sgpio@101000 {
-				clocks = <&clk NPCM8XX_CLK_APB3>;
-				compatible = "nuvoton,npcm845-sgpio";
-				interrupts = <GIC_SPI 19 IRQ_TYPE_LEVEL_HIGH>;
-				gpio-controller;
-				pinctrl-names = "default";
-				pinctrl-0 = <&iox1_pins>;
-				bus-frequency = <16000000>;
-				nin_gpios = <64>;
-				nout_gpios = <64>;
-				reg = <0x101000 0x200>;
-				status = "disabled";
-			};
-
-			sgpio2: sgpio@102000 {
-				clocks = <&clk NPCM8XX_CLK_APB3>;
-				compatible = "nuvoton,npcm845-sgpio";
-				interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
-				gpio-controller;
-				pinctrl-names = "default";
-				pinctrl-0 = <&iox2_pins>;
-				bus-frequency = <16000000>;
-				nin_gpios = <64>;
-				nout_gpios = <64>;
-				reg = <0x102000 0x200>;
-				status = "disabled";
-			};
-
-			pwm_fan:pwm-fan-controller@103000 {
-				compatible = "nuvoton,npcm845-pwm-fan";
-				reg = <0x103000 0x3000>,
-					<0x180000 0x8000>;
-				reg-names = "pwm", "fan";
-				clocks = <&clk NPCM8XX_CLK_APB3>,
-					<&clk NPCM8XX_CLK_APB4>;
-				clock-names = "pwm","fan";
-				interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>,
-						<GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>,
-						<GIC_SPI 98 IRQ_TYPE_LEVEL_HIGH>,
-						<GIC_SPI 99 IRQ_TYPE_LEVEL_HIGH>,
-						<GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>,
-						<GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>,
-						<GIC_SPI 102 IRQ_TYPE_LEVEL_HIGH>,
-						<GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&pwm0_pins &pwm1_pins
-						&pwm2_pins &pwm3_pins
-						&pwm4_pins &pwm5_pins
-						&pwm6_pins &pwm7_pins
-						&pwm8_pins &pwm9_pins
-						&pwm10_pins &pwm11_pins
-						&fanin0_pins &fanin1_pins
-						&fanin2_pins &fanin3_pins
-						&fanin4_pins &fanin5_pins
-						&fanin6_pins &fanin7_pins
-						&fanin8_pins &fanin9_pins
-						&fanin10_pins &fanin11_pins
-						&fanin12_pins &fanin13_pins
-						&fanin14_pins &fanin15_pins>;
-				status = "disabled";
-			};
-
-			i3c0: i3c@fff10000 {
-				compatible = "silvaco,i3c-master";
-				reg = <0xfff10000 0x1000>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&i3c0_pins>;
-				clocks = <&clk NPCM8XX_CLK_AHB>, <&clk NPCM8XX_CLK_RCP>;
-				clock-names = "pclk", "fast_clk";
-				interrupts = <GIC_SPI 224 IRQ_TYPE_LEVEL_HIGH>;
-				#address-cells = <3>;
-				#size-cells = <0>;
-				status = "disabled";
-			};
-
-			i3c1: i3c@fff11000 {
-				compatible = "silvaco,i3c-master";
-				reg = <0xfff11000 0x1000>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&i3c1_pins>;
-				clocks = <&clk NPCM8XX_CLK_AHB>, <&clk NPCM8XX_CLK_RCP>;
-				clock-names = "pclk", "fast_clk";
-				interrupts = <GIC_SPI 225 IRQ_TYPE_LEVEL_HIGH>;
-				#address-cells = <3>;
-				#size-cells = <0>;
-				status = "disabled";
-			};
-
-			i3c2: i3c@fff12000 {
-				compatible = "silvaco,i3c-master";
-				reg = <0xfff12000 0x1000>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&i3c2_pins>;
-				clocks = <&clk NPCM8XX_CLK_AHB>, <&clk NPCM8XX_CLK_RCP>;
-				clock-names = "pclk", "fast_clk";
-				interrupts = <GIC_SPI 226 IRQ_TYPE_LEVEL_HIGH>;
-				#address-cells = <3>;
-				#size-cells = <0>;
-				status = "disabled";
-			};
-
-			i3c3: i3c@fff13000 {
-				compatible = "silvaco,i3c-master";
-				reg = <0xfff13000 0x1000>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&i3c3_pins>;
-				clocks = <&clk NPCM8XX_CLK_AHB>, <&clk NPCM8XX_CLK_RCP>;
-				clock-names = "pclk", "fast_clk";
-				interrupts = <GIC_SPI 227 IRQ_TYPE_LEVEL_HIGH>;
-				#address-cells = <3>;
-				#size-cells = <0>;
-				status = "disabled";
-			};
-
-			i3c4: i3c@fff14000 {
-				compatible = "silvaco,i3c-master";
-				reg = <0xfff14000 0x1000>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&i3c4_pins>;
-				clocks = <&clk NPCM8XX_CLK_AHB>, <&clk NPCM8XX_CLK_RCP>;
-				clock-names = "pclk", "fast_clk";
-				interrupts = <GIC_SPI 228 IRQ_TYPE_LEVEL_HIGH>;
-				#address-cells = <3>;
-				#size-cells = <0>;
-				status = "disabled";
-			};
-
-			i3c5: i3c@fff15000 {
-				compatible = "silvaco,i3c-master";
-				reg = <0xfff15000 0x1000>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&i3c5_pins>;
-				clocks = <&clk NPCM8XX_CLK_AHB>, <&clk NPCM8XX_CLK_RCP>;
-				clock-names = "pclk", "fast_clk";
-				interrupts = <GIC_SPI 229 IRQ_TYPE_LEVEL_HIGH>;
-				#address-cells = <3>;
-				#size-cells = <0>;
-				status = "disabled";
 			};
 
 			i2c0: i2c@80000 {
@@ -1126,39 +810,6 @@
 				interrupts = <GIC_SPI 154 IRQ_TYPE_LEVEL_HIGH>;
 				syscon = <&gcr>;
 				status = "disabled";
-			};
-
-			gfxi: gfxi@e000 {
-				compatible = "nuvoton,npcm845-gfxi", "syscon",
-						"simple-mfd";
-				reg = <0xe000 0x100>;
-			};
-		};
-	};
-
-	thermal-zones {
-		cpu0_thermal: cpu0-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-			thermal-sensors = <&tmps 0>;
-			trips {
-				cpu0_alert0: trip-point0 {
-					temperature = <90000>;
-					hysteresis = <2000>;
-					type = "passive";
-				};
-			};
-		};
-		cpu1_thermal: cpu1-thermal {
-			polling-delay-passive = <250>;
-			polling-delay = <1000>;
-			thermal-sensors = <&tmps 1>;
-			trips {
-				cpu1_alert0: trip-point0 {
-					temperature = <90000>;
-					hysteresis = <2000>;
-					type = "passive";
-				};
 			};
 		};
 	};
@@ -1770,18 +1421,5 @@
 			groups = "hgpio7";
 			function = "hgpio7";
 		};
-	};
-};
-
-&peci {
-	peci0: peci-bus@0 {
-		compatible = "nuvoton,npcm750-peci";
-		reg = <0x0 0x200>;
-		#address-cells = <1>;
-		#size-cells = <0>;
-		interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&clk NPCM8XX_CLK_APB3>;
-		syscon = <&gcr>;
-		status = "disabled";
 	};
 };
