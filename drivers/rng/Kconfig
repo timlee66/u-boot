@@ -31,6 +31,11 @@ config RNG_MSM
 	  This driver provides support for the Random Number
 	  Generator hardware found on Qualcomm SoCs.
 
+config RNG_NPCM
+	bool "NPCM SoCs Random Number Generator support"
+	help
+	  Enable random number generator on NPCM SoCs.
+
 config RNG_STM32MP1
 	bool "Enable random number generator for STM32MP1"
 	depends on ARCH_STM32MP
