@@ -313,8 +313,6 @@
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x0 0x1000>;
 				clocks = <&clk NPCM8XX_CLK_UART>;
-				interrupts = <GIC_SPI 192 IRQ_TYPE_LEVEL_HIGH>;
-				reg-shift = <2>;
 				status = "disabled";
 			};
 
@@ -322,8 +320,6 @@
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x1000 0x1000>;
 				clocks = <&clk NPCM8XX_CLK_UART>;
-				interrupts = <GIC_SPI 193 IRQ_TYPE_LEVEL_HIGH>;
-				reg-shift = <2>;
 				status = "disabled";
 			};
 
@@ -331,8 +327,6 @@
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x2000 0x1000>;
 				clocks = <&clk NPCM8XX_CLK_UART>;
-				interrupts = <GIC_SPI 194 IRQ_TYPE_LEVEL_HIGH>;
-				reg-shift = <2>;
 				status = "disabled";
 			};
 
@@ -340,35 +334,28 @@
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x3000 0x1000>;
 				clocks = <&clk NPCM8XX_CLK_UART>;
-				interrupts = <GIC_SPI 195 IRQ_TYPE_LEVEL_HIGH>;
-				reg-shift = <2>;
 				status = "disabled";
 			};
 
 			serial4: serial@4000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x4000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART>;
-				interrupts = <GIC_SPI 196 IRQ_TYPE_LEVEL_HIGH>;
-				reg-shift = <2>;
+				clocks = <&clk NPCM8XX_CLK_UART2>;
 				status = "disabled";
 			};
 
 			serial5: serial@5000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x5000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART>;
-				interrupts = <GIC_SPI 197 IRQ_TYPE_LEVEL_HIGH>;
-				reg-shift = <2>;
+				clocks = <&clk NPCM8XX_CLK_UART2>;
 				status = "disabled";
 			};
 
 			serial6: serial@6000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x6000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART>;
+				clocks = <&clk NPCM8XX_CLK_UART2>;
 				interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_HIGH>;
-				reg-shift = <2>;
 				status = "disabled";
 			};
 
@@ -996,6 +983,18 @@
 		bmcuart0b_pins: bmcuart0b-pins {
 			groups = "bmcuart0b";
 			function = "bmcuart0b";
+		};
+		bu4_pins: bu4-pins {
+			groups = "bu4";
+			function = "bu4";
+		};
+		bu5_pins: bu5-pins {
+			groups = "bu5";
+			function = "bu5";
+		};
+		bu6_pins: bu6-pins {
+			groups = "bu6";
+			function = "bu6";
 		};
 		r1err_pins: r1err-pins {
 			groups = "r1err";
