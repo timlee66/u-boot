@@ -78,7 +78,7 @@
 			interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_UDC0>;
+			resets = <&ipsrst3 NPCM8XX_RESET_UDC0>;
 			status = "disable";
 		};
 
@@ -89,7 +89,7 @@
 			interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST1 NPCM8XX_RESET_UDC1>;
+			resets = <&ipsrst1 NPCM8XX_RESET_UDC1>;
 			status = "disable";
 		};
 
@@ -100,7 +100,7 @@
 			interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST1 NPCM8XX_RESET_UDC2>;
+			resets = <&ipsrst1 NPCM8XX_RESET_UDC2>;
 			status = "disable";
 		};
 
@@ -111,7 +111,7 @@
 			interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST1 NPCM8XX_RESET_UDC3>;
+			resets = <&ipsrst1 NPCM8XX_RESET_UDC3>;
 			status = "disable";
 		};
 
@@ -122,7 +122,7 @@
 			interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST1 NPCM8XX_RESET_UDC4>;
+			resets = <&ipsrst1 NPCM8XX_RESET_UDC4>;
 			status = "disable";
 		};
 
@@ -133,7 +133,7 @@
 			interrupts = <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST1 NPCM8XX_RESET_UDC5>;
+			resets = <&ipsrst1 NPCM8XX_RESET_UDC5>;
 			status = "disable";
 		};
 
@@ -144,7 +144,7 @@
 			interrupts = <GIC_SPI 57 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST1 NPCM8XX_RESET_UDC6>;
+			resets = <&ipsrst1 NPCM8XX_RESET_UDC6>;
 			status = "disable";
 		};
 
@@ -155,7 +155,7 @@
 			interrupts = <GIC_SPI 58 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_UDC7>;
+			resets = <&ipsrst3 NPCM8XX_RESET_UDC7>;
 			status = "disable";
 		};
 
@@ -166,7 +166,7 @@
 			interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_UDC8>;
+			resets = <&ipsrst3 NPCM8XX_RESET_UDC8>;
 			status = "disable";
 		};
 
@@ -177,7 +177,7 @@
 			interrupts = <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk NPCM8XX_CLK_SU>;
 			clock-names = "clk_usb_bridge";
-			resets = <&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_UDC9>;
+			resets = <&ipsrst3 NPCM8XX_RESET_UDC9>;
 			status = "disable";
 		};
 	};

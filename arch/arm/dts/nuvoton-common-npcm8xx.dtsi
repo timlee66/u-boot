@@ -37,6 +37,34 @@
 			compatible = "nuvoton,npcm845-rst", "syscon",
 				"simple-mfd";
 			reg = <0x0 0xf0801000 0x0 0xC4>;
+			ipsrst1: reset-controller1 {
+				compatible = "syscon-reset";
+				#reset-cells = <1>;
+				regmap = <&rst>;
+				offset = <NPCM8XX_RESET_IPSRST1>;
+				mask = <0xFFFFFFFF>;
+			};
+			ipsrst2: reset-controller2 {
+				compatible = "syscon-reset";
+				#reset-cells = <1>;
+				regmap = <&rst>;
+				offset = <NPCM8XX_RESET_IPSRST2>;
+				mask = <0xFFFFFFFF>;
+			};
+			ipsrst3: reset-controller3 {
+				compatible = "syscon-reset";
+				#reset-cells = <1>;
+				regmap = <&rst>;
+				offset = <NPCM8XX_RESET_IPSRST3>;
+				mask = <0xFFFFFFFF>;
+			};
+			ipsrst4: reset-controller4 {
+				compatible = "syscon-reset";
+				#reset-cells = <1>;
+				regmap = <&rst>;
+				offset = <NPCM8XX_RESET_IPSRST4>;
+				mask = <0xFFFFFFFF>;
+			};
 		};
 
 		gic: interrupt-controller@dfff9000 {
@@ -58,12 +86,6 @@
 		compatible = "simple-bus";
 		interrupt-parent = <&gic>;
 		ranges;
-
-		rstc: rstc@f0801000 {
-			compatible = "nuvoton,npcm845-reset";
-			reg = <0x0 0xf0801000 0x0 0x78>;
-			#reset-cells = <2>;
-		};
 
 		clk: clock-controller@f0801000 {
 			compatible = "nuvoton,npcm845-clk", "syscon";
@@ -141,21 +163,21 @@
 				compatible = "nuvoton,npcm845-usb-phy";
 				#phy-cells = <1>;
 				reg = <1>;
-				resets = <&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_USBPHY1>;
+				resets = <&ipsrst3 NPCM8XX_RESET_USBPHY1>;
 				status = "disabled";
 			};
 			usbphy2: usbphy@2 {
 				compatible = "nuvoton,npcm845-usb-phy";
 				#phy-cells = <1>;
 				reg = <2>;
-				resets =<&rstc NPCM8XX_RESET_IPSRST3 NPCM8XX_RESET_USBPHY2>;
+				resets = <&ipsrst3 NPCM8XX_RESET_USBPHY2>;
 				status = "disabled";
 			};
 			usbphy3: usbphy@3 {
 				compatible = "nuvoton,npcm845-usb-phy";
 				#phy-cells = <1>;
 				reg = <3>;
-				resets =<&rstc NPCM8XX_RESET_IPSRST4 NPCM8XX_RESET_USBPHY3>;
+				resets = <&ipsrst4 NPCM8XX_RESET_USBPHY3>;
 				status = "disabled";
 			};
 		};
@@ -164,7 +186,7 @@
 			compatible = "nuvoton,npcm845-ehci";
 			reg = <0x0 0xf0828100 0x0 0x1000>;
 			interrupts = <GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH>;
-			resets = <&rstc NPCM8XX_RESET_IPSRST2 NPCM8XX_RESET_USBH1>;
+			resets = <&ipsrst2 NPCM8XX_RESET_USBH1>;
 			status = "disabled";
 		};
 
@@ -172,21 +194,21 @@
 			compatible = "nuvoton,npcm845-ehci";
 			reg = <0x0 0xf082a100 0x0 0x1000>;
 			interrupts = <GIC_SPI 63 IRQ_TYPE_LEVEL_HIGH>;
-			resets = <&rstc NPCM8XX_RESET_IPSRST4 NPCM8XX_RESET_USBH2>;
+			resets = <&ipsrst4 NPCM8XX_RESET_USBH2>;
 			status = "disabled";
 		};
 
 		ohci1: usb@f0829000 {
 			compatible = "nuvoton,npcm845-ohci";
 			reg = <0x0 0xF0829000 0x0 0x1000>;
-			resets = <&rstc NPCM8XX_RESET_IPSRST2 NPCM8XX_RESET_USBH1>;
+			resets = <&ipsrst2 NPCM8XX_RESET_USBH1>;
 			status = "disabled";
 		};
 
 		ohci2: usb@f082b000 {
 			compatible = "nuvoton,npcm845-ohci";
 			reg = <0x0 0xF082B000 0x0 0x1000>;
-			resets = <&rstc NPCM8XX_RESET_IPSRST4 NPCM8XX_RESET_USBH2>;
+			resets = <&ipsrst4 NPCM8XX_RESET_USBH2>;
 			status = "disabled";
 		};
 
@@ -297,7 +319,6 @@
 				interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&clk NPCM8XX_CLK_APB5>;
 				clock-names = "clk_apb5";
-				resets = <&rstc NPCM8XX_RESET_IPSRST2 NPCM8XX_RESET_PSPI2>;
 				status = "disabled";
 			};
 
