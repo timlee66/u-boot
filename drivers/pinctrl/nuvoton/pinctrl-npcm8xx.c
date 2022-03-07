@@ -43,6 +43,10 @@
 #define NPCM8XX_RST_SWRSTC3	0x4C
 #define NPCM8XX_RST_SWRSTC4	0x50
 #define NPCM8XX_RST_CORSTC	0x5C
+#define NPCM8XX_RST_WD0RCRB	0x80
+#define NPCM8XX_RST_WD1RCRB	0x84
+#define NPCM8XX_RST_WD2RCRB	0x88
+#define NPCM8XX_RST_CORSTCB	0x9C
 
 #define GPIOX_MODULE_RESET	16
 #define CA9C_MODULE_RESET	BIT(0)
@@ -1634,8 +1638,8 @@ static const struct npcm8xx_pin_desc npcm8xx_pins[] = {
 
 struct npcm8xx_pinctrl_priv {
 	u32 gcr_base;
-	u32 clk_base;
 	u32 gpio_base;
+	void __iomem *clk_base;
 };
 
 static int npcm8xx_pinctrl_probe(struct udevice *dev)
@@ -1643,7 +1647,7 @@ static int npcm8xx_pinctrl_probe(struct udevice *dev)
 	struct npcm8xx_pinctrl_priv *priv = dev_get_priv(dev);
 
 	priv->gcr_base = npcm_get_base_gcr();
-	priv->clk_base = npcm_get_base_clk();
+	priv->clk_base = (void __iomem *)NPCM_CLK_BA;
 	priv->gpio_base = npcm_get_base_gpio();
 
 	return 0;
@@ -1767,51 +1771,54 @@ static const struct pinconf_param npcm8xx_conf_params[] = {
 	{ "event-clear", PIN_CONFIG_EVENT_CLEAR, 0},
 };
 
-static bool is_gpio_persist(struct udevice *dev, enum reset_type type, unsigned int bank)
+static bool is_gpio_persist(struct udevice *dev, int status, unsigned int bank)
 {
 	struct npcm8xx_pinctrl_priv *priv = dev_get_priv(dev);
-	u32 base = priv->clk_base;
-
 	u8 offset = bank + GPIOX_MODULE_RESET;
-	u32 mask = 1 << offset;
 
-	dev_dbg(dev, "reboot reason: 0x%x \n", type);
+	dev_dbg(dev, "reboot reason: 0x%x \n", status);
 
-	switch (type) {
-		case (PORST_TYPE):
-			return false;
-		case (CORST_TYPE):
-			return !((readl((uintptr_t)(base + NPCM8XX_RST_CORSTC)) & mask) >> offset);
-		case (WD0RST_TYPE):
-			return !((readl((uintptr_t)(base + NPCM8XX_RST_WD0RCR)) & mask) >> offset);
-		case (WD1RST_TYPE):
-			return !((readl((uintptr_t)(base + NPCM8XX_RST_WD1RCR)) & mask) >> offset);
-		case (WD2RST_TYPE):
-			return !((readl((uintptr_t)(base + NPCM8XX_RST_WD2RCR)) & mask) >> offset);
-		default:
-			return false;
-			break;
-	}
+	if (status & CORST)
+		return !((readl(priv->clk_base + NPCM8XX_RST_CORSTC) |
+			 readl(priv->clk_base + NPCM8XX_RST_CORSTCB)) & BIT(offset));
+	else if (status & WD0RST)
+		return !((readl(priv->clk_base + NPCM8XX_RST_WD0RCR) |
+			 readl(priv->clk_base + NPCM8XX_RST_WD0RCRB)) & BIT(offset));
+	else if (status & WD1RST)
+		return !((readl(priv->clk_base + NPCM8XX_RST_WD1RCR) |
+			 readl(priv->clk_base + NPCM8XX_RST_WD1RCRB)) & BIT(offset));
+	else if (status & WD2RST)
+		return !((readl(priv->clk_base + NPCM8XX_RST_WD2RCR) |
+			 readl(priv->clk_base + NPCM8XX_RST_WD2RCRB)) & BIT(offset));
 
+	return false;
 }
 
-static int npcm8xx_gpio_reset_persist(struct udevice *dev, unsigned int banknum, unsigned int enable)
+static int npcm8xx_gpio_reset_persist(struct udevice *dev, unsigned int bank, unsigned int enable)
 {
 	struct npcm8xx_pinctrl_priv *priv = dev_get_priv(dev);
-	u32 base = priv->clk_base;
+	u8 offset = bank + GPIOX_MODULE_RESET;
 
-	dev_dbg(dev, "set gpio persist, bank %d, enable %d \n", banknum, enable);
+	dev_dbg(dev, "set gpio persist, bank %d, enable %d \n", bank, enable);
 
 	if (enable) {
-		clrbits_le32((uintptr_t)(base + NPCM8XX_RST_WD0RCR), BIT(GPIOX_MODULE_RESET + banknum));
-		clrbits_le32((uintptr_t)(base + NPCM8XX_RST_WD1RCR), BIT(GPIOX_MODULE_RESET + banknum));
-		clrbits_le32((uintptr_t)(base + NPCM8XX_RST_WD2RCR), BIT(GPIOX_MODULE_RESET + banknum));
-		clrbits_le32((uintptr_t)(base + NPCM8XX_RST_CORSTC), BIT(GPIOX_MODULE_RESET + banknum));
+		clrbits_le32(priv->clk_base + NPCM8XX_RST_WD0RCR, BIT(offset));
+		clrbits_le32(priv->clk_base + NPCM8XX_RST_WD0RCRB, BIT(offset));
+		clrbits_le32(priv->clk_base + NPCM8XX_RST_WD1RCR, BIT(offset));
+		clrbits_le32(priv->clk_base + NPCM8XX_RST_WD1RCRB, BIT(offset));
+		clrbits_le32(priv->clk_base + NPCM8XX_RST_WD2RCR, BIT(offset));
+		clrbits_le32(priv->clk_base + NPCM8XX_RST_WD2RCRB, BIT(offset));
+		clrbits_le32(priv->clk_base + NPCM8XX_RST_CORSTC, BIT(offset));
+		clrbits_le32(priv->clk_base + NPCM8XX_RST_CORSTCB, BIT(offset));
 	} else {
-		setbits_le32((uintptr_t)(base + NPCM8XX_RST_WD0RCR), BIT(GPIOX_MODULE_RESET + banknum) | CA9C_MODULE_RESET);
-		setbits_le32((uintptr_t)(base + NPCM8XX_RST_WD1RCR), BIT(GPIOX_MODULE_RESET + banknum) | CA9C_MODULE_RESET);
-		setbits_le32((uintptr_t)(base + NPCM8XX_RST_WD2RCR), BIT(GPIOX_MODULE_RESET + banknum) | CA9C_MODULE_RESET);
-		setbits_le32((uintptr_t)(base + NPCM8XX_RST_CORSTC), BIT(GPIOX_MODULE_RESET + banknum) | CA9C_MODULE_RESET);
+		setbits_le32(priv->clk_base + NPCM8XX_RST_WD0RCR, BIT(offset));
+		setbits_le32(priv->clk_base + NPCM8XX_RST_WD0RCRB, BIT(offset));
+		setbits_le32(priv->clk_base + NPCM8XX_RST_WD1RCR, BIT(offset));
+		setbits_le32(priv->clk_base + NPCM8XX_RST_WD1RCRB, BIT(offset));
+		setbits_le32(priv->clk_base + NPCM8XX_RST_WD2RCR, BIT(offset));
+		setbits_le32(priv->clk_base + NPCM8XX_RST_WD2RCRB, BIT(offset));
+		setbits_le32(priv->clk_base + NPCM8XX_RST_CORSTC, BIT(offset));
+		setbits_le32(priv->clk_base + NPCM8XX_RST_CORSTCB, BIT(offset));
 	}
 
 	return 0;
@@ -1917,7 +1924,7 @@ static int npcm8xx_pinconf_set(struct udevice *dev, unsigned int pin,
 		return err;
 	}
 
-	if (is_gpio_persist(dev, npcm8xx_reset_reason(), bank))
+	if (is_gpio_persist(dev, npcm_get_reset_status(), bank))
 		return err;
 
 	switch (param) {
