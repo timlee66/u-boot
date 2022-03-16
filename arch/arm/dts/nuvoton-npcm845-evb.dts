@@ -123,6 +123,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&r2_pins
 		     &r2oen_pins
+		     &r2en_pins
 		     &gpio91o_pins
 		     &gpio92o_pins>;
 	snps,bitbang-mii;

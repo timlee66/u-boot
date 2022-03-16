@@ -197,13 +197,16 @@ static const unsigned int r1_pins[] = { 178, 179, 180, 181, 182, 193, 201 }; /* 
 static const unsigned int r1err_pins[] = { 56 };
 static const unsigned int r1oen_pins[] = { 56 };
 static const unsigned int r1md_pins[] = { 57, 58 };
+static const unsigned int r1en_pins[] = {  };
 static const unsigned int r2_pins[] = { 84, 85, 86, 87, 88, 89, 200 }; /* RMII2 */
 static const unsigned int r2md_pins[] = { 91, 92 };
 static const unsigned int r2err_pins[] = { 90 };
 static const unsigned int r2oen_pins[] = { 90 };
+static const unsigned int r2en_pins[] = {  };
 static const unsigned int rmii3_pins[] = { 110, 111, 209, 210, 211, 214, 215 };
 static const unsigned int r3rxer_pins[] = { 212 };
 static const unsigned int r3oen_pins[] = { 213 };
+static const unsigned int r3en_pins[] = {  };
 
 /* MMC */
 static const unsigned int mmc_pins[] = { 152, 154, 156, 157, 158, 159 };
@@ -543,6 +546,9 @@ static const struct group_config npcm8xx_groups[] = {
 	GRP(nprd_smi, FLOCKR1, 20),
 	GRP(mmcwp, FLOCKR1, 24),
 	GRP(rg2refck, INTCR4, 6),
+	GRP(r1en, INTCR4, 12),
+	GRP(r2en, INTCR4, 13),
+	GRP(r3en, INTCR4, 14),
 	GRP(gpio, 0, 0),
 };
 
@@ -881,6 +887,13 @@ static int npcm8xx_pinmux_group_set(struct udevice *dev,
 		npcm8xx_groups[group_selector].name,
 		npcm8xx_groups[func_selector].name);
 	group = &npcm8xx_groups[group_selector];
+
+	if (group->npins == 0) {
+		/* No corresponding GPIO function */
+		npcm8xx_group_set_func(dev, group,
+				       npcm8xx_groups[func_selector].name);
+		return 0;
+	}
 
 	for (i = 0; i < group->npins; i++) {
 		pin_selector = npcm8xx_get_pin_selector(group->pins[i]);

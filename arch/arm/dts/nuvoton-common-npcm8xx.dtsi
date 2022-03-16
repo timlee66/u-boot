@@ -1037,9 +1037,17 @@
 			groups = "r1oen";
 			function = "r1oen";
 		};
+		r1en_pins: r1en-pins {
+			groups = "r1en";
+			function = "r1en";
+		};
 		r2oen_pins: r2oen-pins {
 			groups = "r2oen";
 			function = "r2oen";
+		};
+		r2en_pins: r2en-pins {
+			groups = "r2en";
+			function = "r2en";
 		};
 		rmii3_pins: rmii3_pins {
 			groups = "rmii3";
@@ -1048,6 +1056,10 @@
 		r3oen_pins: r3oen-pins {
 			groups = "r3oen";
 			function = "r3oen";
+		};
+		r3en_pins: r3en-pins {
+			groups = "r3en";
+			function = "r3en";
 		};
 		smb3d_pins: smb3d-pins {
 			groups = "smb3d";
