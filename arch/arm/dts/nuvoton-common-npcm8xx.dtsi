@@ -832,9 +832,9 @@
 
 	pinctrl: pinctrl@f0800000 {
 		compatible = "nuvoton,npcm845-pinctrl", "syscon", "simple-mfd";
-		ranges = <0x0 0x0 0xf0010000 0x8000>;
-		#address-cells = <1>;
-		#size-cells = <1>;
+		reg = <0x0 0xf0010000 0x0 0x8000>;
+		syscon-gcr = <&gcr>;
+		syscon-rst = <&rst>;
 		status = "okay";
 
 		iox1_pins: iox1-pins {
@@ -892,10 +892,6 @@
 		jm2_pins: jm2-pins {
 			groups = "jm2";
 			function = "jm2";
-		};
-		smb4den_pins: smb4den-pins {
-			groups = "smb4den";
-			function = "smb4den";
 		};
 		smb4b_pins: smb4b-pins {
 			groups = "smb4b";
@@ -981,29 +977,41 @@
 			groups = "smb3b";
 			function = "smb3b";
 		};
+		hsi1a_pins: hsi1a-pins {
+			groups = "hsi1a";
+			function = "hsi1a";
+		};
+		hsi1b_pins: hsi1b-pins {
+			groups = "hsi1b";
+			function = "hsi1b";
+		};
+		hsi1c_pins: hsi1c-pins {
+			groups = "hsi1c";
+			function = "hsi1c";
+		};
+		hsi2a_pins: hsi2a-pins {
+			groups = "hsi2a";
+			function = "hsi2a";
+		};
+		hsi2b_pins: hsi2b-pins {
+			groups = "hsi2b";
+			function = "hsi2b";
+		};
+		hsi2c_pins: hsi2c-pins {
+			groups = "hsi2c";
+			function = "hsi2c";
+		};
 		bmcuart0a_pins: bmcuart0a-pins {
 			groups = "bmcuart0a";
 			function = "bmcuart0a";
 		};
-		uart1_pins: uart1-pins {
-			groups = "uart1";
-			function = "uart1";
-		};
-		jtag2_pins: jtag2-pins {
-			groups = "jtag2";
-			function = "jtag2";
+		bmcuart0b_pins: bmcuart0b-pins {
+			groups = "bmcuart0b";
+			function = "bmcuart0b";
 		};
 		bmcuart1_pins: bmcuart1-pins {
 			groups = "bmcuart1";
 			function = "bmcuart1";
-		};
-		uart2_pins: uart2-pins {
-			groups = "uart2";
-			function = "uart2";
-		};
-		bmcuart0b_pins: bmcuart0b-pins {
-			groups = "bmcuart0b";
-			function = "bmcuart0b";
 		};
 		bu4_pins: bu4-pins {
 			groups = "bu4";
@@ -1309,10 +1317,6 @@
 			groups = "serirq";
 			function = "serirq";
 		};
-		lpcclk_pins: lpcclk-pins {
-			groups = "lpcclk";
-			function = "lpcclk";
-		};
 		scipme_pins: scipme-pins {
 			groups = "scipme";
 			function = "scipme";
@@ -1381,13 +1385,13 @@
 			groups = "smb0d";
 			function = "smb0d";
 		};
-		ddc_pins: ddc-pins {
-			groups = "ddc";
-			function = "ddc";
-		};
 		rg2mdio_pins: rg2mdio-pins {
 			groups = "rg2mdio";
 			function = "rg2mdio";
+		};
+		rg2refck_pins: rg2refck-pins {
+			groups = "rg2refck";
+			function = "rg2refck";
 		};
 		wdog1_pins: wdog1-pins {
 			groups = "wdog1";
@@ -1448,6 +1452,10 @@
 		hgpio7_pins: hgpio7-pins {
 			groups = "hgpio7";
 			function = "hgpio7";
+		};
+		jtag2_pins: jtag2-pins {
+			groups = "jtag2";
+			function = "jtag2";
 		};
 	};
 };

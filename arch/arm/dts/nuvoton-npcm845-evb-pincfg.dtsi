@@ -4,12 +4,14 @@
 / {
 	pinctrl: pinctrl@f0800000 {
 		gpio91o_pins: gpio91o-pins {
-			pins = "GPIO91/R2_MDC/CP1_GPIO6/TP_GPIO0";
+			pins = "gpio91";
+			function = "gpio";
 			bias-disable;
 			output-high;
 		};
 		gpio92o_pins: gpio92o-pins {
-			pins = "GPIO92/R2_MDIO/CP1_GPIO7/TP_GPIO1";
+			pins = "gpio92";
+			function = "gpio";
 			bias-disable;
 			output-high;
 		};
