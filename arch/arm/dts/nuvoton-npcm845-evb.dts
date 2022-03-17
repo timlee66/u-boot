@@ -298,3 +298,11 @@
 	status = "okay";
 	phys = <&usbphy3 4>;
 };
+
+&pinctrl {
+        pinctrl-names = "default";
+        pinctrl-0 = <
+		&gspi_pins
+		&vgadig_pins
+	>;
+};

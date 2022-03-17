@@ -885,6 +885,10 @@
 			groups = "pspi";
 			function = "pspi";
 		};
+		vgadig_pins: vgadig-pins {
+			groups = "vgadig";
+			function = "vgadig";
+		};
 		jm1_pins: jm1-pins {
 			groups = "jm1";
 			function = "jm1";

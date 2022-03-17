@@ -13,9 +13,14 @@
 #include <asm/gpio.h>
 #include <asm/io.h>
 #include <asm/mach-types.h>
+#include <linux/bitfield.h>
 #include <linux/delay.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+#define CLKSEL	0x4
+#define PIXCKSEL_GFX	0
+#define PIXCKSEL_MASK	GENMASK(5, 4)
 
 static void espi_config(u8 mode, u8 max_freq, u32 ch_supp)
 {
@@ -81,8 +86,20 @@ static void arbel_eth_init(void)
 	}
 }
 
+static void arbel_clk_init(void)
+{
+	u32 val;
+
+	/* Select GFX_PLL as PIXCK source */
+	val = readl(NPCM_CLK_BA + CLKSEL);
+	val &= ~PIXCKSEL_MASK;
+	val |= FIELD_PREP(PIXCKSEL_MASK, PIXCKSEL_GFX);
+	writel(val, NPCM_CLK_BA + CLKSEL);
+}
+
 int board_init(void)
 {
+	arbel_clk_init();
 	arbel_sysintf_init();
 	arbel_eth_init();
 
