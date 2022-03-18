@@ -69,6 +69,8 @@
 
 &fiu0 {
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0cs1_pins>;
 	spi-nor@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
