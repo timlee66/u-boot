@@ -13,9 +13,6 @@
 #include <linux/bitfield.h>
 #include <asm/arch/rst.h>
 
-#define NPCM8XX_GPIO_PER_BANK	32
-#define GPIOX_OFFSET	16
-
 /* GCR register offsets */
 #define WD0RCR		0x38
 #define WD1RCR		0x3C
@@ -26,10 +23,6 @@
 #define SWRSTC4		0x50
 #define CORSTC		0x5C
 #define FLOCKR1		0x74
-#define WD0RCRB		0x80
-#define WD1RCRB		0x84
-#define WD2RCRB		0x88
-#define CORSTCB		0x9C
 #define INTCR4		0xC0
 #define I2CSEGSEL	0xE0
 #define MFSEL1		0x260
@@ -40,22 +33,25 @@
 #define MFSEL6		0x274
 #define MFSEL7		0x278
 
-/* GPIO registers */
-#define NPCM8XX_GP_N_DIN	0x04 /* Data IN */
-#define NPCM8XX_GP_N_POL	0x08 /* Polarity */
-#define NPCM8XX_GP_N_DOUT	0x0c /* Data OUT */
-#define NPCM8XX_GP_N_OTYP	0x14 /* Output Type */
-#define NPCM8XX_GP_N_PU		0x1c /* Pull-up */
-#define NPCM8XX_GP_N_PD		0x20 /* Pull-down */
-#define NPCM8XX_GP_N_DBNC	0x24 /* Debounce */
-#define NPCM8XX_GP_N_EVEN	0x40 /* Event Enable */
-#define NPCM8XX_GP_N_EVST	0x4c /* Event Status */
-#define NPCM8XX_GP_N_IEM	0x58 /* Input Enable */
-#define NPCM8XX_GP_N_OSRC	0x5c /* Output Slew-Rate Control */
-#define NPCM8XX_GP_N_ODSC	0x60 /* Output Drive Strength Control */
-#define NPCM8XX_GP_N_OES	0x70 /* Output Enable Set */
-#define NPCM8XX_GP_N_OEC	0x74 /* Output Enable Clear */
+/* GPIO register offsets */
+#define GPIO_POL	0x08 /* Polarity */
+#define GPIO_DOUT	0x0c /* Data OUT */
+#define GPIO_OTYP	0x14 /* Output Type */
+#define GPIO_PU		0x1c /* Pull-up */
+#define GPIO_PD		0x20 /* Pull-down */
+#define GPIO_DBNC	0x24 /* Debounce */
+#define GPIO_EVEN	0x40 /* Event Enable */
+#define GPIO_EVST	0x4c /* Event Status */
+#define GPIO_IEM	0x58 /* Input Enable */
+#define GPIO_OSRC	0x5c /* Output Slew-Rate Control */
+#define GPIO_ODSC	0x60 /* Output Drive Strength Control */
+#define GPIO_OES	0x70 /* Output Enable Set */
+#define GPIO_OEC	0x74 /* Output Enable Clear */
 
+#define NPCM8XX_GPIO_PER_BANK	32
+#define GPIOX_OFFSET	16
+
+/* The lists contain alternate GPIO pins of the function */
 /* Serial Interfaces */
 static const unsigned int hsi1a_pins[] = { 43, 63 };
 static const unsigned int hsi1b_pins[] = { 44, 62 };
@@ -99,36 +95,36 @@ static const unsigned int smb0b_pins[] = { 195, 194 };
 static const unsigned int smb0c_pins[] = { 202, 196 };
 static const unsigned int smb0d_pins[] = { 198, 199 };
 static const unsigned int smb0den_pins[] = { 197 };
-static const unsigned int smb1_pins[]  = { 117, 116 };
+static const unsigned int smb1_pins[] = { 117, 116 };
 static const unsigned int smb1b_pins[] = { 126, 127 };
 static const unsigned int smb1c_pins[] = { 124, 125 };
 static const unsigned int smb1d_pins[] = { 4, 5 };
-static const unsigned int smb2_pins[]  = { 119, 118 };
+static const unsigned int smb2_pins[] = { 119, 118 };
 static const unsigned int smb2b_pins[] = { 122, 123 };
 static const unsigned int smb2c_pins[] = { 120, 121 };
 static const unsigned int smb2d_pins[] = { 6, 7 };
-static const unsigned int smb3_pins[]  = { 30, 31 };
+static const unsigned int smb3_pins[] = { 30, 31 };
 static const unsigned int smb3b_pins[] = { 39, 40 };
 static const unsigned int smb3c_pins[] = { 37, 38 };
 static const unsigned int smb3d_pins[] = { 59, 60 };
-static const unsigned int smb4_pins[]  = { 28, 29 };
+static const unsigned int smb4_pins[] = { 28, 29 };
 static const unsigned int smb4b_pins[] = { 18, 19 };
 static const unsigned int smb4c_pins[] = { 20, 21 };
 static const unsigned int smb4d_pins[] = { 22, 23 };
-static const unsigned int smb5_pins[]  = { 26, 27 };
+static const unsigned int smb5_pins[] = { 26, 27 };
 static const unsigned int smb5b_pins[] = { 13, 12 };
 static const unsigned int smb5c_pins[] = { 15, 14 };
 static const unsigned int smb5d_pins[] = { 94, 93 };
-static const unsigned int smb6_pins[]  = { 172, 171 };
+static const unsigned int smb6_pins[] = { 172, 171 };
 static const unsigned int smb6b_pins[] = { 2, 3 };
-static const unsigned int smb6c_pins[]  = { 0, 1 };
-static const unsigned int smb6d_pins[]  = { 10, 11 };
-static const unsigned int smb7_pins[]  = { 174, 173 };
-static const unsigned int smb7b_pins[]  = { 16, 141 };
-static const unsigned int smb7c_pins[]  = { 24, 25 };
-static const unsigned int smb7d_pins[]  = { 142, 143 };
-static const unsigned int smb8_pins[]  = { 129, 128 };
-static const unsigned int smb9_pins[]  = { 131, 130 };
+static const unsigned int smb6c_pins[] = { 0, 1 };
+static const unsigned int smb6d_pins[] = { 10, 11 };
+static const unsigned int smb7_pins[] = { 174, 173 };
+static const unsigned int smb7b_pins[] = { 16, 141 };
+static const unsigned int smb7c_pins[] = { 24, 25 };
+static const unsigned int smb7d_pins[] = { 142, 143 };
+static const unsigned int smb8_pins[] = { 129, 128 };
+static const unsigned int smb9_pins[] = { 131, 130 };
 static const unsigned int smb10_pins[] = { 133, 132 };
 static const unsigned int smb11_pins[] = { 135, 134 };
 static const unsigned int smb12_pins[] = { 221, 220 };
@@ -289,7 +285,7 @@ static const unsigned int cp1gpio7_pins[] = { 92 };
 static const unsigned int cp1utxd_pins[] = { 42 };
 static const unsigned int cp1urxd_pins[] = { 41 };
 
-/* General IO pins */
+/* General IO */
 static const unsigned int gpi35_pins[] = { 35 };
 static const unsigned int gpi36_pins[] = { 36 };
 static const unsigned int gpio1836_pins[] = { 183, 184, 185, 186 };
@@ -344,7 +340,7 @@ static const struct group_config npcm8xx_groups[] = {
 	GRP(hsi2a, MFSEL1, 11),
 	GRP(r1err, MFSEL1, 12),
 	GRP(r1md, MFSEL1, 13),
-	GRP(r2, MFSEL1,	14),
+	GRP(r2, MFSEL1, 14),
 	GRP(r2err, MFSEL1, 15),
 	GRP(r2md, MFSEL1, 16),
 	GRP(ga20kbc, MFSEL1, 17),
@@ -889,7 +885,7 @@ static int npcm8xx_pinmux_group_set(struct udevice *dev,
 	group = &npcm8xx_groups[group_selector];
 
 	if (group->npins == 0) {
-		/* No corresponding GPIO function */
+		/* No corresponding GPIO pins */
 		npcm8xx_group_set_func(dev, group,
 				       npcm8xx_groups[func_selector].name);
 		return 0;
@@ -954,41 +950,7 @@ static const struct pinconf_param npcm8xx_conf_params[] = {
 	{ "event-clear", PIN_CONFIG_EVENT_CLEAR, 0},
 };
 
-static bool is_gpio_persist(struct udevice *dev, unsigned int bank)
-{
-	struct npcm8xx_pinctrl_priv *priv = dev_get_priv(dev);
-	u8 offset = bank + GPIOX_OFFSET;
-	u32 val, valb;
-	int status;
-	int ret = -EINVAL;
-
-	status = npcm_get_reset_status();
-	dev_dbg(dev, "reset status: 0x%x\n", status);
-
-	if (status & CORST) {
-		ret = regmap_read(priv->rst_regmap, CORSTC, &val);
-		if (!ret)
-			ret = regmap_read(priv->rst_regmap, CORSTCB, &valb);
-	} else if (status & WD0RST) {
-		ret = regmap_read(priv->rst_regmap, WD0RCR, &val);
-		if (!ret)
-			ret = regmap_read(priv->rst_regmap, WD0RCRB, &valb);
-	} else if (status & WD1RST) {
-		ret = regmap_read(priv->rst_regmap, WD1RCR, &val);
-		if (!ret)
-			ret = regmap_read(priv->rst_regmap, WD1RCRB, &valb);
-	} else if (status & WD2RST) {
-		ret = regmap_read(priv->rst_regmap, WD2RCR, &val);
-		if (!ret)
-			ret = regmap_read(priv->rst_regmap, WD2RCRB, &valb);
-	}
-
-	if (ret)
-		return false;
-
-	return !((val | valb) & BIT(offset));
-}
-
+/* Support for retaining the state after soft reset */
 static int npcm8xx_gpio_reset_persist(struct udevice *dev, unsigned int bank,
 				      unsigned int enable)
 {
@@ -999,13 +961,9 @@ static int npcm8xx_gpio_reset_persist(struct udevice *dev, unsigned int bank,
 
 	if (enable) {
 		regmap_update_bits(priv->rst_regmap, WD0RCR, BIT(offset), 0);
-		regmap_update_bits(priv->rst_regmap, WD0RCRB, BIT(offset), 0);
 		regmap_update_bits(priv->rst_regmap, WD1RCR, BIT(offset), 0);
-		regmap_update_bits(priv->rst_regmap, WD1RCRB, BIT(offset), 0);
 		regmap_update_bits(priv->rst_regmap, WD2RCR, BIT(offset), 0);
-		regmap_update_bits(priv->rst_regmap, WD2RCRB, BIT(offset), 0);
 		regmap_update_bits(priv->rst_regmap, CORSTC, BIT(offset), 0);
-		regmap_update_bits(priv->rst_regmap, CORSTCB, BIT(offset), 0);
 	} else {
 		regmap_update_bits(priv->rst_regmap, WD0RCR, BIT(offset),
 				   BIT(offset));
@@ -1018,6 +976,30 @@ static int npcm8xx_gpio_reset_persist(struct udevice *dev, unsigned int bank,
 	}
 
 	return 0;
+}
+
+static bool is_gpio_persist(struct udevice *dev, unsigned int bank)
+{
+	struct npcm8xx_pinctrl_priv *priv = dev_get_priv(dev);
+	u8 offset = bank + GPIOX_OFFSET;
+	u32 val;
+	int status;
+
+	status = npcm_get_reset_status();
+	dev_dbg(dev, "reset status: 0x%x\n", status);
+
+	if (status & CORST)
+		regmap_read(priv->rst_regmap, CORSTC, &val);
+	else if (status & WD0RST)
+		regmap_read(priv->rst_regmap, WD0RCR, &val);
+	else if (status & WD1RST)
+		regmap_read(priv->rst_regmap, WD1RCR, &val);
+	else if (status & WD2RST)
+		regmap_read(priv->rst_regmap, WD2RCR, &val);
+	else
+		return false;
+
+	return !(val & BIT(offset));
 }
 
 static int npcm8xx_pinconf_set(struct udevice *dev, unsigned int selector,
@@ -1042,88 +1024,87 @@ static int npcm8xx_pinconf_set(struct udevice *dev, unsigned int selector,
 	switch (param) {
 	case PIN_CONFIG_BIAS_DISABLE:
 		dev_dbg(dev, "set pin %d bias disable\n", pin);
-		clrbits_le32(base + NPCM8XX_GP_N_PU, BIT(gpio));
-		clrbits_le32(base + NPCM8XX_GP_N_PD, BIT(gpio));
+		clrbits_le32(base + GPIO_PU, BIT(gpio));
+		clrbits_le32(base + GPIO_PD, BIT(gpio));
 		break;
 	case PIN_CONFIG_BIAS_PULL_DOWN:
 		dev_dbg(dev, "set pin %d bias pull down\n", pin);
-		clrbits_le32(base + NPCM8XX_GP_N_PU, BIT(gpio));
-		setbits_le32(base + NPCM8XX_GP_N_PD, BIT(gpio));
+		clrbits_le32(base + GPIO_PU, BIT(gpio));
+		setbits_le32(base + GPIO_PD, BIT(gpio));
 		break;
 	case PIN_CONFIG_BIAS_PULL_UP:
 		dev_dbg(dev, "set pin %d bias pull up\n", pin);
-		setbits_le32(base + NPCM8XX_GP_N_PU, BIT(gpio));
-		clrbits_le32(base + NPCM8XX_GP_N_PD, BIT(gpio));
+		setbits_le32(base + GPIO_PU, BIT(gpio));
+		clrbits_le32(base + GPIO_PD, BIT(gpio));
 		break;
 	case PIN_CONFIG_INPUT_ENABLE:
 		dev_dbg(dev, "set pin %d input enable\n", pin);
-		setbits_le32(base + NPCM8XX_GP_N_OEC, BIT(gpio));
-		setbits_le32(base + NPCM8XX_GP_N_IEM, BIT(gpio));
+		setbits_le32(base + GPIO_OEC, BIT(gpio));
+		setbits_le32(base + GPIO_IEM, BIT(gpio));
 		break;
 	case PIN_CONFIG_OUTPUT_ENABLE:
 		dev_dbg(dev, "set pin %d output enable\n", pin);
-		clrbits_le32(base + NPCM8XX_GP_N_IEM, BIT(gpio));
-		setbits_le32(base + NPCM8XX_GP_N_OES, BIT(gpio));
+		clrbits_le32(base + GPIO_IEM, BIT(gpio));
+		setbits_le32(base + GPIO_OES, BIT(gpio));
 	case PIN_CONFIG_OUTPUT:
 		dev_dbg(dev, "set pin %d output %d\n", pin, arg);
-		clrbits_le32(base + NPCM8XX_GP_N_IEM, BIT(gpio));
-		setbits_le32(base + NPCM8XX_GP_N_OES, BIT(gpio));
+		clrbits_le32(base + GPIO_IEM, BIT(gpio));
+		setbits_le32(base + GPIO_OES, BIT(gpio));
 		if (arg)
-			setbits_le32(base + NPCM8XX_GP_N_DOUT, BIT(gpio));
+			setbits_le32(base + GPIO_DOUT, BIT(gpio));
 		else
-			clrbits_le32(base + NPCM8XX_GP_N_DOUT, BIT(gpio));
+			clrbits_le32(base + GPIO_DOUT, BIT(gpio));
 		break;
 	case PIN_CONFIG_DRIVE_PUSH_PULL:
 		dev_dbg(dev, "set pin %d push pull\n", pin);
-		clrbits_le32(base + NPCM8XX_GP_N_OTYP, BIT(gpio));
+		clrbits_le32(base + GPIO_OTYP, BIT(gpio));
 		break;
 	case PIN_CONFIG_DRIVE_OPEN_DRAIN:
 		dev_dbg(dev, "set pin %d open drain\n", pin);
-		setbits_le32(base + NPCM8XX_GP_N_OTYP, BIT(gpio));
+		setbits_le32(base + GPIO_OTYP, BIT(gpio));
 		break;
 	case PIN_CONFIG_INPUT_DEBOUNCE:
 		dev_dbg(dev, "set pin %d input debounce\n", pin);
-		setbits_le32(base + NPCM8XX_GP_N_DBNC, BIT(gpio));
+		setbits_le32(base + GPIO_DBNC, BIT(gpio));
 		break;
 	case PIN_CONFIG_POLARITY_STATE:
 		dev_dbg(dev, "set pin %d active %d\n", pin, arg);
 		if (arg)
-			setbits_le32(base + NPCM8XX_GP_N_POL, BIT(gpio));
+			setbits_le32(base + GPIO_POL, BIT(gpio));
 		else
-			clrbits_le32(base + NPCM8XX_GP_N_POL, BIT(gpio));
+			clrbits_le32(base + GPIO_POL, BIT(gpio));
 		break;
 	case PIN_CONFIG_DRIVE_STRENGTH:
 		dev_dbg(dev, "set pin %d driver strength %d\n", pin, arg);
 		if (DSLO(flags) == arg)
-			clrbits_le32(base + NPCM8XX_GP_N_ODSC, BIT(gpio));
+			clrbits_le32(base + GPIO_ODSC, BIT(gpio));
 		else if (DSHI(flags) == arg)
-			setbits_le32(base + NPCM8XX_GP_N_ODSC, BIT(gpio));
+			setbits_le32(base + GPIO_ODSC, BIT(gpio));
 		else
-			ret = -ENOTSUPP;
+			ret = -EOPNOTSUPP;
 		break;
 	case PIN_CONFIG_SLEW_RATE:
 		dev_dbg(dev, "set pin %d slew rate %d\n", pin, arg);
 		if (!(flags & SLEW)) {
-			ret = -ENOTSUPP;
+			ret = -EOPNOTSUPP;
 			break;
 		}
 		if (arg)
-			setbits_le32(base + NPCM8XX_GP_N_OSRC, BIT(gpio));
+			setbits_le32(base + GPIO_OSRC, BIT(gpio));
 		else
-			clrbits_le32(base + NPCM8XX_GP_N_OSRC, BIT(gpio));
+			clrbits_le32(base + GPIO_OSRC, BIT(gpio));
 		break;
 	case PIN_CONFIG_EVENT_CLEAR:
-		/* To prevent unexpected IRQ trap at verctor 00 in linux kernel */
 		dev_dbg(dev, "set pin %d event clear\n", pin);
-		clrbits_le32(base + NPCM8XX_GP_N_EVEN, BIT(gpio));
-		setbits_le32(base + NPCM8XX_GP_N_EVST, BIT(gpio));
+		clrbits_le32(base + GPIO_EVEN, BIT(gpio));
+		setbits_le32(base + GPIO_EVST, BIT(gpio));
 		break;
 	case  PIN_CONFIG_PERSIST_STATE:
 		npcm8xx_gpio_reset_persist(dev, bank, arg);
 		break;
 
 	default:
-		ret = -ENOTSUPP;
+		ret = -EOPNOTSUPP;
 	}
 
 	return ret;
