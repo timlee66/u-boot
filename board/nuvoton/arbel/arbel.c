@@ -63,11 +63,15 @@ static void arbel_sysintf_init(void)
 	}
 }
 
+#define SR_MII_CTRL_SWR_BIT15   15
+#define VR_MII_MMD_DIG_CTRL1_R2TLBE_BIT14 14
+
 static void arbel_eth_init(void)
 {
 	struct npcm_gcr *gcr = (struct npcm_gcr *)(uintptr_t)npcm_get_base_gcr();
 	u32 val;
 	char *evb_ver;
+	unsigned int start;
 
 	/* Power voltage select setup */
 	val = readl(&gcr->vsrcr);
@@ -76,6 +80,19 @@ static void arbel_eth_init(void)
 	/* EVB X00 version - need to swap sgmii lane polarity HW issue */
 	evb_ver = env_get("evb_version");
 	if (evb_ver && !strcmp(evb_ver, "X00")) {
+		/* SGMII PHY reset */
+		writew(0x1F00, 0xF07801FE);           /* Get access to 0x3E... (SR_MII_CTRL) */
+		writew(readw(0xF0780000) | (1 << SR_MII_CTRL_SWR_BIT15), 0xF0780000);
+		start = get_timer(0);
+
+		printf("SGMII PCS PHY reset wait\n");
+		while (readw(0xF0780000) & (1 << SR_MII_CTRL_SWR_BIT15)) {
+			if (get_timer(start) >= 3 * CONFIG_SYS_HZ) {
+				printf("SGMII PHY reset timeout\n");
+				return;
+			}
+			mdelay(1);
+		};
 		/* Get access to 0x3F... (VR_MII_MMD_DIG_CTRL1) */
 		writew(0x1F80, 0xF07801FE);
 		/* Swap lane polarity on EVB only */
