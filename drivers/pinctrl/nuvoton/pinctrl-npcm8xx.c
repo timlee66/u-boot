@@ -302,7 +302,9 @@ static const unsigned int hgpio4_pins[] = { 24 };
 static const unsigned int hgpio5_pins[] = { 25 };
 static const unsigned int hgpio6_pins[] = { 59 };
 static const unsigned int hgpio7_pins[] = { 60 };
-static const unsigned int gpio_pins[] = {  };
+static char *gpio_func_name = "gpio";
+static char **npcm8xx_funcs;
+static int npcm8xx_num_funcs;
 
 struct npcm8xx_pinctrl_priv {
 	void __iomem *gpio_base;
@@ -545,7 +547,6 @@ static const struct group_config npcm8xx_groups[] = {
 	GRP(r1en, INTCR4, 12),
 	GRP(r2en, INTCR4, 13),
 	GRP(r3en, INTCR4, 14),
-	GRP(gpio, 0, 0),
 };
 
 /* Pin flags */
@@ -854,7 +855,7 @@ static int npcm8xx_pinmux_set(struct udevice *dev,
 			      unsigned int func_selector)
 {
 	const struct pin_info *pin;
-	char *func = npcm8xx_groups[func_selector].name;
+	char *func = npcm8xx_funcs[func_selector];
 	const struct group_config *group;
 	int i;
 
@@ -881,13 +882,13 @@ static int npcm8xx_pinmux_group_set(struct udevice *dev,
 
 	dev_dbg(dev, "set_mux [grp %s][func %s]\n",
 		npcm8xx_groups[group_selector].name,
-		npcm8xx_groups[func_selector].name);
+		npcm8xx_funcs[func_selector]);
 	group = &npcm8xx_groups[group_selector];
 
 	if (group->npins == 0) {
-		/* No corresponding GPIO pins */
+		/* No alternate GPIO pins, just set the function */
 		npcm8xx_group_set_func(dev, group,
-				       npcm8xx_groups[func_selector].name);
+				       npcm8xx_funcs[func_selector]);
 		return 0;
 	}
 
@@ -923,6 +924,17 @@ static const char *npcm8xx_get_group_name(struct udevice *dev,
 					  unsigned int selector)
 {
 	return npcm8xx_groups[selector].name;
+}
+
+static int npcm8xx_get_functions_count(struct udevice *dev)
+{
+	return npcm8xx_num_funcs;
+}
+
+static const char *npcm8xx_get_function_name(struct udevice *dev,
+					     unsigned int selector)
+{
+	return npcm8xx_funcs[selector];
 }
 
 #if CONFIG_IS_ENABLED(PINCONF)
@@ -1117,8 +1129,8 @@ static struct pinctrl_ops npcm8xx_pinctrl_ops = {
 	.get_pin_name = npcm8xx_get_pin_name,
 	.get_groups_count = npcm8xx_get_groups_count,
 	.get_group_name = npcm8xx_get_group_name,
-	.get_functions_count = npcm8xx_get_groups_count,
-	.get_function_name = npcm8xx_get_group_name,
+	.get_functions_count = npcm8xx_get_functions_count,
+	.get_function_name = npcm8xx_get_function_name,
 	.pinmux_set = npcm8xx_pinmux_set,
 	.pinmux_group_set = npcm8xx_pinmux_group_set,
 #if CONFIG_IS_ENABLED(PINCONF)
@@ -1132,6 +1144,7 @@ static struct pinctrl_ops npcm8xx_pinctrl_ops = {
 static int npcm8xx_pinctrl_probe(struct udevice *dev)
 {
 	struct npcm8xx_pinctrl_priv *priv = dev_get_priv(dev);
+	int i;
 
 	priv->gpio_base = dev_read_addr_ptr(dev);
 	if (!priv->gpio_base)
@@ -1144,6 +1157,15 @@ static int npcm8xx_pinctrl_probe(struct udevice *dev)
 	priv->rst_regmap = syscon_regmap_lookup_by_phandle(dev, "syscon-rst");
 	if (IS_ERR(priv->rst_regmap))
 		return -EINVAL;
+
+	/* initialize function names, all group functions + gpio function */
+	npcm8xx_num_funcs = ARRAY_SIZE(npcm8xx_groups) + 1;
+	npcm8xx_funcs = malloc(npcm8xx_num_funcs * sizeof(char *));
+	if (!npcm8xx_funcs)
+		return -ENOMEM;
+	npcm8xx_funcs[0] = gpio_func_name;
+	for (i = 1; i < npcm8xx_num_funcs; i++)
+		npcm8xx_funcs[i] = npcm8xx_groups[i - 1].name;
 
 	return 0;
 }
