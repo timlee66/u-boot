@@ -27,30 +27,29 @@ static int npcm_sdhci_probe(struct udevice *dev)
 	host->ioaddr = dev_read_addr_ptr(dev);
 	host->max_clk = dev_read_u32_default(dev, "clock-frequency", 0);
 
-	if (IS_ENABLED(CONFIG_ARCH_NPCM7xx)) {
-		ret = clk_get_by_index(dev, 0, &clk);
-		if (ret < 0)
-			return ret;
+	ret = clk_get_by_index(dev, 0, &clk);
+	if (!ret && host->max_clk) {
 		ret = clk_set_rate(&clk, host->max_clk);
 		if (ret < 0)
 			return ret;
-
-		host->bus_width = dev_read_u32_default(dev, "bus-width", 0);
-		host->index = dev_read_u32_default(dev, "index", 0);
-		if (host->bus_width == 4)
-                host->host_caps |= MMC_MODE_4BIT;
-		if (host->bus_width == 8)
-                host->host_caps |= MMC_MODE_8BIT;
 	}
 
-	ret = sdhci_setup_cfg(&plat->cfg, host, 0, NPCM_SDHC_MIN_FREQ);
-	if (ret)
-		return ret;
+	host->index = dev_read_u32_default(dev, "index", 0);
+	host->bus_width = dev_read_u32_default(dev, "bus-width", 4);
+	host->host_caps |= MMC_MODE_1BIT;
+	if (host->bus_width == 8)
+		host->host_caps |= MMC_MODE_4BIT | MMC_MODE_8BIT;
+	else if (host->bus_width == 4)
+		host->host_caps |= MMC_MODE_4BIT;
 
 	host->mmc = &plat->mmc;
 	host->mmc->priv = host;
 	host->mmc->dev = dev;
 	upriv->mmc = host->mmc;
+
+	ret = sdhci_setup_cfg(&plat->cfg, host, 0, NPCM_SDHC_MIN_FREQ);
+	if (ret)
+		return ret;
 
 	return sdhci_probe(dev);
 }
