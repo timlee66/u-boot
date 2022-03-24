@@ -675,12 +675,12 @@ static const struct pin_info npcm8xx_pins[] = {
 	{105, "gpio105", {"vgadig"}, 1, 0},
 	{106, "gpio106", {"i3c5"}, 1, SLEW},
 	{107, "gpio107", {"i3c5"}, 1, SLEW},
-	{108, "gpio108", {"rg1mdio"}, 1, 0},
-	{109, "gpio109", {"rg1mdio"}, 1, 0},
-	{110, "gpio110", {"rg2", "ddr", "rmii3"}, 3, 0},
-	{111, "gpio111", {"rg2", "ddr", "rmii3"}, 3, 0},
-	{112, "gpio112", {"rg2", "ddr"}, 2, 0},
-	{113, "gpio113", {"rg2", "ddr"}, 2, 0},
+	{108, "gpio108", {"rg1mdio"}, 1, SLEW},
+	{109, "gpio109", {"rg1mdio"}, 1, SLEW},
+	{110, "gpio110", {"rg2", "ddr", "rmii3"}, 3, SLEW},
+	{111, "gpio111", {"rg2", "ddr", "rmii3"}, 3, SLEW},
+	{112, "gpio112", {"rg2", "ddr"}, 2, SLEW},
+	{113, "gpio113", {"rg2", "ddr"}, 2, SLEW},
 	{114, "gpio114", {"smb0"}, 1, 0},
 	{115, "gpio115", {"smb0"}, 1, 0},
 	{116, "gpio116", {"smb1"}, 1, 0},
@@ -794,7 +794,7 @@ static const struct pin_info npcm8xx_pins[] = {
 	{228, "gpio228", {"spixcs1", "fm2"}, 2, DS(8, 12) | SLEW},
 	{229, "gpio229", {"spix", "fm2"}, 2, DS(8, 12) | SLEW},
 	{230, "gpio230", {"spix", "fm2"}, 2, DS(8, 12) | SLEW},
-	{231, "gpio231", {"clkreq"}, 1, DS(8, 12) | SLEW},
+	{231, "gpio231", {"clkreq"}, 1, DS(4, 12) | SLEW},
 	{233, "gpio233", {"spi1cs1", "fm1"}, 2, 0},
 	{234, "gpio234", {"pwm10", "smb20"}, 2, SLEW},
 	{235, "gpio235", {"pwm11", "smb20"}, 2, SLEW},
@@ -1022,7 +1022,7 @@ static int npcm8xx_pinconf_set(struct udevice *dev, unsigned int selector,
 	unsigned int bank = pin / NPCM8XX_GPIO_PER_BANK;
 	unsigned int gpio = (pin % NPCM8XX_GPIO_PER_BANK);
 	void __iomem *base = priv->gpio_base + (0x1000 * bank);
-	u32 flags = npcm8xx_pins[pin].flags;
+	u32 flags = npcm8xx_pins[selector].flags;
 	int ret = 0;
 
 	dev_dbg(dev, "set_conf [pin %d][param 0x%x, arg 0x%x]\n",
