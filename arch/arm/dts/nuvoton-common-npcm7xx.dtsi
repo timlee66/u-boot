@@ -432,7 +432,7 @@
 			};
 
 			gpio0: gpio0@10000 {
-				compatible = "nuvoton,npcm750-gpio";
+				compatible = "nuvoton,npcm-gpio";
 				reg = <0x10000 0x80>;
 				#gpio-cells = <2>;
 				gpio-controller;
@@ -442,7 +442,7 @@
 			};
 
 			gpio1: gpio1@11000 {
-				compatible = "nuvoton,npcm750-gpio";
+				compatible = "nuvoton,npcm-gpio";
 				reg = <0x11000 0x80>;
 				#gpio-cells = <2>;
 				gpio-controller;
@@ -452,7 +452,7 @@
 			};
 
 			gpio2: gpio2@12000 {
-				compatible = "nuvoton,npcm750-gpio";
+				compatible = "nuvoton,npcm-gpio";
 				reg = <0x12000 0x80>;
 				#gpio-cells = <2>;
 				gpio-controller;
@@ -462,7 +462,7 @@
 			};
 
 			gpio3: gpio3@13000 {
-				compatible = "nuvoton,npcm750-gpio";
+				compatible = "nuvoton,npcm-gpio";
 				reg = <0x13000 0x80>;
 				#gpio-cells = <2>;
 				gpio-controller;
@@ -472,7 +472,7 @@
 			};
 
 			gpio4: gpio4@14000 {
-				compatible = "nuvoton,npcm750-gpio";
+				compatible = "nuvoton,npcm-gpio";
 				reg = <0x14000 0x80>;
 				#gpio-cells = <2>;
 				gpio-controller;
@@ -482,7 +482,7 @@
 			};
 
 			gpio5: gpio5@f0015000 {
-				compatible = "nuvoton,npcm750-gpio";
+				compatible = "nuvoton,npcm-gpio";
 				reg = <0x15000 0x80>;
 				#gpio-cells = <2>;
 				gpio-controller;
@@ -492,7 +492,7 @@
 			};
 
 			gpio6: gpio6@16000 {
-				compatible = "nuvoton,npcm750-gpio";
+				compatible = "nuvoton,npcm-gpio";
 				reg = <0x16000 0x80>;
 				#gpio-cells = <2>;
 				gpio-controller;
@@ -502,7 +502,7 @@
 			};
 
 			gpio7: gpio7@17000 {
-				compatible = "nuvoton,npcm750-gpio";
+				compatible = "nuvoton,npcm-gpio";
 				reg = <0x17000 0x80>;
 				#gpio-cells = <2>;
 				gpio-controller;

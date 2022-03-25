@@ -1,58 +1,33 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (c) 2021 Nuvoton Technology.
+ * Copyright (c) 2022 Nuvoton Technology Corp.
  */
 
 #include <common.h>
-#include <dm/device.h>
-#include <linux/bitops.h>
-#include <linux/io.h>
-#include <linux/sizes.h>
-#include <errno.h>
-#include <asm/gpio.h>
 #include <dm.h>
+#include <asm/gpio.h>
+#include <linux/io.h>
 
-#define NPCM_GPIO_PORTS_PER_BANK    32
+#define NPCM_GPIOS_PER_BANK    32
 
-#define NPCM_GPIO_REG_DIN		0x04	/* RO - Data In */
-#define NPCM_GPIO_REG_DOUT		0x0C	/* RW - Data Out */
-#define NPCM_GPIO_REG_IEM		0x58	/* RW - Input Enable Mask */
-#define NPCM_GPIO_REG_OE		0x10	/* RW - Output Enable */
-#define NPCM_GPIO_REG_OES		0x70	/* WO - Output Enable Register Set */
-#define NPCM_GPIO_REG_OEC		0x74	/* WO - Output Enable Register Clear */
+/* Register offsets */
+#define GPIO_DIN		0x4	/* RO - Data In */
+#define GPIO_DOUT		0xC	/* RW - Data Out */
+#define GPIO_OE			0x10	/* RW - Output Enable */
+#define GPIO_IEM		0x58	/* RW - Input Enable Mask */
+#define GPIO_OES		0x70	/* WO - Output Enable Register Set */
+#define GPIO_OEC		0x74	/* WO - Output Enable Register Clear */
 
 struct npcm_gpio_priv {
 	void __iomem *base;
 };
 
-static void npcm_gpio_offset_write(struct udevice *dev, unsigned int offset,
-				   unsigned int reg, int value)
-{
-	struct npcm_gpio_priv *priv = dev_get_priv(dev);
-	u32 tmp;
-
-	tmp = readl(priv->base + reg);
-
-	if (value)
-		tmp |= BIT(offset);
-	else
-		tmp &= ~BIT(offset);
-
-	writel(tmp, priv->base + reg);
-}
-
-static int npcm_gpio_offset_read(struct udevice *dev, unsigned int offset,
-				 unsigned int reg)
-{
-	struct npcm_gpio_priv *priv = dev_get_priv(dev);
-
-	return !!(readl(priv->base + reg) & BIT(offset));
-}
-
 static int npcm_gpio_direction_input(struct udevice *dev, unsigned int offset)
 {
-	npcm_gpio_offset_write(dev, offset, NPCM_GPIO_REG_OEC, 1);
-	npcm_gpio_offset_write(dev, offset, NPCM_GPIO_REG_IEM, 1);
+	struct npcm_gpio_priv *priv = dev_get_priv(dev);
+
+	writel(BIT(offset), priv->base + GPIO_OEC);
+	setbits_le32(priv->base + GPIO_IEM, BIT(offset));
 
 	return 0;
 }
@@ -60,20 +35,28 @@ static int npcm_gpio_direction_input(struct udevice *dev, unsigned int offset)
 static int npcm_gpio_direction_output(struct udevice *dev, unsigned int offset,
 				      int value)
 {
-	npcm_gpio_offset_write(dev, offset, NPCM_GPIO_REG_IEM, 0);
-	npcm_gpio_offset_write(dev, offset, NPCM_GPIO_REG_OES, 1);
-	npcm_gpio_offset_write(dev, offset, NPCM_GPIO_REG_DOUT, value);
+	struct npcm_gpio_priv *priv = dev_get_priv(dev);
+
+	clrbits_le32(priv->base + GPIO_IEM, BIT(offset));
+	writel(BIT(offset), priv->base + GPIO_OES);
+
+	if (value)
+		setbits_le32(priv->base + GPIO_DOUT, BIT(offset));
+	else
+		clrbits_le32(priv->base + GPIO_DOUT, BIT(offset));
 
 	return 0;
 }
 
 static int npcm_gpio_get_value(struct udevice *dev, unsigned int offset)
 {
-	if (npcm_gpio_offset_read(dev, offset, NPCM_GPIO_REG_IEM))
-		return npcm_gpio_offset_read(dev, offset, NPCM_GPIO_REG_DIN);
+	struct npcm_gpio_priv *priv = dev_get_priv(dev);
 
-	if (npcm_gpio_offset_read(dev, offset, NPCM_GPIO_REG_OE))
-		return npcm_gpio_offset_read(dev, offset, NPCM_GPIO_REG_DOUT);
+	if (readl(priv->base + GPIO_IEM) & BIT(offset))
+		return !!(readl(priv->base + GPIO_DIN) & BIT(offset));
+
+	if (readl(priv->base + GPIO_OE) & BIT(offset))
+		return !!(readl(priv->base + GPIO_DOUT) & BIT(offset));
 
 	return -EINVAL;
 }
@@ -81,17 +64,24 @@ static int npcm_gpio_get_value(struct udevice *dev, unsigned int offset)
 static int npcm_gpio_set_value(struct udevice *dev, unsigned int offset,
 			       int value)
 {
-	npcm_gpio_offset_write(dev, offset, NPCM_GPIO_REG_DOUT, value);
+	struct npcm_gpio_priv *priv = dev_get_priv(dev);
+
+	if (value)
+		setbits_le32(priv->base + GPIO_DOUT, BIT(offset));
+	else
+		clrbits_le32(priv->base + GPIO_DOUT, BIT(offset));
 
 	return 0;
 }
 
 static int npcm_gpio_get_function(struct udevice *dev, unsigned int offset)
 {
-	if (npcm_gpio_offset_read(dev, offset, NPCM_GPIO_REG_IEM))
+	struct npcm_gpio_priv *priv = dev_get_priv(dev);
+
+	if (readl(priv->base + GPIO_IEM) & BIT(offset))
 		return GPIOF_INPUT;
 
-	if (npcm_gpio_offset_read(dev, offset, NPCM_GPIO_REG_OE))
+	if (readl(priv->base + GPIO_OE) & BIT(offset))
 		return GPIOF_OUTPUT;
 
 	return GPIOF_FUNC;
@@ -111,15 +101,14 @@ static int npcm_gpio_probe(struct udevice *dev)
 	struct gpio_dev_priv *uc_priv = dev_get_uclass_priv(dev);
 
 	priv->base = dev_read_addr_ptr(dev);
-	uc_priv->gpio_count = NPCM_GPIO_PORTS_PER_BANK;
+	uc_priv->gpio_count = NPCM_GPIOS_PER_BANK;
 	uc_priv->bank_name = dev_read_string(dev, "gpio-bank-name");
 
 	return 0;
 }
 
 static const struct udevice_id npcm_gpio_match[] = {
-	{ .compatible = "nuvoton,npcm845-gpio" },
-	{ .compatible = "nuvoton,npcm750-gpio" },
+	{ .compatible = "nuvoton,npcm-gpio" },
 	{ }
 };
 
