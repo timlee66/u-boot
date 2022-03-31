@@ -34,9 +34,9 @@
 
 /* ESPIHINDP bit fileds */
 #define AUTO_SBLD		BIT(4)
-#define AUTO_FCARDY		BIT(3)
-#define AUTO_OOBCRDY		BIT(2)
-#define AUTO_VWCRDY		BIT(1)
+#define AUTO_HS1		BIT(8)
+#define AUTO_HS2		BIT(12)
+#define AUTO_HS3		BIT(16)
 
 static int npcm_host_intf_bind(struct udevice *dev)
 {
@@ -74,7 +74,7 @@ static int npcm_host_intf_bind(struct udevice *dev)
 		regmap_update_bits(syscon, MFSEL1, MFSEL1_LPCSEL, 0);
 		regmap_update_bits(syscon, MFSEL4, MFSEL4_ESPISEL, MFSEL4_ESPISEL);
 
-		val = AUTO_SBLD | AUTO_FCARDY | AUTO_OOBCRDY | AUTO_VWCRDY | ch_supp;
+		val = AUTO_SBLD | AUTO_HS1 | AUTO_HS2 | AUTO_HS3 | ch_supp;
 		writel(val, base + ESPIHINDP);
 
 		val = readl(base + ESPICFG);
