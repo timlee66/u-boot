@@ -33,36 +33,6 @@ static void espi_config(u8 mode, u8 max_freq, u32 ch_supp)
 	writel(val, NPCM_ESPI_BA + ESPICFG);
 }
 
-static void arbel_sysintf_init(void)
-{
-	struct npcm_gcr *gcr = (struct npcm_gcr *)(uintptr_t)npcm_get_base_gcr();
-	u32 espi_ch_supp;
-
-	espi_ch_supp = fdtdec_get_config_int(gd->fdt_blob, "espi-channel-support", 0);
-
-	if (espi_ch_supp > 0) {
-		u32 hindp = 0x00011110 | espi_ch_supp;
-		/* Set ESPI_SEL bit in MFSEL4 register */
-		writel((readl(&gcr->mfsel4) | (1 << MFSEL4_ESPISEL)), &gcr->mfsel4);
-
-		/*
-		 * In eSPI HOST INDEPENDENCE register, set bits
-		 * AUTO_SBLD, AUTO_FCARDY, AUTO_OOBCRDY,
-		 * AUTO_VWCRDY, AUTO_PCRDY, AUTO_HS1, AUTO_HS2, AUTO_HS3.
-		 */
-		writel(hindp, NPCM_ESPI_BA + ESPIHINDP);
-
-		/*
-		 * In eSPI ESPICFG register set ESPICFG.MAXREQ to 33 MHz and ESPICFG. IOMODE
-		 * to Quad.
-		 */
-		espi_config(ESPI_IO_MODE_SINGLE_DUAL_QUAD, ESPI_MAX_33_MHZ, espi_ch_supp);
-	} else {
-		/* set LPCSEL bit in MFSEL1 register */
-		writel((readl(&gcr->mfsel1) | (1 << MFSEL1_LPCSEL)), &gcr->mfsel1);
-	}
-}
-
 #define SR_MII_CTRL_SWR_BIT15   15
 #define VR_MII_MMD_DIG_CTRL1_R2TLBE_BIT14 14
 
@@ -117,7 +87,6 @@ static void arbel_clk_init(void)
 int board_init(void)
 {
 	arbel_clk_init();
-	arbel_sysintf_init();
 	arbel_eth_init();
 
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
