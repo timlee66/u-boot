@@ -21,18 +21,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #define CLKSEL	0x4
 #define PIXCKSEL_GFX	0
 #define PIXCKSEL_MASK	GENMASK(5, 4)
-
-static void espi_config(u8 mode, u8 max_freq, u32 ch_supp)
-{
-	u32 val;
-
-	val = readl(NPCM_ESPI_BA + ESPICFG);
-	val |= mode << ESPICFG_IOMODE_SHIFT;
-	val |= max_freq << ESPICFG_MAXFREQ_SHIFT;
-	val |= ((ch_supp & ESPICFG_CHNSUPP_MASK) << ESPICFG_CHNSUPP_SHFT);
-	writel(val, NPCM_ESPI_BA + ESPICFG);
-}
-
 #define SR_MII_CTRL_SWR_BIT15   15
 #define VR_MII_MMD_DIG_CTRL1_R2TLBE_BIT14 14
 
