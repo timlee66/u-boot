@@ -1,15 +1,68 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (c) 2021 Nuvoton Technology Corp.
+ * Copyright (c) 2022 Nuvoton Technology Corp.
+ * NPCM Flash Interface Unit(FIU) SPI master controller driver.
  */
 
-#include <common.h>
 #include <dm.h>
 #include <spi.h>
 #include <spi-mem.h>
-#include <asm/arch/fiu.h>
-#include <linux/iopoll.h>
+#include <linux/bitfield.h>
 #include <linux/log2.h>
+#include <linux/iopoll.h>
+
+#define DW_SIZE			4
+#define CHUNK_SIZE		16
+#define XFER_TIMEOUT		1000000
+
+/* FIU UMA Configuration Register (UMA_CFG) */
+#define UMA_CFG_RDATSIZ_MASK	GENMASK(28, 24)
+#define UMA_CFG_DBSIZ_MASK	GENMASK(23, 21)
+#define UMA_CFG_WDATSIZ_MASK	GENMASK(20, 16)
+#define UMA_CFG_ADDSIZ_MASK	GENMASK(13, 11)
+#define UMA_CFG_RDBPCK_MASK	GENMASK(9, 8)
+#define UMA_CFG_DBPCK_MASK	GENMASK(7, 6)
+#define UMA_CFG_WDBPCK_MASK	GENMASK(5, 4)
+#define UMA_CFG_ADBPCK_MASK	GENMASK(3, 2)
+#define UMA_CFG_CMBPCK_MASK	GENMASK(1, 0)
+#define UMA_CFG_CMDSIZ_SHIFT	10
+
+/* FIU UMA Control and Status Register (UMA_CTS) */
+#define UMA_CTS_SW_CS		BIT(16)
+#define UMA_CTS_EXEC_DONE	BIT(0)
+#define UMA_CTS_RDYST		BIT(24)
+#define UMA_CTS_DEV_NUM_MASK	GENMASK(9, 8)
+
+struct npcm_fiu_regs {
+	unsigned int    drd_cfg;
+	unsigned int    dwr_cfg;
+	unsigned int    uma_cfg;
+	unsigned int    uma_cts;
+	unsigned int    uma_cmd;
+	unsigned int    uma_addr;
+	unsigned int    prt_cfg;
+	unsigned char	res1[4];
+	unsigned int    uma_dw0;
+	unsigned int    uma_dw1;
+	unsigned int    uma_dw2;
+	unsigned int    uma_dw3;
+	unsigned int    uma_dr0;
+	unsigned int    uma_dr1;
+	unsigned int    uma_dr2;
+	unsigned int    uma_dr3;
+	unsigned int    prt_cmd0;
+	unsigned int    prt_cmd1;
+	unsigned int    prt_cmd2;
+	unsigned int    prt_cmd3;
+	unsigned int    prt_cmd4;
+	unsigned int    prt_cmd5;
+	unsigned int    prt_cmd6;
+	unsigned int    prt_cmd7;
+	unsigned int    prt_cmd8;
+	unsigned int    prt_cmd9;
+	unsigned int    stuff[4];
+	unsigned int    fiu_cfg;
+};
 
 struct npcm_fiu_priv {
 	struct npcm_fiu_regs *regs;
@@ -27,15 +80,15 @@ static int npcm_fiu_spi_set_mode(struct udevice *bus, uint mode)
 
 static inline void activate_cs(struct npcm_fiu_regs *regs, int cs)
 {
-	writel((cs & 0x3) << FIU_UMA_CTS_DEV_NUM, &regs->uma_cts);
+	writel(FIELD_PREP(UMA_CTS_DEV_NUM_MASK, cs), &regs->uma_cts);
 }
 
-static inline void deactivate_cs(struct npcm_fiu_regs *regs)
+static inline void deactivate_cs(struct npcm_fiu_regs *regs, int cs)
 {
-	writel((1 << FIU_UMA_CTS_SW_CS), &regs->uma_cts);
+	writel(FIELD_PREP(UMA_CTS_DEV_NUM_MASK, cs) | UMA_CTS_SW_CS, &regs->uma_cts);
 }
 
-static int fiu_uma_read(struct udevice *bus, u8 *buf, u32 data_size)
+static int fiu_uma_read(struct udevice *bus, u8 *buf, u32 size)
 {
 	struct npcm_fiu_priv *priv = dev_get_priv(bus);
 	struct npcm_fiu_regs *regs = priv->regs;
@@ -44,35 +97,34 @@ static int fiu_uma_read(struct udevice *bus, u8 *buf, u32 data_size)
 	int ret;
 
 	/* Set data size */
-	writel((data_size << FIU_UMA_CFG_RDATSIZ), &regs->uma_cfg);
+	writel(FIELD_PREP(UMA_CFG_RDATSIZ_MASK, size), &regs->uma_cfg);
 
 	/* Initiate the read */
-	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE), &regs->uma_cts);
+	writel(readl(&regs->uma_cts) | UMA_CTS_EXEC_DONE, &regs->uma_cts);
 
 	/* Wait for completion */
 	ret = readl_poll_timeout(&regs->uma_cts, val,
-				 !(val & (1 << FIU_UMA_CTS_EXEC_DONE)), 1000000);
+				 !(val & UMA_CTS_EXEC_DONE), XFER_TIMEOUT);
 	if (ret) {
 		printf("npcm_fiu: read timeout\n");
 		return ret;
 	}
 
 	/* Copy data from data registers */
-	if (data_size >= 1)
+	if (size)
 		data_reg[0] = readl(&regs->uma_dr0);
-	if (data_size >= 5)
+	if (size > DW_SIZE)
 		data_reg[1] = readl(&regs->uma_dr1);
-	if (data_size >= 9)
+	if (size > DW_SIZE * 2)
 		data_reg[2] = readl(&regs->uma_dr2);
-	if (data_size >= 13)
+	if (size > DW_SIZE * 3)
 		data_reg[3] = readl(&regs->uma_dr3);
-
-	memcpy(buf, data_reg, data_size);
+	memcpy(buf, data_reg, size);
 
 	return 0;
 }
 
-static int fiu_uma_write(struct udevice *bus, const u8 *buf, u32 data_size)
+static int fiu_uma_write(struct udevice *bus, const u8 *buf, u32 size)
 {
 	struct npcm_fiu_priv *priv = dev_get_priv(bus);
 	struct npcm_fiu_regs *regs = priv->regs;
@@ -81,26 +133,25 @@ static int fiu_uma_write(struct udevice *bus, const u8 *buf, u32 data_size)
 	int ret;
 
 	/* Set data size */
-	writel((data_size << FIU_UMA_CFG_WDATSIZ), &regs->uma_cfg);
+	writel(FIELD_PREP(UMA_CFG_WDATSIZ_MASK, size), &regs->uma_cfg);
 
 	/* Write data to data registers */
-	memcpy(data_reg, buf, data_size);
-
-	if (data_size >= 1)
+	memcpy(data_reg, buf, size);
+	if (size)
 		writel(data_reg[0], &regs->uma_dw0);
-	if (data_size >= 5)
+	if (size > DW_SIZE)
 		writel(data_reg[1], &regs->uma_dw1);
-	if (data_size >= 9)
+	if (size > DW_SIZE * 2)
 		writel(data_reg[2], &regs->uma_dw2);
-	if (data_size >= 13)
+	if (size > DW_SIZE * 3)
 		writel(data_reg[3], &regs->uma_dw3);
 
 	/* Initiate the transaction */
-	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE), &regs->uma_cts);
+	writel(readl(&regs->uma_cts) | UMA_CTS_EXEC_DONE, &regs->uma_cts);
 
 	/* Wait for completion */
 	ret = readl_poll_timeout(&regs->uma_cts, val,
-				 !(val & (1 << FIU_UMA_CTS_EXEC_DONE)), 1000000);
+				 !(val & UMA_CTS_EXEC_DONE), XFER_TIMEOUT);
 	if (ret)
 		printf("npcm_fiu: write timeout\n");
 
@@ -141,7 +192,7 @@ static int npcm_fiu_spi_xfer(struct udevice *dev, unsigned int bitlen,
 	}
 
 	if (flags & SPI_XFER_END)
-		deactivate_cs(regs);
+		deactivate_cs(regs, slave_plat->cs);
 
 	return ret;
 }
@@ -164,59 +215,62 @@ static int npcm_fiu_uma_operation(struct npcm_fiu_priv *priv, const struct spi_m
 	debug("         tx %p, rx %p\n", tx, rx);
 
 	if (!started) {
-		/* Send cmd in the begin of an transaction */
+		/* Send cmd/addr in the begin of an transaction */
 		writel(op->cmd.opcode, &regs->uma_cmd);
 
-		uma_cfg |= (ilog2(op->cmd.buswidth) << FIU_UMA_CFG_CMBPCK) |
-			   (1 << FIU_UMA_CFG_CMDSIZ);
+		uma_cfg |= FIELD_PREP(UMA_CFG_CMBPCK_MASK, ilog2(op->cmd.buswidth)) |
+			   (1 << UMA_CFG_CMDSIZ_SHIFT);
+		/* Configure addr bytes */
 		if (op->addr.nbytes) {
-			uma_cfg |= ilog2(op->addr.buswidth) << FIU_UMA_CFG_ADBPCK |
-				  (op->addr.nbytes & 0x7) << FIU_UMA_CFG_ADDSIZ;
+			uma_cfg |= FIELD_PREP(UMA_CFG_ADBPCK_MASK, ilog2(op->addr.buswidth)) |
+				   FIELD_PREP(UMA_CFG_ADDSIZ_MASK, op->addr.nbytes);
 			writel(addr, &regs->uma_addr);
 		}
+		/* Configure dummy bytes */
 		if (op->dummy.nbytes)
-			uma_cfg |= ilog2(op->dummy.buswidth) << FIU_UMA_CFG_DBPCK |
-				  (op->dummy.nbytes & 0x7) << FIU_UMA_CFG_DBSIZ;
+			uma_cfg |= FIELD_PREP(UMA_CFG_DBPCK_MASK, ilog2(op->dummy.buswidth)) |
+				   FIELD_PREP(UMA_CFG_DBSIZ_MASK, op->dummy.nbytes);
 	}
+	/* Set data bus width and data size */
 	if (op->data.dir == SPI_MEM_DATA_IN && nbytes)
-		uma_cfg |= ilog2(op->data.buswidth) << FIU_UMA_CFG_RDBPCK |
-				   (nbytes & 0x1f) << FIU_UMA_CFG_RDATSIZ;
+		uma_cfg |= FIELD_PREP(UMA_CFG_RDBPCK_MASK, ilog2(op->data.buswidth)) |
+			   FIELD_PREP(UMA_CFG_RDATSIZ_MASK, nbytes);
 	else if (op->data.dir == SPI_MEM_DATA_OUT && nbytes)
-		uma_cfg |= ilog2(op->data.buswidth) << FIU_UMA_CFG_WDBPCK |
-				   (nbytes & 0x1f) << FIU_UMA_CFG_WDATSIZ;
+		uma_cfg |= FIELD_PREP(UMA_CFG_WDBPCK_MASK, ilog2(op->data.buswidth)) |
+			   FIELD_PREP(UMA_CFG_WDATSIZ_MASK, nbytes);
 	writel(uma_cfg, &regs->uma_cfg);
 
 	if (op->data.dir == SPI_MEM_DATA_OUT && nbytes) {
 		memcpy(data_reg, tx, nbytes);
 
-		if (nbytes >= 1)
+		if (nbytes)
 			writel(data_reg[0], &regs->uma_dw0);
-		if (nbytes >= 5)
+		if (nbytes > DW_SIZE)
 			writel(data_reg[1], &regs->uma_dw1);
-		if (nbytes >= 9)
+		if (nbytes > DW_SIZE * 2)
 			writel(data_reg[2], &regs->uma_dw2);
-		if (nbytes >= 13)
+		if (nbytes > DW_SIZE * 3)
 			writel(data_reg[3], &regs->uma_dw3);
 	}
 	/* Initiate the transaction */
-	writel(readl(&regs->uma_cts) | (1 << FIU_UMA_CTS_EXEC_DONE), &regs->uma_cts);
+	writel(readl(&regs->uma_cts) | UMA_CTS_EXEC_DONE, &regs->uma_cts);
 
 	/* Wait for completion */
 	ret = readl_poll_timeout(&regs->uma_cts, val,
-				 !(val & (1 << FIU_UMA_CTS_EXEC_DONE)), 1000000);
+				 !(val & UMA_CTS_EXEC_DONE), XFER_TIMEOUT);
 	if (ret) {
 		printf("npcm_fiu: UMA op timeout\n");
 		return ret;
 	}
 
 	if (op->data.dir == SPI_MEM_DATA_IN && nbytes) {
-		if (nbytes >= 1)
+		if (nbytes)
 			data_reg[0] = readl(&regs->uma_dr0);
-		if (nbytes >= 5)
+		if (nbytes > DW_SIZE)
 			data_reg[1] = readl(&regs->uma_dr1);
-		if (nbytes >= 9)
+		if (nbytes > DW_SIZE * 2)
 			data_reg[2] = readl(&regs->uma_dr2);
-		if (nbytes >= 13)
+		if (nbytes > DW_SIZE * 3)
 			data_reg[3] = readl(&regs->uma_dr3);
 
 		memcpy(rx, data_reg, nbytes);
@@ -232,50 +286,54 @@ static int npcm_fiu_exec_op(struct spi_slave *slave,
 	struct npcm_fiu_priv *priv = dev_get_priv(bus);
 	struct npcm_fiu_regs *regs = priv->regs;
 	struct dm_spi_slave_plat *slave_plat = dev_get_parent_plat(slave->dev);
-	u32 bytes, len;
+	u32 bytes, len, addr;
 	const u8 *tx;
 	u8 *rx;
-	int ret;
 	bool started = false;
-	u32 addr;
+	int ret;
 
 	bytes = op->data.nbytes;
 	addr = (u32)op->addr.val;
 	if (!bytes) {
 		activate_cs(regs, slave_plat->cs);
-		ret = npcm_fiu_uma_operation(priv, op, addr, NULL, NULL, 0, started);
-		started = true;
-		goto end;
+		ret = npcm_fiu_uma_operation(priv, op, addr, NULL, NULL, 0, false);
+		deactivate_cs(regs, slave_plat->cs);
+		return ret;
 	}
 
 	tx = op->data.buf.out;
 	rx = op->data.buf.in;
+	/*
+	 * Use SW-control CS for write to extend the transaction and
+	 *     keep the Write Enable state.
+	 * Use HW-control CS for read to avoid clock and timing issues.
+	 */
+	if (op->data.dir == SPI_MEM_DATA_OUT)
+		activate_cs(regs, slave_plat->cs);
+	else
+		writel(FIELD_PREP(UMA_CTS_DEV_NUM_MASK, slave_plat->cs) | UMA_CTS_SW_CS,
+		       &regs->uma_cts);
 	while (bytes) {
-		if (!started)
-			activate_cs(regs, slave_plat->cs);
-
 		len = (bytes > CHUNK_SIZE) ? CHUNK_SIZE : bytes;
 		ret = npcm_fiu_uma_operation(priv, op, addr, tx, rx, len, started);
-		started = true;
 		if (ret)
-			break;
+			return ret;
+
+		/* CS is kept low for uma write, extend the transaction */
+		if (op->data.dir == SPI_MEM_DATA_OUT)
+			started = true;
+
 		bytes -= len;
 		addr += len;
 		if (tx)
 			tx += len;
 		if (rx)
 			rx += len;
-
-		if (started && op->data.dir != SPI_MEM_DATA_OUT) {
-			deactivate_cs(regs);
-			started = false;
-		}
 	}
-end:
-	if (started)
-		deactivate_cs(regs);
+	if (op->data.dir == SPI_MEM_DATA_OUT)
+		deactivate_cs(regs, slave_plat->cs);
 
-	return ret;
+	return 0;
 }
 
 static int npcm_fiu_spi_probe(struct udevice *bus)
