@@ -1353,6 +1353,10 @@
 			groups = "spi1";
 			function = "spi1";
 		};
+		spi1d23_pins: spi1d23-pins {
+			groups = "spi1d23";
+			function = "spi1d23";
+		};
 		faninx_pins: faninx-pins {
 			groups = "faninx";
 			function = "faninx";
