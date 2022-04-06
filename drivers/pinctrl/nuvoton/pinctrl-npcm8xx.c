@@ -552,11 +552,15 @@ static const struct group_config npcm8xx_groups[] = {
 
 /* Pin flags */
 #define SLEW		BIT(0) /* Has Slew Control */
+#define GPIO_ALT	BIT(1) /* GPIO function is enabled by setting alternate */
 #define DSLO_MASK	GENMASK(11, 8)  /* Drive strength */
 #define DSHI_MASK	GENMASK(15, 12)
+#define GPIO_IDX_MASK	GENMASK(18, 16)
+#define GPIO_IDX(x)	((x) << 16) /* index of alt_func[] for gpio function */
 #define DS(lo, hi)	(((lo) << 8) | ((hi) << 12))
 #define DSLO(x)		FIELD_GET(DSLO_MASK, x) /* Low DS value */
 #define DSHI(x)		FIELD_GET(DSHI_MASK, x) /* High DS value */
+#define GPIO_IDX_VAL(x)	FIELD_GET(GPIO_IDX_MASK, x)
 
 #define MAX_ALT_FUNCS	5 /* Max alternate functions */
 struct pin_info {
@@ -604,8 +608,8 @@ static const struct pin_info npcm8xx_pins[] = {
 	{32, "GPIO32/SMB14_SCL/SPI0_nCS1", {"smb14b", "spi0cs1"}, 2, SLEW},
 	{33, "I3C4_SCL", {"i3c4"}, 1, SLEW},
 	{34, "I3C4_SDA", {"i3c4"}, 1, SLEW},
-	{35, "gpio35", {"gpi35"}, 1, 0},
-	{36, "gpio36", {"gpi36"}, 1, 0},
+	{35, "GPI35/MCBPCK", {"gpi35"}, 1, GPIO_ALT | GPIO_IDX(0)},
+	{36, "GPI36/SYSBPCK", {"gpi36"}, 1, GPIO_ALT | GPIO_IDX(0)},
 	{37, "GPIO37/SMB3C_SDA/SMB23_SDA", {"smb3c", "smb23"}, 2, SLEW},
 	{38, "GPIO38/SMB3C_SCL/SMB23_SCL", {"smb3c", "smb23"}, 2, SLEW},
 	{39, "GPIO39/SMB3B_SDA/SMB22_SDA", {"smb3b", "smb22"}, 2, SLEW},
@@ -756,15 +760,20 @@ static const struct pin_info npcm8xx_pins[] = {
 	{180, "GPIO180/R1_TXEN", {"r1"}, 1, DS(8, 12) | SLEW},
 	{181, "GPIO181/R1_RXD0", {"r1"}, 1, 0},
 	{182, "GPIO182/R1_RXD1", {"r1"}, 1, 0},
-	{183, "GPIO183/SPI3_SEL", {"spi3", "gpio1836"}, 2, DS(8, 12) | SLEW},
-	{184, "GPIO184/SPI3_D0/STRAP13", {"spi3", "gpio1836"}, 2, DS(8, 12) | SLEW},
-	{185, "GPIO185/SPI3_D1", {"spi3", "gpio1836"}, 2, DS(8, 12) | SLEW},
-	{186, "GPIO186/SPI3_nCS0", {"spi3", "gpio1836"}, 2, DS(8, 12) | SLEW},
-	{187, "GPIO187/SPI3_nCS1_SMB14_SDA", {"spi3cs1", "smb14b", "gpio187"}, 3, SLEW},
+	{183, "GPIO183/SPI3_SEL", {"spi3", "gpio1836"}, 2,
+	      DS(8, 12) | SLEW | GPIO_ALT | GPIO_IDX(1)},
+	{184, "GPIO184/SPI3_D0/STRAP13", {"spi3", "gpio1836"}, 2,
+	      DS(8, 12) | SLEW | GPIO_ALT | GPIO_IDX(1)},
+	{185, "GPIO185/SPI3_D1", {"spi3", "gpio1836"}, 2,
+	      DS(8, 12) | SLEW | GPIO_ALT | GPIO_IDX(1)},
+	{186, "GPIO186/SPI3_nCS0", {"spi3", "gpio1836"}, 2,
+	      DS(8, 12) | SLEW | GPIO_ALT | GPIO_IDX(1)},
+	{187, "GPIO187/SPI3_nCS1_SMB14_SDA", {"spi3cs1", "smb14b", "gpio187"}, 3,
+	      SLEW | GPIO_ALT | GPIO_IDX(2)},
 	{188, "GPIO188/SPI3_D2/SPI3_nCS2", {"spi3quad", "spi3cs2", "gpio1889"}, 3,
-	      DS(8, 12) | SLEW},
+	      DS(8, 12) | SLEW | GPIO_ALT | GPIO_IDX(2)},
 	{189, "GPIO189/SPI3_D3/SPI3_nCS3", {"spi3quad", "spi3cs3", "gpio1889"}, 3,
-	      DS(8, 12) | SLEW},
+	      DS(8, 12) | SLEW | GPIO_ALT | GPIO_IDX(2)},
 	{190, "GPIO190/nPRD_SMI", {"nprd_smi"}, 1, DS(2, 4)},
 	{191, "GPIO191/SPI1_D1/FANIN17/FM1_D1/STRAP10",
 	      {"spi1d23", "spi1cs2", "fm1", "smb15"}, 4, SLEW},
@@ -1024,6 +1033,25 @@ static bool is_gpio_persist(struct udevice *dev, uint bank)
 	return !(val & BIT(offset));
 }
 
+static void npcm8xx_set_gpio_func(struct udevice *dev, unsigned int selector)
+{
+	const struct pin_info *pin = &npcm8xx_pins[selector];
+	const struct group_config *group;
+	char *func = gpio_func_name;
+	int i;
+
+	/* gpio is enabled by setting alternate function */
+	if (pin->flags & GPIO_ALT)
+		func = pin->alt_func[GPIO_IDX_VAL(pin->flags)];
+
+	for (i = 0; i < pin->num_funcs; i++) {
+		group = npcm8xx_group_get(pin->alt_func[i]);
+		if (!group)
+			break;
+		npcm8xx_group_set_func(dev, group, func);
+	}
+}
+
 static int npcm8xx_pinconf_set(struct udevice *dev, unsigned int selector,
 			       unsigned int param, unsigned int arg)
 {
@@ -1038,7 +1066,8 @@ static int npcm8xx_pinconf_set(struct udevice *dev, unsigned int selector,
 	dev_dbg(dev, "set_conf [pin %d][param 0x%x, arg 0x%x]\n",
 		pin, param, arg);
 
-	npcm8xx_pinmux_set(dev, selector, GPIO_FUNC_SEL);
+	/* Configure pin as gpio function */
+	npcm8xx_set_gpio_func(dev, selector);
 
 	if (is_gpio_persist(dev, bank)) {
 		dev_dbg(dev, "retain the state\n");
