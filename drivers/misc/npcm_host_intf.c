@@ -12,10 +12,13 @@
 #include <dm/device_compat.h>
 #include <linux/bitfield.h>
 
+#define SMC_CTL_REG_ADDR	0xc0001001
+#define SMC_CTL_HOSTWAIT	0x80
+
 /* GCR Register Offsets */
 #define HIFCR			0x50
 #define MFSEL1			0x260
-#define MFSEL4			0x26C
+#define MFSEL4			0x26c
 
 /* ESPI Register offsets */
 #define ESPICFG			0x4
@@ -46,6 +49,9 @@ static int npcm_host_intf_bind(struct udevice *dev)
 	u32 ioaddr;
 	const char *type;
 	int ret;
+
+	/* Release host wait */
+	setbits_8(SMC_CTL_REG_ADDR, SMC_CTL_HOSTWAIT);
 
 	syscon = syscon_regmap_lookup_by_phandle(dev, "syscon");
 	if (IS_ERR(syscon)) {
