@@ -333,49 +333,49 @@
 			serial0: serial@0 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x0 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART>;
+				clocks = <&clk NPCM8XX_CLK_UART>, <&clk NPCM8XX_CLK_PLL2DIV2>;
 				status = "disabled";
 			};
 
 			serial1: serial@1000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x1000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART>;
+				clocks = <&clk NPCM8XX_CLK_UART>, <&clk NPCM8XX_CLK_PLL2DIV2>;
 				status = "disabled";
 			};
 
 			serial2: serial@2000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x2000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART>;
+				clocks = <&clk NPCM8XX_CLK_UART>, <&clk NPCM8XX_CLK_PLL2DIV2>;
 				status = "disabled";
 			};
 
 			serial3: serial@3000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x3000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART>;
+				clocks = <&clk NPCM8XX_CLK_UART>, <&clk NPCM8XX_CLK_PLL2DIV2>;
 				status = "disabled";
 			};
 
 			serial4: serial@4000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x4000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART2>;
+				clocks = <&clk NPCM8XX_CLK_UART2>, <&clk NPCM8XX_CLK_PLL2DIV2>;
 				status = "disabled";
 			};
 
 			serial5: serial@5000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x5000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART2>;
+				clocks = <&clk NPCM8XX_CLK_UART2>, <&clk NPCM8XX_CLK_PLL2DIV2>;
 				status = "disabled";
 			};
 
 			serial6: serial@6000 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x6000 0x1000>;
-				clocks = <&clk NPCM8XX_CLK_UART2>;
+				clocks = <&clk NPCM8XX_CLK_UART2>, <&clk NPCM8XX_CLK_PLL2DIV2>;
 				interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_HIGH>;
 				status = "disabled";
 			};
