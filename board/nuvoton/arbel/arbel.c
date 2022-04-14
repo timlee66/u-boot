@@ -77,9 +77,6 @@ int board_init(void)
 	arbel_clk_init();
 	arbel_eth_init();
 
-	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
-	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
-
 	return 0;
 }
 
