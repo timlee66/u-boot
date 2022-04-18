@@ -107,6 +107,7 @@
 			clock-names = "stmmaceth";
 			pinctrl-names = "default";
 			pinctrl-0 = <&rg1mdio_pins>;
+			resets = <&ipsrst2 NPCM8XX_RESET_GMAC1>;
 			status = "disabled";
 		};
 
@@ -121,6 +122,7 @@
 			pinctrl-names = "default";
 			pinctrl-0 = <&rg2_pins
 					&rg2mdio_pins>;
+			resets = <&ipsrst2 NPCM8XX_RESET_GMAC2>;
 			status = "disabled";
 		};
 
@@ -136,6 +138,7 @@
 			pinctrl-0 = <&r1_pins
 					&r1err_pins
 					&r1md_pins>;
+			resets = <&ipsrst1 NPCM8XX_RESET_GMAC3>;
 			status = "disabled";
 		};
 
@@ -151,6 +154,7 @@
 			pinctrl-0 = <&r2_pins
 					&r2err_pins
 					&r2md_pins>;
+			resets = <&ipsrst1 NPCM8XX_RESET_GMAC4>;
 			status = "disabled";
 		};
 

@@ -824,8 +824,12 @@ int designware_eth_probe(struct udevice *dev)
 	ret = reset_get_bulk(dev, &reset_bulk);
 	if (ret)
 		dev_warn(dev, "Can't get reset: %d\n", ret);
-	else
+	else {
+#ifdef CONFIG_ARCH_NPCM8XX
+		reset_assert_bulk(&reset_bulk);
+#endif
 		reset_deassert_bulk(&reset_bulk);
+	}
 
 #ifdef CONFIG_DM_PCI
 	/*
