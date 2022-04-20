@@ -353,3 +353,11 @@ config DM_REGULATOR_TPS65941
 	TPS65941 series of PMICs have 5 single phase BUCKs that can also
 	be configured in multi phase modes & 4 LDOs. The driver implements
 	get/set api for value and enable.
+
+config DM_REGULATOR_NPCM8XX
+	bool "Enable driver for NPCM8xx voltage supply"
+	depends on DM_REGULATOR && ARCH_NPCM8XX
+	help
+	  Enable support for configuring voltage supply on NPCM8XX SoC. The
+	  voltage supplies support two voltage levels and the driver implements
+	  get/set api for setting the value.
