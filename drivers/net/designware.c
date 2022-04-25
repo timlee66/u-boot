@@ -807,6 +807,7 @@ int designware_eth_probe(struct udevice *dev)
 
 #if defined(CONFIG_DM_REGULATOR)
 	struct udevice *phy_supply;
+	int phy_uv;
 
 	ret = device_get_supply_regulator(dev, "phy-supply",
 					  &phy_supply);
@@ -818,6 +819,14 @@ int designware_eth_probe(struct udevice *dev)
 			puts("Error enabling phy supply\n");
 			return ret;
 		}
+#ifdef CONFIG_ARCH_NPCM8XX
+		phy_uv = dev_read_u32_default(dev, "phy-supply-microvolt", 0);
+		if (phy_uv) {
+			ret = regulator_set_value(phy_supply, phy_uv);
+			puts("Error setting phy voltage\n");
+			return ret;
+		}
+#endif
 	}
 #endif
 
