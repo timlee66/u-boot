@@ -60,6 +60,22 @@
 	memory {
 		reg = <0x0 0x0 0x0 0x40000000>;
 	};
+
+	vsbr2: vsbr2 {
+		compatible = "regulator-npcm845";
+		regulator-name = "vr2";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
+	vsbv8: vsbv8 {
+		compatible = "regulator-npcm845";
+		regulator-name = "v8";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
 };
 
 &serial0 {
