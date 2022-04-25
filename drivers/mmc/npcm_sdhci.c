@@ -7,6 +7,7 @@
 #include <dm.h>
 #include <sdhci.h>
 #include <clk.h>
+#include <power/regulator.h>
 
 #define NPCM_SDHC_MIN_FREQ	400000
 
@@ -20,7 +21,8 @@ static int npcm_sdhci_probe(struct udevice *dev)
 	struct npcm_sdhci_plat *plat = dev_get_plat(dev);
 	struct mmc_uclass_priv *upriv = dev_get_uclass_priv(dev);
 	struct sdhci_host *host = dev_get_priv(dev);
-	int ret;
+	struct udevice *vqmmc_supply;
+	int vqmmc_uv, ret;
 	struct clk clk;
 
 	host->name = dev->name;
@@ -33,6 +35,16 @@ static int npcm_sdhci_probe(struct udevice *dev)
 		if (ret < 0)
 			return ret;
 	}
+
+#ifdef CONFIG_DM_REGULATOR
+	device_get_supply_regulator(dev, "vqmmc-supply", &vqmmc_supply);
+	if (vqmmc_supply) {
+		/* Set IO voltage */
+		vqmmc_uv = dev_read_u32_default(dev, "vqmmc-microvolt", 0);
+		if (vqmmc_uv)
+			regulator_set_value(vqmmc_supply, vqmmc_uv);
+	}
+#endif
 
 	host->index = dev_read_u32_default(dev, "index", 0);
 	host->bus_width = dev_read_u32_default(dev, "bus-width", 4);
