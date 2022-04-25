@@ -17,10 +17,6 @@ static const u32 volts_type2[] = { 1000000, 1800000 };
 #define VOLT_LEV0	0
 #define VOLT_LEV1	1
 
-struct npcm_regulator_plat {
-	u32 force_microvolt;	/* force voltage level */
-};
-
 struct volt_supply {
 	char *name;
 	const u32 *volts;
@@ -56,16 +52,6 @@ static const struct volt_supply *npcm8xx_volt_supply_get(const char *name)
 	}
 
 	return NULL;
-}
-
-static int npcm8xx_regulator_of_to_plat(struct udevice *dev)
-{
-	struct npcm_regulator_plat *dev_pdata = dev_get_plat(dev);
-
-	dev_pdata->force_microvolt = dev_read_u32_default(dev, "regulator-force-microvolt",
-							  -ENODATA);
-
-	return 0;
 }
 
 static int npcm8xx_regulator_set_value(struct udevice *dev, int uV)
@@ -124,18 +110,7 @@ static int npcm8xx_regulator_get_value(struct udevice *dev)
 
 static int npcm8xx_regulator_set_enable(struct udevice *dev, bool enable)
 {
-	struct npcm_regulator_plat *dev_pdata = dev_get_plat(dev);
-	int volt;
-
-	dev_dbg(dev, "set_enable\n");
-	volt = npcm8xx_regulator_get_value(dev);
-	if (volt < 0)
-		return volt;
-
-	/* The voltage supply is always on, only check the voltage level */
-	if (dev_pdata->force_microvolt != -ENODATA && volt != dev_pdata->force_microvolt)
-		return npcm8xx_regulator_set_value(dev, dev_pdata->force_microvolt);
-
+	/* Always on */
 	return 0;
 }
 
@@ -155,6 +130,4 @@ U_BOOT_DRIVER(regulator_npcm8xx) = {
 	.id = UCLASS_REGULATOR,
 	.ops = &npcm8xx_regulator_ops,
 	.of_match = npcm8xx_regulator_ids,
-	.of_to_plat = npcm8xx_regulator_of_to_plat,
-	.plat_auto = sizeof(struct npcm_regulator_plat),
 };
