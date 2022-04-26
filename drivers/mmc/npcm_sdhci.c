@@ -36,15 +36,13 @@ static int npcm_sdhci_probe(struct udevice *dev)
 			return ret;
 	}
 
-#ifdef CONFIG_DM_REGULATOR
-	device_get_supply_regulator(dev, "vqmmc-supply", &vqmmc_supply);
-	if (vqmmc_supply) {
-		/* Set IO voltage */
+	if (IS_ENABLED(CONFIG_DM_REGULATOR)) {
+		device_get_supply_regulator(dev, "vqmmc-supply", &vqmmc_supply);
 		vqmmc_uv = dev_read_u32_default(dev, "vqmmc-microvolt", 0);
-		if (vqmmc_uv)
+		/* Set IO voltage */
+		if (vqmmc_supply && vqmmc_uv)
 			regulator_set_value(vqmmc_supply, vqmmc_uv);
 	}
-#endif
 
 	host->index = dev_read_u32_default(dev, "index", 0);
 	host->bus_width = dev_read_u32_default(dev, "bus-width", 4);
