@@ -59,11 +59,13 @@
 			compatible = "spi-flash";
 			reg = <0>; /* Chip select 0 */
 			memory-map = <0x80000000 0x4000000>;
+			spi-max-frequency = <50000000>;
 		};
 		spi_flash@1 {
 			compatible = "spi-flash";
 			reg = <1>;
 			memory-map = <0x88000000 0x2000000>;
+			spi-max-frequency = <50000000>;
 		};
 	};
 
@@ -73,6 +75,7 @@
 			compatible = "spi-flash";
 			reg = <0>; /* Chip select 0 */
 			memory-map = <0xA0000000 0x2000000>;
+			spi-max-frequency = <20000000>;
 		};
 	};
 

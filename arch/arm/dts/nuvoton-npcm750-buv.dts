@@ -83,10 +83,12 @@
 	spi_flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
+		spi-max-frequency = <50000000>;
 	};
 	spi_flash@1 {
 		compatible = "jedec,spi-nor";
 		reg = <1>;
+		spi-max-frequency = <50000000>;
 	};
 };
 
@@ -96,6 +98,7 @@
 	spi-nor@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
+		spi-max-frequency = <20000000>;
 	};
 };
 
