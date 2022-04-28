@@ -135,7 +135,7 @@ static u32 npcm_clk_get_div(struct clk *clk)
 	return div;
 }
 
-static u32 npcm_clk_set_div(struct clk *clk, u32 div)
+static int npcm_clk_set_div(struct clk *clk, u32 div)
 {
 	struct npcm_clk_priv *priv = dev_get_priv(clk->dev);
 	struct npcm_clk_div *divider;
@@ -152,6 +152,12 @@ static u32 npcm_clk_set_div(struct clk *clk, u32 div)
 		clkdiv = div - 1;
 	else
 		clkdiv = ilog2(div);
+
+	if (clkdiv > (divider->mask >> (ffs(divider->mask) - 1))) {
+		printf("clkdiv(%d) for clk(%ld) is over limit\n",
+		       clkdiv, clk->id);
+		return -EINVAL;
+	}
 
 	val = readl(priv->base + divider->reg);
 	val &= ~divider->mask;
