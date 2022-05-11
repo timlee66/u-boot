@@ -6,8 +6,9 @@
 #ifndef _NPCM_GCR_H_
 #define _NPCM_GCR_H_
 
-/* On-Chip ARBEL NPCM8XX VERSIONS */
+#define NPCM_GCR_BA		0xF0800000
 
+/* On-Chip ARBEL NPCM8XX VERSIONS */
 #define ARBEL_Z1			0x00A35850
 #define ARBEL_A1			0x04a35850
 #define ARBEL_NPCM845			0x00000000

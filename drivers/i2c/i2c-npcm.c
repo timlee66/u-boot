@@ -3,22 +3,56 @@
  * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
-#include <common.h>
-#include <asm/io.h>
 #include <clk.h>
-#include <i2c.h>
 #include <dm.h>
-#include <asm/arch/cpu.h>
-#include <asm/arch/smb.h>
-#include <asm/arch/gcr.h>
+#include <i2c.h>
+#include <asm/io.h>
 #include <linux/iopoll.h>
+#include <asm/arch/gcr.h>
 
-#define I2C_FREQ_100K   100000
+#define I2C_FREQ_100K			100000
+#define NPCM_I2C_TIMEOUT_MS		10
+#define NPCM7XX_I2CSEGCTL_INIT_VAL	0x0333F000
+#define NPCM8XX_I2CSEGCTL_INIT_VAL	0x9333F000
+
 /* SCLFRQ min/max field values  */
 #define SCLFRQ_MIN		10
 #define SCLFRQ_MAX		511
 
-#define NPCM_I2C_TIMEOUT_MS	10
+/* SMBCTL1 */
+#define SMBCTL1_START		BIT(0)
+#define SMBCTL1_STOP		BIT(1)
+#define SMBCTL1_INTEN		BIT(2)
+#define SMBCTL1_ACK		BIT(4)
+#define SMBCTL1_STASTRE		BIT(7)
+
+/* SMBCTL2 */
+#define SMBCTL2_ENABLE		BIT(0)
+
+/* SMBCTL3 */
+#define SMBCTL3_SCL_LVL		BIT(7)
+#define SMBCTL3_SDA_LVL		BIT(6)
+
+/* SMBCST */
+#define SMBCST_BB		BIT(1)
+#define SMBCST_TGSCL		BIT(5)
+
+/* SMBST */
+#define SMBST_XMIT		BIT(0)
+#define SMBST_MASTER		BIT(1)
+#define SMBST_STASTR		BIT(3)
+#define SMBST_NEGACK		BIT(4)
+#define SMBST_BER		BIT(5)
+#define SMBST_SDAST		BIT(6)
+
+/* SMBCST3 in bank0 */
+#define SMBCST3_EO_BUSY		BIT(7)
+
+/* SMBFIF_CTS in bank1 */
+#define SMBFIF_CTS_CLR_FIFO	BIT(6)
+
+#define SMBFIF_CTL_FIFO_EN	BIT(4)
+#define SMBCTL3_BNK_SEL		BIT(5)
 
 enum {
 	I2C_ERR_NACK = 1,
@@ -26,13 +60,56 @@ enum {
 	I2C_ERR_TIMEOUT,
 };
 
+struct smb_bank0_regs {
+	u8 addr3;
+	u8 addr7;
+	u8 addr4;
+	u8 addr8;
+	u16 addr5;
+	u16 addr6;
+	u8 cst2;
+	u8 cst3;
+	u8 ctl4;
+	u8 ctl5;
+	u8 scllt;
+	u8 fif_ctl;
+	u8 sclht;
+};
+
+struct smb_bank1_regs {
+	u8 fif_cts;
+	u8 fair_per;
+	u16 txf_ctl;
+	u32 t_out;
+	u8 cst2;
+	u8 cst3;
+	u16 txf_sts;
+	u16 rxf_sts;
+	u8 rxf_ctl;
+};
+
+struct npcm_i2c_regs {
+	u16 sda;
+	u16 st;
+	u16 cst;
+	u16 ctl1;
+	u16 addr;
+	u16 ctl2;
+	u16 addr2;
+	u16 ctl3;
+	union {
+		struct smb_bank0_regs bank0;
+		struct smb_bank1_regs bank1;
+	};
+
+};
+
 struct npcm_i2c_bus {
-	struct udevice *dev;
 	struct npcm_i2c_regs *reg;
-	int module_num;
+	int num;
 	u32 apb_clk;
 	u32 freq;
-	int started;
+	bool started;
 };
 
 static void npcm_dump_regs(struct npcm_i2c_bus *bus)
@@ -95,7 +172,7 @@ static int npcm_i2c_send_start(struct npcm_i2c_bus *bus)
 			break;
 		}
 	}
-	bus->started = 1;
+	bus->started = true;
 
 	return err;
 }
@@ -111,7 +188,7 @@ static int npcm_i2c_send_stop(struct npcm_i2c_bus *bus, bool wait)
 	/* Clear NEGACK, STASTR and BER bits  */
 	writeb(SMBST_STASTR | SMBST_NEGACK | SMBST_BER, &reg->st);
 
-	bus->started = 0;
+	bus->started = false;
 
 	if (!wait)
 		return 0;
@@ -135,7 +212,7 @@ static void npcm_i2c_reset(struct npcm_i2c_bus *bus)
 {
 	struct npcm_i2c_regs *reg = bus->reg;
 
-	printf("%s: module %d\n", __func__, bus->module_num);
+	printf("%s: module %d\n", __func__, bus->num);
 	/* disable & enable SMB moudle */
 	writeb(readb(&reg->ctl2) & ~SMBCTL2_ENABLE, &reg->ctl2);
 	writeb(readb(&reg->ctl2) | SMBCTL2_ENABLE, &reg->ctl2);
@@ -172,7 +249,7 @@ static void npcm_i2c_recovery(struct npcm_i2c_bus *bus, u32 addr)
 	if ((val & SMBCTL3_SCL_LVL) && (val & SMBCTL3_SDA_LVL))
 		return;
 
-	printf("Performing I2C bus %d recovery...\n", bus->module_num);
+	printf("Performing I2C bus %d recovery...\n", bus->num);
 	/* SCL/SDA are not releaed, perform recovery */
 	while (1) {
 		/* toggle SCL line */
@@ -193,12 +270,13 @@ static void npcm_i2c_recovery(struct npcm_i2c_bus *bus, u32 addr)
 			udelay(20);
 			npcm_i2c_send_stop(bus, false);
 			udelay(200);
-			printf("I2C bus %d recovery completed\n", bus->module_num);
+			printf("I2C bus %d recovery completed\n",
+			       bus->num);
 		} else {
 			printf("%s: send START err %d\n", __func__, err);
 		}
 	} else {
-		printf("Fail to recover I2C bus %d\n", bus->module_num);
+		printf("Fail to recover I2C bus %d\n", bus->num);
 	}
 	npcm_i2c_reset(bus);
 }
@@ -222,7 +300,8 @@ static int npcm_i2c_send_address(struct npcm_i2c_bus *bus, u8 addr,
 				break;
 
 			if (readb(&reg->st) & SMBST_BER) {
-				writeb(readb(&reg->ctl1) & ~SMBCTL1_STASTRE, &reg->ctl1);
+				writeb(readb(&reg->ctl1) & ~SMBCTL1_STASTRE,
+				       &reg->ctl1);
 				return I2C_ERR_BER;
 			}
 		}
@@ -264,7 +343,8 @@ static int npcm_i2c_read_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 		writeb(SMBST_NEGACK, &reg->st);
 	} else {
 		for (i = 0; i < len; i++) {
-			/* When NEGACK bit is set to 1 after the transmission of a byte,
+			/*
+			 * When NEGACK bit is set to 1 after the transmission of a byte,
 			 * SDAST is not set to 1.
 			 */
 			if (i != (len - 1)) {
@@ -285,8 +365,7 @@ static int npcm_i2c_read_bytes(struct npcm_i2c_bus *bus, u8 *data, int len)
 				writeb(readb(&reg->ctl1) | SMBCTL1_ACK, &reg->ctl1);
 			}
 			if (i == (len - 1)) {
-				/* last byte */
-				/* send STOP condition */
+				/* last byte, send STOP condition */
 				npcm_i2c_send_stop(bus, false);
 				*data = readb(&reg->sda);
 				writeb(SMBST_NEGACK, &reg->st);
@@ -435,34 +514,26 @@ static int npcm_i2c_xfer(struct udevice *dev,
 static int npcm_i2c_init_clk(struct npcm_i2c_bus *bus, u32 bus_freq)
 {
 	struct npcm_i2c_regs *reg = bus->reg;
-	u16  sclfrq	= 0;
-	u8   hldt		= 7;
-	u32  freq;
-	u8 val;
+	u32 freq = bus->apb_clk;
+	u32 sclfrq;
+	u8 hldt, val;
 
-	freq = bus->apb_clk;
-
-	if (bus_freq <= I2C_FREQ_100K) {
-		/* Set frequency: */
-		/* SCLFRQ = T(SCL)/4/T(CLK) = FREQ(CLK)/4/FREQ(SCL)
-		 *  = FREQ(CLK) / ( FREQ(SCL)*4 )
-		 */
-		sclfrq = (u16)((freq / ((u32)bus_freq * 4)));
-
-		/* Check whether requested frequency can be achieved in current CLK */
-		if (sclfrq < SCLFRQ_MIN || sclfrq > SCLFRQ_MAX)
-			return -EINVAL;
-
-		if (freq >= 40000000)
-			hldt = 17;
-		else if (freq >= 12500000)
-			hldt = 15;
-		else
-			hldt = 7;
-	} else {
+	if (bus_freq > I2C_FREQ_100K) {
 		printf("Support standard mode only\n");
 		return -EINVAL;
 	}
+
+	/* SCLFRQ = T(SCL)/4/T(CLK) = FREQ(CLK)/4/FREQ(SCL) */
+	sclfrq = freq / (bus_freq * 4);
+	if (sclfrq < SCLFRQ_MIN || sclfrq > SCLFRQ_MAX)
+		return -EINVAL;
+
+	if (freq >= 40000000)
+		hldt = 17;
+	else if (freq >= 12500000)
+		hldt = 15;
+	else
+		hldt = 7;
 
 	val = readb(&reg->ctl2) & 0x1;
 	val |= (sclfrq & 0x7F) << 1;
@@ -481,22 +552,19 @@ static int npcm_i2c_init_clk(struct npcm_i2c_bus *bus, u32 bus_freq)
 static int npcm_i2c_set_bus_speed(struct udevice *dev,
 				  unsigned int speed)
 {
-	int ret;
 	struct npcm_i2c_bus *bus = dev_get_priv(dev);
 
-	ret = npcm_i2c_init_clk(bus, bus->freq);
-
-	return ret;
+	return npcm_i2c_init_clk(bus, speed);
 }
 
 static int npcm_i2c_probe(struct udevice *dev)
 {
 	struct npcm_i2c_bus *bus = dev_get_priv(dev);
-	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
+	struct npcm_gcr *gcr = (struct npcm_gcr *)NPCM_GCR_BA;
 	struct npcm_i2c_regs *reg;
+	u32 i2csegctl_val = dev_get_driver_data(dev);
 	struct clk clk;
 	int ret;
-	u32 val;
 
 	ret = clk_get_by_index(dev, 0, &clk);
 	if (ret) {
@@ -504,42 +572,30 @@ static int npcm_i2c_probe(struct udevice *dev)
 		return ret;
 	}
 	bus->apb_clk = clk_get_rate(&clk);
-	if (!bus->apb_clk) {
+	if (bus->apb_clk <= 0) {
 		printf("%s: fail to get rate\n", __func__);
 		return -EINVAL;
 	}
 	clk_free(&clk);
 
-	bus->module_num = dev->seq_;
-	bus->reg = (struct npcm_i2c_regs *)dev_read_addr_ptr(dev);
+	bus->num = dev->seq_;
+	bus->reg = dev_read_addr_ptr(dev);
 	bus->freq = dev_read_u32_default(dev, "clock-frequency", 100000);
-	bus->started = 0;
+	bus->started = false;
 	reg = bus->reg;
 
-	if (npcm_i2c_init_clk(bus, bus->freq) != 0) {
+	if (npcm_i2c_init_clk(bus, bus->freq)) {
 		printf("%s: init_clk failed\n", __func__);
 		return -EINVAL;
 	}
-	if (IS_ENABLED(CONFIG_ARCH_NPCM8XX))
-		writel(I2CSEGCTL_INIT_VAL, &gcr->i2csegctl);
-	if (IS_ENABLED(CONFIG_ARCH_NPCM7xx)) {
-		if(bus->module_num == 0) {
-			val = readl(&gcr->i2csegsel) & ~(3 << I2CSEGSEL_S0DECFG);
-                	writel(val, &gcr->i2csegsel);
-                	val = readl(&gcr->i2csegctl) | (1 << I2CSEGCTL_S0DWE) | (1 << I2CSEGCTL_S0DEN);
-                	writel(val, &gcr->i2csegctl);
-		}
-		else if(bus->module_num == 4) {
-			val = readl(&gcr->i2csegsel) & ~(3 << I2CSEGSEL_S4DECFG);
-                	writel(val, &gcr->i2csegsel);
-                	val = readl(&gcr->i2csegctl) | (1 << I2CSEGCTL_S4DWE) | (1 << I2CSEGCTL_S4DEN);
-                	writel(val, &gcr->i2csegctl);
-		}
-	}
-	/* enable SMB moudle */
+
+	/* set initial i2csegctl value */
+	writel(i2csegctl_val, &gcr->i2csegctl);
+
+	/* enable SMB module */
 	writeb(readb(&reg->ctl2) | SMBCTL2_ENABLE, &reg->ctl2);
 
-	/* select bank 0 */
+	/* select register bank 0 */
 	writeb(readb(&reg->ctl3) & ~SMBCTL3_BNK_SEL, &reg->ctl3);
 
 	/* single byte mode */
@@ -548,8 +604,8 @@ static int npcm_i2c_probe(struct udevice *dev)
 	/* set POLL mode */
 	writeb(0, &reg->ctl1);
 
-	printf("I2C bus%d ready. speed=%d, base=0x%x, apb=%u\n",
-	       bus->module_num, bus->freq, (u32)(uintptr_t)bus->reg, bus->apb_clk);
+	printf("I2C bus %d ready. speed=%d, base=0x%x, apb=%u\n",
+	       bus->num, bus->freq, (u32)(uintptr_t)bus->reg, bus->apb_clk);
 
 	return 0;
 }
@@ -560,8 +616,8 @@ static const struct dm_i2c_ops nuvoton_i2c_ops = {
 };
 
 static const struct udevice_id nuvoton_i2c_of_match[] = {
-	{ .compatible = "nuvoton,npcm845-i2c" },
-	{ .compatible = "nuvoton,npcm750-i2c" },
+	{ .compatible = "nuvoton,npcm845-i2c",  .data = NPCM8XX_I2CSEGCTL_INIT_VAL},
+	{ .compatible = "nuvoton,npcm750-i2c",  .data = NPCM7XX_I2CSEGCTL_INIT_VAL},
 	{}
 };
 

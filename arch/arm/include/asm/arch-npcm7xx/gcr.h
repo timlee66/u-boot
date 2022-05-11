@@ -3,6 +3,8 @@
 #ifndef __NPCM750_GCR_H_
 #define __NPCM750_GCR_H_
 
+#define NPCM_GCR_BA		0xF0800000
+
 /* On-Chip POLEG NPCM750 VERSIONS */
 #define POLEG_Z1                    0x00A92750
 #define POLEG_A1                    0x04A92750
