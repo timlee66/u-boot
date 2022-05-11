@@ -126,7 +126,7 @@
 	status = "okay";
 };
 &gmac1 {
-	phy-mode = "rgmii";
+	phy-mode = "rgmii-id";
 	snps,reset-active-low;
 	snps,reset-delays-us = <0 10000 1000000>;
 	snps,reset-gpio = <&gpio5 2 GPIO_ACTIVE_LOW>;    /* gpio162 */
