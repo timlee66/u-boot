@@ -1069,7 +1069,8 @@ static int npcm8xx_pinconf_set(struct udevice *dev, unsigned int selector,
 	/* Configure pin as gpio function */
 	npcm8xx_set_gpio_func(dev, selector);
 
-	if (is_gpio_persist(dev, bank)) {
+	if (is_gpio_persist(dev, bank) &&
+	    param != PIN_CONFIG_EVENT_CLEAR) {
 		dev_dbg(dev, "retain the state\n");
 		return 0;
 	}
