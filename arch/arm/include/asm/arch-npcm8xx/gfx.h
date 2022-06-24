@@ -3,16 +3,16 @@
 
 /*----- System Global Control -----*/
 #define GCR_BA				0xF0800000
-#define MFSEL1				(GCR_BA+0x00C)		// Multiple Function Pin Select 1
-#define MFSEL2				(GCR_BA+0x010)		// Multiple Function Pin Select 2
+#define MFSEL1				(GCR_BA+0x260)		// Multiple Function Pin Select 1
+#define MFSEL2				(GCR_BA+0x264)		// Multiple Function Pin Select 2
 #define INTCR				(GCR_BA+0x03C)		// Integration Control
 #define INTSR				(GCR_BA+0x040)		// Integration Status
 #define INTCR2				(GCR_BA+0x060)		// Integration control Register 2
-#define MFSEL3				(GCR_BA+0x064)		// Multiple function Pin Select 3
+#define MFSEL3				(GCR_BA+0x268)		// Multiple function Pin Select 3
 #define MDLR                          	(GCR_BA+0x07C)		// Module Disable Lock
 #define INTCR3				(GCR_BA+0x09C)		// Integration Control 3
-#define MFSEL4				(GCR_BA+0x0B0)		// Multiple function Pin Select 4
-
+#define MFSEL4				(GCR_BA+0x26C)		// Multiple function Pin Select 4
+#define INTCR4				(GCR_BA+0x0C0)		// Multiple function Pin Select 4
 
 /*----- Clock Controller -----*/
 #define CLK_BA				0xF0801000
@@ -200,32 +200,41 @@
 #define CRTCEXT				(MGABASE1 + 0x1FDE)
 #define INSTS1				(MGABASE1 + 0x1FDA)
 
-#define PCIRREL_REG			INTCR3
-#define PCIRREL_BIT			BIT(30)
+#define PCIRREL_REG			(GCR_BA + 0x0A0)
+#define PCIRREL_BIT			BIT(0)
 
 u32 getFrameBufferAddress()
 {
 	u32 fbAddr = 0;
 
-	switch ((readl(INTCR3) & 0x700) >> 8) {
-	case 0:
-		fbAddr = 0x07000000;
-		break;
-	case 1:
-		fbAddr = 0x0F000000;
-		break;
-	case 2:
+	switch ((readl(INTCR4) & 0x7f0000) >> 16) {
+	case 0x1F:
 		fbAddr = 0x1F000000;
 		break;
-	case 3:
+	case 0x1E:
+		fbAddr = 0x1E000000;
+		break;
+	case 0x1B:
+		fbAddr = 0x1B000000;
+		break;
+	case 0x1A:
+		fbAddr = 0x1A000000;
+		break;
+	case 0x3F:
 		fbAddr = 0x3F000000;
 		break;
-	case 4:
+	case 0x37:
+		fbAddr = 0x37000000;
+		break;
+	case 0x7F:
 		fbAddr = 0x7F000000;
+		break;
+	case 0x6F:
+		fbAddr = 0x6F000000;
 		break;
 	}
 
 	return fbAddr;
-}
+} 
 
 #endif // GFXI_IF_h__
