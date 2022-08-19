@@ -58,6 +58,11 @@ extern unsigned long nand_env_oob_offset;
 # endif /* CONFIG_ENV_OFFSET_OOB */
 #endif /* CONFIG_ENV_IS_IN_NAND */
 
+#if defined(CONFIG_ENV_IS_BEHIND_UBOOT)
+extern uint32_t npcm_env_offset;
+# undef CONFIG_ENV_OFFSET
+# define CONFIG_ENV_OFFSET npcm_env_offset
+#endif
 /*
  * For the flash types where embedded env is supported, but it cannot be
  * calculated automatically (i.e. NAND), take the board opt-in.

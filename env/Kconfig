@@ -384,6 +384,38 @@ config ENV_SPI_EARLY
 	  before relocation. Call env_init() and than you can use
 	  env_get_f() for accessing Environment variables.
 
+config ENV_IS_BEHIND_UBOOT
+	bool "Environment is behind the U-Boot"
+	depends on ENV_IS_IN_SPI_FLASH
+	help
+	  Define this if your ENV is stored behind the U-boot image
+	  in SPI flash.
+
+	  - CONFIG_UBOOT_OFFSET_REG:
+	  - CONFIG_UBOOT_SIZE_REG:
+
+	  These two #defines specify the register for offset and size
+	  of the U-Boot image within the SPI Flash.
+
+	  - CONFIG_ENV_OFFSET:
+
+	  The CONFIG_ENV_OFFSET is calculated by u-boot offset
+	  plus u-boot size and aligned to an sector boundary.
+
+config UBOOT_OFFSET_REG
+	hex "U-boot image offset register"
+	depends on ENV_IS_BEHIND_UBOOT
+	default 0x7FDC
+	help
+	  Store the U-boot image offset.
+
+config UBOOT_SIZE_REG
+	hex "U-boot image size register"
+	depends on ENV_IS_BEHIND_UBOOT
+	default 0x7FD8
+	help
+	  Store the U-boot image size.
+
 config ENV_IS_IN_UBI
 	bool "Environment in a UBI volume"
 	depends on !CHAIN_OF_TRUST
@@ -527,6 +559,7 @@ config ENV_OFFSET
 	default 0x140000 if ARCH_AT91
 	default 0x260000 if ARCH_OMAP2PLUS
 	default 0x1080000 if MICROBLAZE && ENV_IS_IN_SPI_FLASH
+	default 0 if ENV_IS_BEHIND_UBOOT
 	help
 	  Offset from the start of the device (or partition)
 

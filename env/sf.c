@@ -21,6 +21,7 @@
 #include <uuid.h>
 #include <asm/cache.h>
 #include <asm/global_data.h>
+#include <asm/io.h>
 #include <dm/device-internal.h>
 #include <u-boot/crc.h>
 
@@ -244,11 +245,26 @@ done:
 	return ret;
 }
 
+#ifdef CONFIG_ENV_IS_BEHIND_UBOOT
+uint32_t npcm_env_offset;
+#endif
+
 static int env_sf_load(void)
 {
 	int ret;
 	char *buf = NULL;
 
+#ifdef CONFIG_ENV_IS_BEHIND_UBOOT
+	uint32_t uboot_offset, uboot_size;
+	uboot_offset = readl(CONFIG_UBOOT_OFFSET_REG);
+	uboot_size = readl(CONFIG_UBOOT_SIZE_REG);
+	if (!uboot_offset || uboot_offset == 0xFFFFFFFF ) {
+		printf("invalid uboot offset 0x%x\n", uboot_offset);
+		npcm_env_offset = 0xFFFFFFFF;
+		return -ENXIO;
+	}
+	npcm_env_offset = roundup(uboot_offset + uboot_size, CONFIG_ENV_SECT_SIZE);
+#endif
 	buf = (char *)memalign(ARCH_DMA_MINALIGN, CONFIG_ENV_SIZE);
 	if (!buf) {
 		env_set_default("malloc() failed", 0);
