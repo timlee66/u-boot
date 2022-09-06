@@ -264,6 +264,7 @@ static int env_sf_load(void)
 		return -ENXIO;
 	}
 	npcm_env_offset = roundup(uboot_offset + uboot_size, CONFIG_ENV_SECT_SIZE);
+	printf("env_offset:0x%x ", npcm_env_offset);
 #endif
 	buf = (char *)memalign(ARCH_DMA_MINALIGN, CONFIG_ENV_SIZE);
 	if (!buf) {
