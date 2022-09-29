@@ -118,6 +118,11 @@
 	};
 };
 
+&fiux {
+	nuvoton,spix-mode;
+	status = "okay";
+};
+
 &gmac0 {
 	phy-mode = "sgmii";
 	snps,reset-active-low;
@@ -330,5 +335,6 @@
         pinctrl-0 = <
 		&gspi_pins
 		&vgadig_pins
+		&spix_pins
 	>;
 };
