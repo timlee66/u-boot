@@ -34,6 +34,34 @@
 #define UMA_CTS_RDYST		BIT(24)
 #define UMA_CTS_DEV_NUM_MASK	GENMASK(9, 8)
 
+/* Direct Write Configuration Register */
+#define DWR_CFG_WBURST_MASK	GENMASK(25, 24)
+#define DWR_CFG_ADDSIZ_MASK	GENMASK(17, 16)
+#define DWR_CFG_ABPCK_MASK	GENMASK(11, 10)
+#define DRW_CFG_DBPCK_MASK	GENMASK(9, 8)
+#define DRW_CFG_WRCMD		2
+enum {
+	DWR_WBURST_1_BYTE,
+	DWR_WBURST_16_BYTE = 3,
+};
+
+enum {
+	DWR_ADDSIZ_24_BIT,
+	DWR_ADDSIZ_32_BIT,
+};
+
+enum {
+	DWR_ABPCK_BIT_PER_CLK,
+	DWR_ABPCK_2_BIT_PER_CLK,
+	DWR_ABPCK_4_BIT_PER_CLK,
+};
+
+enum {
+	DWR_DBPCK_BIT_PER_CLK,
+	DWR_DBPCK_2_BIT_PER_CLK,
+	DWR_DBPCK_4_BIT_PER_CLK,
+};
+
 struct npcm_fiu_regs {
 	unsigned int    drd_cfg;
 	unsigned int    dwr_cfg;
@@ -360,6 +388,26 @@ static int npcm_fiu_spi_probe(struct udevice *bus)
 	return 0;
 }
 
+static int npcm_fiu_spi_bind(struct udevice *bus)
+{
+	struct npcm_fiu_regs *regs;
+
+	if (dev_read_bool(bus, "nuvoton,spix-mode")) {
+		regs = dev_read_addr_ptr(bus);
+		if (!regs)
+			return -EINVAL;
+
+		/* Setup direct write cfg for SPIX */
+		writel(FIELD_PREP(DWR_CFG_WBURST_MASK, DWR_WBURST_16_BYTE) |
+		       FIELD_PREP(DWR_CFG_ADDSIZ_MASK, DWR_ADDSIZ_24_BIT) |
+		       FIELD_PREP(DWR_CFG_ABPCK_MASK, DWR_ABPCK_4_BIT_PER_CLK) |
+		       FIELD_PREP(DRW_CFG_DBPCK_MASK, DWR_DBPCK_4_BIT_PER_CLK) |
+		       DRW_CFG_WRCMD, &regs->dwr_cfg);
+	}
+
+	return 0;
+}
+
 static const struct spi_controller_mem_ops npcm_fiu_mem_ops = {
 	.exec_op = npcm_fiu_exec_op,
 };
@@ -384,4 +432,5 @@ U_BOOT_DRIVER(npcm_fiu_spi) = {
 	.ops    = &npcm_fiu_spi_ops,
 	.priv_auto = sizeof(struct npcm_fiu_priv),
 	.probe  = npcm_fiu_spi_probe,
+	.bind = npcm_fiu_spi_bind,
 };
