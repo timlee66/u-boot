@@ -38,7 +38,7 @@
 
 /* Default environemnt variables */
 #define CONFIG_BOOTCOMMAND "run common_bootargs; run romboot"
-#define CONFIG_EXTRA_ENV_SETTINGS   "uimage_flash_addr=80200000\0"   \
+#define CONFIG_EXTRA_ENV_SETTINGS   "uimage_flash_addr=80400000\0"   \
 		"stdin=serial\0"   \
 		"stdout=serial\0"   \
 		"stderr=serial\0"    \
