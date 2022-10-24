@@ -336,5 +336,8 @@
 		&gspi_pins
 		&vgadig_pins
 		&spix_pins
+		&r1_pins
+		&r1en_pins
+		&r1oen_pins
 	>;
 };
