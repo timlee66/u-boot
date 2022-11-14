@@ -3,6 +3,10 @@
 // Copyright 2018 Google, Inc.
 
 /dts-v1/;
+
+/* TCG2 Logs */
+/memreserve/ 0x35F00000 0x00010000;
+
 #include "nuvoton-npcm845.dtsi"
 #include "nuvoton-npcm845-evb-pincfg.dtsi"
 
@@ -59,6 +63,17 @@
 
 	memory {
 		reg = <0x0 0x0 0x0 0x40000000>;
+	};
+
+	tpm@0 {
+		compatible = "microsoft,ftpm";
+	};
+	
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
 	};
 
 	vsbr2: vsbr2 {
