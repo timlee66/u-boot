@@ -823,8 +823,10 @@ int designware_eth_probe(struct udevice *dev)
 		phy_uv = dev_read_u32_default(dev, "phy-supply-microvolt", 0);
 		if (phy_uv) {
 			ret = regulator_set_value(phy_supply, phy_uv);
-			puts("Error setting phy voltage\n");
-			return ret;
+			if (ret) {
+				puts("Error setting phy voltage\n");
+				return ret;
+			}
 		}
 #endif
 	}
