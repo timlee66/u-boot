@@ -401,11 +401,19 @@ static int npcm_fiu_spi_probe(struct udevice *bus)
 static int npcm_fiu_spi_bind(struct udevice *bus)
 {
 	struct npcm_fiu_regs *regs;
+	struct clk clk;
+	u32 frequency;
+	int ret;
 
 	if (dev_read_bool(bus, "nuvoton,spix-mode")) {
 		regs = dev_read_addr_ptr(bus);
 		if (!regs)
 			return -EINVAL;
+
+		ret = clk_get_by_index(bus, 0, &clk);
+		frequency = dev_read_u32_default(bus, "spi-max-frequency", 0);
+		if (!ret && frequency)
+			clk_set_rate(&clk, frequency);
 
 		/* Setup direct write cfg for SPIX */
 		writel(FIELD_PREP(DWR_CFG_WBURST_MASK, DWR_WBURST_16_BYTE) |
