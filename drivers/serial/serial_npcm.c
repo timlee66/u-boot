@@ -98,7 +98,7 @@ static int npcm_serial_probe(struct udevice *dev)
 {
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
 	struct npcm_uart *uart = plat->reg;
-	struct clk clk, parent;
+	struct clk clk;
 	u32 freq;
 	int ret;
 
@@ -109,17 +109,12 @@ static int npcm_serial_probe(struct udevice *dev)
 	if (ret < 0)
 		return ret;
 
-	ret = clk_get_by_index(dev, 1, &parent);
-	if (!ret) {
-		ret = clk_set_parent(&clk, &parent);
-		if (ret)
+	if (freq) {
+		ret = clk_set_rate(&clk, freq);
+		if (ret < 0)
 			return ret;
 	}
-
-	ret = clk_set_rate(&clk, freq);
-	if (ret < 0)
-		return ret;
-	plat->uart_clk = ret;
+	plat->uart_clk = clk_get_rate(&clk);
 
 	/* Disable all interrupt */
 	writeb(0, &uart->ier);
