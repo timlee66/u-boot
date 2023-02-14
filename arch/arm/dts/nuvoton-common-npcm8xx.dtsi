@@ -1481,5 +1481,9 @@
 			groups = "jtag2";
 			function = "jtag2";
 		};
+		fm0_pins: fm0-pins {
+			groups = "fm0";
+			function = "fm0";
+		};
 	};
 };
