@@ -96,19 +96,10 @@ struct npcm_fiu_regs {
 
 struct npcm_fiu_priv {
 	struct npcm_fiu_regs *regs;
-	struct clk clk;
 };
 
 static int npcm_fiu_spi_set_speed(struct udevice *bus, uint speed)
 {
-	struct npcm_fiu_priv *priv = dev_get_priv(bus);
-	int ret;
-
-	debug("%s: set speed %u\n", bus->name, speed);
-	ret = clk_set_rate(&priv->clk, speed);
-	if (ret < 0)
-		return ret;
-
 	return 0;
 }
 
@@ -379,13 +370,9 @@ static int npcm_fiu_spi_probe(struct udevice *bus)
 {
 	struct npcm_fiu_priv *priv = dev_get_priv(bus);
 	struct udevice *vqspi_supply;
-	int vqspi_uv, ret;
+	int vqspi_uv;
 
 	priv->regs = (struct npcm_fiu_regs *)dev_read_addr_ptr(bus);
-
-	ret = clk_get_by_index(bus, 0, &priv->clk);
-	if (ret < 0)
-		return ret;
 
 	if (IS_ENABLED(CONFIG_DM_REGULATOR)) {
 		device_get_supply_regulator(bus, "vqspi-supply", &vqspi_supply);
