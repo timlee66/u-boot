@@ -145,6 +145,9 @@ static int npcm_clk_set_div(struct clk *clk, u32 div)
 	if (!divider)
 		return -EINVAL;
 
+	if (divider->flags & DIV_RO)
+		return 0;
+
 	if (divider->flags & PRE_DIV2)
 		div = div >> 1;
 
@@ -259,8 +262,8 @@ static ulong npcm_clk_set_rate(struct clk *clk, ulong rate)
 	if (ret)
 		return ret;
 
-	debug("%s: rate %lu, new rate (%lu / %u)\n", __func__, rate, parent_rate, div);
-	return (parent_rate / div);
+	debug("%s: rate %lu, new rate %lu\n", __func__, rate, npcm_clk_get_rate(clk));
+	return npcm_clk_get_rate(clk);
 }
 
 static int npcm_clk_set_parent(struct clk *clk, struct clk *parent)
