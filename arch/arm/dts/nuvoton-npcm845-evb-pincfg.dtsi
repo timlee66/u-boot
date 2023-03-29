@@ -3,6 +3,29 @@
 
 / {
 	pinctrl: pinctrl@f0800000 {
+		gpio8o_pins: gpio8o-pins {
+			pins = "GPIO8/LKGPO1/TP_GPIO0";
+			bias-disable;
+			output-high;
+		};
+		pspi_di_pins: gpio17-pins {
+			pins = "GPIO17/PSPI_DI/CP1_GPIO5";
+			bias-pull-up;
+			input-enable;
+			slew-rate = <2>;
+		};
+		pspi_d0_pins: gpio18o-pins {
+			pins = "GPIO18/PSPI_D0/SMB4B_SDA";
+			bias-disable;
+			output-high;
+			slew-rate = <2>;
+		};
+		pspi_ck_pins: gpio19ol-pins {
+			pins = "GPIO19/PSPI_CK/SMB4B_SCL";
+			bias-disable;
+			output-high;
+			slew-rate = <2>;
+		};
 		gpio91o_pins: gpio91o-pins {
 			pins = "GPIO91/R2_MDC/CP1_GPIO6/TP_GPIO0";
 			bias-disable;
@@ -12,6 +35,11 @@
 			pins = "GPIO92/R2_MDIO/CP1_GPIO7/TP_GPIO1";
 			bias-disable;
 			output-high;
+		};
+		gpio125o_pins: gpio125o-pins {
+			pins = "GPIO125/SMB1C_SCL/CP1_GPIO2";
+			bias-disable;
+			output-low;
 		};
 	};
 };

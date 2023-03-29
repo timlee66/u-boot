@@ -16,6 +16,13 @@
 #include <linux/bitfield.h>
 #include <linux/delay.h>
 
+#ifdef CONFIG_TPM2_TIS_SPI
+#include <mapmem.h>
+#include <spi.h>
+#include <tpm-v2.h>
+#include <asm/arch/sha.h>
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #define CLKSEL	0x4
@@ -23,6 +30,23 @@ DECLARE_GLOBAL_DATA_PTR;
 #define PIXCKSEL_MASK	GENMASK(5, 4)
 #define SR_MII_CTRL_SWR_BIT15   15
 #define VR_MII_MMD_DIG_CTRL1_R2TLBE_BIT14 14
+
+#ifdef CONFIG_TPM2_TIS_SPI
+#define CONFIG_TPM_SPI_BUS	5
+#define CONFIG_TPM_SPI_CS	0
+#define CONFIG_TPM_SPI_MODE	0
+#define CONFIG_TPM_SPI_FREQ	10000000
+#define NPCM_MEASURE_BASE	0xF0848000
+#define NPCM_MEASURE_UBT	0x294
+#define NPCM_MEASURE_SKMT	0xC1E
+#define NPCM_MEASURE_SIZE	64
+
+u8 ubt_digest[TPM2_DIGEST_LEN];
+u8 skmt_digest[TPM2_DIGEST_LEN];
+
+extern int get_tpm(struct udevice **devp);
+extern void print_byte_string(u8 *data, size_t count);
+#endif
 
 static void arbel_eth_init(void)
 {
@@ -93,3 +117,124 @@ int dram_init(void)
 
 	return 0;
 }
+
+#ifdef CONFIG_TPM2_TIS_SPI
+static void hash_show(uint8_t *buf, ulong addr, ulong len)
+{
+	int i;
+
+	printf("sha256 for %08lx ... %08lx ==> ", addr, addr + len - 1);
+
+	for (i = 0; i < TPM2_DIGEST_LEN; i++) {
+		printf("%02x", buf[i]);
+	}
+
+	printf("\n");
+}
+
+static int measure_write(struct udevice *dev)
+{
+	struct tpm_chip_priv *priv;
+	u8 buf[NPCM_MEASURE_SIZE];
+	void *value;
+	void *hash_ubt;
+	void *hash_skmt;
+	u32 rc;
+
+	priv = dev_get_uclass_priv(dev);
+	if (!priv)
+		return -EINVAL;
+
+	value = map_sysmem(NPCM_MEASURE_BASE + NPCM_MEASURE_UBT, NPCM_MEASURE_SIZE);
+	memcpy(buf, value, NPCM_MEASURE_SIZE);
+	unmap_sysmem(buf);
+
+	npcm_sha_calc(npcm_sha_type_sha2, buf, NPCM_MEASURE_SIZE, hash_ubt);
+	hash_show(hash_ubt, NPCM_MEASURE_BASE + NPCM_MEASURE_UBT, NPCM_MEASURE_SIZE);
+
+	rc = tpm2_pcr_extend(dev, 0, TPM2_ALG_SHA256, hash_ubt, TPM2_DIGEST_LEN);
+	if (rc)
+		return rc;
+
+	value = map_sysmem(NPCM_MEASURE_BASE + NPCM_MEASURE_SKMT, NPCM_MEASURE_SIZE);
+	memcpy(buf, value, NPCM_MEASURE_SIZE);
+	unmap_sysmem(buf);
+
+	npcm_sha_calc(npcm_sha_type_sha2, buf, NPCM_MEASURE_SIZE, hash_skmt);
+	hash_show(hash_skmt, NPCM_MEASURE_BASE + NPCM_MEASURE_SKMT, NPCM_MEASURE_SIZE);
+
+	rc = tpm2_pcr_extend(dev, 1, TPM2_ALG_SHA256, hash_skmt, TPM2_DIGEST_LEN);
+
+	return rc;
+}
+
+static int measure_read(struct udevice *dev, u32 index)
+{
+	struct tpm_chip_priv *priv;
+	unsigned int updates;
+	void *digest;
+	u32 rc;
+
+	priv = dev_get_uclass_priv(dev);
+	if (!priv)
+		return -EINVAL;
+
+	rc = tpm2_pcr_read(dev, index, priv->pcr_select_min, digest, &updates);
+
+	if (!rc) {
+		printf("PCR #%u content (%u known updates):\n", index, updates);
+		print_byte_string(digest, TPM2_DIGEST_LEN);
+	}
+
+	return rc;
+}
+
+int tpm_measure(void)
+{
+	struct udevice *dev;
+	struct tpm_chip_priv *priv;
+	int rc;
+
+	rc = get_tpm(&dev);
+	if (rc)
+		return rc;
+
+	rc = tpm_init(dev);
+	if (rc)
+		return rc;
+
+	rc = tpm2_startup(dev, TPM2_SU_CLEAR);
+	if (rc)
+		return rc;
+
+	rc = tpm2_self_test(dev, TPMI_YES);
+	if (rc)
+		return rc;
+
+	priv = dev_get_uclass_priv(dev);
+	if (!priv)
+		return -EINVAL;
+
+	rc = measure_write(dev);
+	rc = measure_read(dev, 0);
+	rc = measure_read(dev, 1);
+
+	return rc;
+}
+
+int last_stage_init(void)
+{
+	struct udevice *dev;
+	struct spi_slave *slave;
+
+	/* probe spi tpm device on bus5/cs0 */
+	spi_get_bus_and_cs(CONFIG_TPM_SPI_BUS, CONFIG_TPM_SPI_CS,
+			   CONFIG_TPM_SPI_FREQ, CONFIG_TPM_SPI_MODE,
+			   "tpm_drv", "tpm_dev", &dev, &slave);
+
+	/* write measurements to spi tpm device */
+	tpm_measure();
+
+	return 0;
+}
+#endif

@@ -197,6 +197,13 @@
 
 &pspi {
 	status = "okay";
+	cs-gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
+	spi-max-frequency = <10000000>;
+	tpmdev@0 {
+		compatible = "tcg,tpm_tis-spi";
+		gpio-reset = <&gpio3 29 GPIO_ACTIVE_LOW>;    /* gpio125 */
+		reg = <0>;
+	};
 };
 
 &sdhci0 {
@@ -369,5 +376,8 @@
 		&r1_pins
 		&r1en_pins
 		&r1oen_pins
+		&pspi_di_pins
+		&pspi_d0_pins
+		&pspi_ck_pins
 	>;
 };
