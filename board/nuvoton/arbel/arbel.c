@@ -16,7 +16,7 @@
 #include <linux/bitfield.h>
 #include <linux/delay.h>
 
-#ifdef CONFIG_TPM2_TIS_SPI
+#ifdef CONFIG_EXT_TPM2_SPI
 #include <mapmem.h>
 #include <spi.h>
 #include <tpm-v2.h>
@@ -31,7 +31,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define SR_MII_CTRL_SWR_BIT15   15
 #define VR_MII_MMD_DIG_CTRL1_R2TLBE_BIT14 14
 
-#ifdef CONFIG_TPM2_TIS_SPI
+#ifdef CONFIG_EXT_TPM2_SPI
 #define CONFIG_TPM_SPI_BUS	5
 #define CONFIG_TPM_SPI_CS	0
 #define CONFIG_TPM_SPI_MODE	0
@@ -118,7 +118,7 @@ int dram_init(void)
 	return 0;
 }
 
-#ifdef CONFIG_TPM2_TIS_SPI
+#ifdef CONFIG_EXT_TPM2_SPI
 static void hash_show(uint8_t *buf, ulong addr, ulong len)
 {
 	int i;

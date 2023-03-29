@@ -15,4 +15,8 @@ config SYS_MEM_TOP_HIDE
 	help
 	  Reserve memory for ECC/GFX/OPTEE/TIP/CP.
 
+config EXT_TPM2_SPI
+	bool "Support external TPM2 SPI device"
+	default n
+
 endif
