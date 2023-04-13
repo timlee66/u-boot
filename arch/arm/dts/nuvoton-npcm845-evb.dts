@@ -7,6 +7,7 @@
 /* TCG2 Logs */
 /memreserve/ 0x35F00000 0x00010000;
 
+#include <dt-bindings/phy/nuvoton,npcm-usbphy.h>
 #include "nuvoton-npcm845.dtsi"
 #include "nuvoton-npcm845-evb-pincfg.dtsi"
 
@@ -54,7 +55,7 @@
 		spi5 = &pspi;
 		usb0 = &udc0;
 		usb1 = &ehci1;
-		usb2 = &ehci2;
+		usb2 = &udc8;
 	};
 
 	chosen {
@@ -347,17 +348,17 @@
 
 &udc0 {
 	status = "okay";
-	phys = <&usbphy1 0>;
+	phys = <&usbphy1 NPCM_UDC0_7>;
 };
 
 &ehci1 {
 	status = "okay";
-	phys = <&usbphy2 3>;
+	phys = <&usbphy2 NPCM_USBH1>;
 };
 
-&ehci2 {
+&udc8 {
 	status = "okay";
-	phys = <&usbphy3 4>;
+	phys = <&usbphy3 NPCM_UDC8>;
 };
 
 &pinctrl {
