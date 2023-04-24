@@ -94,7 +94,7 @@ int arch_cpu_init(void)
 	return 0;
 }
 
-static struct mm_region npcm_mem_map[1 + CONFIG_NR_DRAM_BANKS + 1] = {
+static struct mm_region npcm_mem_map[] = {
 	{
 		/* DRAM */
 		.phys = 0x0UL,
@@ -110,6 +110,13 @@ static struct mm_region npcm_mem_map[1 + CONFIG_NR_DRAM_BANKS + 1] = {
 		.attrs = PTE_BLOCK_MEMTYPE(MT_DEVICE_NGNRNE) |
 			 PTE_BLOCK_NON_SHARE |
 			 PTE_BLOCK_PXN | PTE_BLOCK_UXN
+	},
+	{
+		.phys = 0x100000000UL,
+		.virt = 0x100000000UL,
+		.size = 0x80000000UL,
+		.attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL) |
+			 PTE_BLOCK_INNER_SHARE
 	},
 	{
 		/* List terminator */

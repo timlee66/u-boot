@@ -28,8 +28,16 @@ DECLARE_GLOBAL_DATA_PTR;
 #define CLKSEL	0x4
 #define PIXCKSEL_GFX	0
 #define PIXCKSEL_MASK	GENMASK(5, 4)
-#define SR_MII_CTRL_SWR_BIT15   15
-#define VR_MII_MMD_DIG_CTRL1_R2TLBE_BIT14 14
+#define SR_MII_CTRL_SWR_BIT15	15
+
+#define DRAM_512MB_ECC_SIZE	0x1C000000ULL
+#define DRAM_512MB_SIZE		0x20000000ULL
+#define DRAM_1GB_ECC_SIZE	0x38000000ULL
+#define DRAM_1GB_SIZE		0x40000000ULL
+#define DRAM_2GB_ECC_SIZE	0x70000000ULL
+#define DRAM_2GB_SIZE		0x80000000ULL
+#define DRAM_4GB_ECC_SIZE	0xE00000000ULL
+#define DRAM_4GB_SIZE		0x100000000ULL
 
 #ifdef CONFIG_EXT_TPM2_SPI
 #define CONFIG_TPM_SPI_BUS	5
@@ -107,13 +115,64 @@ int board_init(void)
 int dram_init(void)
 {
 	struct npcm_gcr *gcr = (struct npcm_gcr *)npcm_get_base_gcr();
+	uint64_t delta = 0ULL;
 
 	/*
 	 * get dram active size value from bootblock.
-	 * Value sent using scrpad_02 register.
+	 * Value sent using scrpad_03 register.
 	 * feature available in bootblock 0.0.6 and above.
 	 */
-	gd->ram_size = readl(&gcr->scrpad_b);
+	gd->ram_size = readl(&gcr->scrpad_c);
+	debug("%s: scrpad_c: %llx ", __func__, gd->ram_size);
+
+	if (gd->ram_size == 0) {
+		gd->ram_size = readl(&gcr->scrpad_b);
+		debug("%s: scrpad_b: %llx ", __func__, gd->ram_size);
+	} else {
+		gd->ram_size *= 0x100000ULL;
+	}
+
+	gd->bd->bi_dram[0].start = 0;
+	debug("ram_size: %llx ", gd->ram_size);
+
+	switch (gd->ram_size) {
+	case DRAM_512MB_ECC_SIZE:
+	case DRAM_512MB_SIZE:
+	case DRAM_1GB_ECC_SIZE:
+	case DRAM_1GB_SIZE:
+	case DRAM_2GB_ECC_SIZE:
+	case DRAM_2GB_SIZE:
+		gd->bd->bi_dram[0].size = gd->ram_size;
+		gd->bd->bi_dram[1].start = 0;
+		gd->bd->bi_dram[1].size = 0;
+		break;
+	case DRAM_4GB_ECC_SIZE:
+		gd->bd->bi_dram[0].size = DRAM_2GB_ECC_SIZE;
+		gd->bd->bi_dram[1].start = DRAM_4GB_SIZE;
+		gd->bd->bi_dram[1].size = DRAM_2GB_SIZE;
+		delta = DRAM_4GB_SIZE - DRAM_2GB_ECC_SIZE;
+		break;
+	case DRAM_4GB_SIZE:
+		gd->bd->bi_dram[0].size = DRAM_2GB_SIZE;
+		gd->bd->bi_dram[1].start = DRAM_4GB_SIZE;
+		gd->bd->bi_dram[1].size = DRAM_2GB_SIZE;
+		delta = DRAM_4GB_SIZE - DRAM_2GB_SIZE;
+		break;
+	default:
+		gd->bd->bi_dram[0].size = DRAM_1GB_SIZE;
+		gd->bd->bi_dram[1].start = 0;
+		gd->bd->bi_dram[1].size = 0;
+		break;
+	}
+
+	gd->ram_size -= delta;
+
+	return 0;
+}
+
+int dram_init_banksize(void)
+{
+	dram_init();
 
 	return 0;
 }
