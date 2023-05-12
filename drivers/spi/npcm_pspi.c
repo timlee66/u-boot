@@ -123,9 +123,6 @@ static int npcm_pspi_xfer(struct udevice *dev, unsigned int bitlen,
 	if (flags & SPI_XFER_END)
 		spi_cs_deactivate(dev);
 
-	debug("npcm_pspi_xfer: slave %s:%s dout %08X din %08X bitlen %u\n",
-	      dev->parent->name, dev->name, *(uint *)tx, *(uint *)rx, bitlen);
-
 	npcm_pspi_disable(priv);
 
 	return ret;
