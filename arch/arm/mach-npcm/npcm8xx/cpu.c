@@ -71,6 +71,9 @@ int print_cpuinfo(void)
 	case ARBEL_A1:
 		printf("A1 @ ");
 		break;
+	case ARBEL_A2:
+		printf("A2 @ ");
+		break;
 	default:
 		printf("Unknown\n");
 		break;
