@@ -17,9 +17,9 @@
 #define CONFIG_SYS_PBSIZE               (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_BOOTM_LEN            (20 << 20)
 #define CONFIG_SYS_BOOTMAPSZ            (30 << 20)
-#define CONFIG_SYS_LOAD_ADDR            0x8000
+#define CONFIG_SYS_LOAD_ADDR            CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_SDRAM_BASE           0x0
-#define CONFIG_SYS_INIT_SP_ADDR         (0x00008000 - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_SP_ADDR         CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN          (256 << 10)
 #define CONFIG_SYS_MONITOR_BASE	        CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_HZ                   1000
