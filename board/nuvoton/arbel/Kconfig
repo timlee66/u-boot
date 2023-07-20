@@ -19,4 +19,5 @@ config EXT_TPM2_SPI
 	bool "Support external TPM2 SPI device"
 	default n
 
+source "board/nuvoton/common/Kconfig"
 endif

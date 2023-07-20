@@ -20,6 +20,7 @@
 #include <asm/mach-types.h>
 #include <asm/arch/otp.h>
 #include <asm/arch/poleg_info.h>
+#include "../common/common.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -138,7 +139,7 @@ int last_stage_init(void)
 		}
 		sprintf(value, "ttyS%d,115200n8", dev->seq_);
 		env_set("console", value);
-
+		board_set_console();
 	}
 	arch_preboot_os();
 

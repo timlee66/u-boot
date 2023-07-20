@@ -22,6 +22,7 @@
 #include <tpm-v2.h>
 #include <asm/arch/sha.h>
 #endif
+#include "../common/common.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -282,7 +283,7 @@ int tpm_measure(void)
 	return rc;
 }
 
-int last_stage_init(void)
+int board_spi_tpm_measure(void)
 {
 	struct udevice *dev;
 	struct spi_slave *slave;
@@ -294,7 +295,16 @@ int last_stage_init(void)
 
 	/* write measurements to spi tpm device */
 	tpm_measure();
+}
+#endif
+
+int last_stage_init(void)
+{
+#ifdef CONFIG_EXT_TPM2_SPI
+	board_spi_tpm_measure();
+#endif
+
+	board_set_console();
 
 	return 0;
 }
-#endif

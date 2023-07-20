@@ -23,6 +23,7 @@
 #define CONFIG_SYS_MONITOR_LEN          (256 << 10)
 #define CONFIG_SYS_MONITOR_BASE	        CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_HZ                   1000
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 57600, 115200, 230400, 460800 }
 #define CONFIG_BITBANGMII_MULTI
 
 /* NPCM specific defines */

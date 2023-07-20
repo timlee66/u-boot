@@ -27,4 +27,5 @@ config TARGET_POLEG_RUNBMC
 
 endchoice
 
+source "board/nuvoton/common/Kconfig"
 endif
