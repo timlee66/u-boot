@@ -334,6 +334,29 @@
 				clock-names = "refclk";
 			};
 
+			watchdog0: watchdog@801c {
+				compatible = "nuvoton,npcm750-wdt";
+				interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
+				reg = <0x801c 0x4>;
+				status = "disabled";
+				clocks = <&clk NPCM8XX_CLK_REFCLK>;
+			};
+
+			watchdog1: watchdog@901c {
+				compatible = "nuvoton,npcm750-wdt";
+				interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
+				reg = <0x901c 0x4>;
+				status = "disabled";
+				clocks = <&clk NPCM8XX_CLK_REFCLK>;
+			};
+
+			watchdog2: watchdog@a01c {
+				compatible = "nuvoton,npcm750-wdt";
+				interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
+				reg = <0xa01c 0x4>;
+				status = "disabled";
+				clocks = <&clk NPCM8XX_CLK_REFCLK>;
+			};
 			serial0: serial@0 {
 				compatible = "nuvoton,npcm845-uart";
 				reg = <0x0 0x1000>;
