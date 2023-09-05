@@ -13,6 +13,7 @@
 #define INTCR3				(GCR_BA+0x09C)		// Integration Control 3
 #define MFSEL4				(GCR_BA+0x26C)		// Multiple function Pin Select 4
 #define INTCR4				(GCR_BA+0x0C0)		// Multiple function Pin Select 4
+#define PCIRCTL				(GCR_BA+0x0A0)		// PCI Reset Control
 
 /*----- Clock Controller -----*/
 #define CLK_BA				0xF0801000

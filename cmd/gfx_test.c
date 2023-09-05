@@ -421,6 +421,8 @@ int GFX_ConfigureDisplayTo1920x1200(GFX_ColorDepth colorDepth)
 	u32	data;
 	int		i , cnt = 0;
 
+	gfx_ip_reset();
+
 	if(FB_Initialize() == 0)
 		return(false);
 	// Wait until GFX Device/Vendor ID is read correctly
@@ -780,6 +782,8 @@ int GFX_ConfigureDisplayTo1024x768(GFX_ColorDepth colorDepth)
 	u32	data;
 	int		i , cnt=0;
 
+	gfx_ip_reset();
+
 	if(FB_Initialize() == 0)
 		return(false);
 	/*----------------------------------------------------------------------------------------------*/
@@ -1131,6 +1135,31 @@ int GFX_ConfigureDisplayTo1024x768(GFX_ColorDepth colorDepth)
 	return (true);
 }
 
+/* Reset PCI domain and GFX logic */
+void gfx_ip_reset()
+{
+	u32 ipsrsttwoval = 0;
+
+#ifdef CONFIG_ARCH_NPCM8XX
+	/* Reset PCI */
+	writel(8, PCIRCTL);
+
+	/* Release PCI Reset and allow external PCI reset clear the internal control of reset */
+        writew((1 << 1 ) | (1 << 0), PCIRCTL); /* 11b 3h */
+#endif
+
+	/* Reset GFX logic */
+	ipsrsttwoval = readl(IPSRST2);
+	writel((ipsrsttwoval | BIT(10)), IPSRST2);
+
+	ipsrsttwoval = readl(IPSRST2);
+	printf(">IPSRST2: 0x%8x\n", ipsrsttwoval);
+
+	writel((ipsrsttwoval & ~BIT(10)), IPSRST2);
+
+	printf(">Reset graphics controller and PCIe to PCI bridge finish.\n");
+	printf(">IPSRST2: 0x%8x\n", (ipsrsttwoval & ~BIT(10)));
+}
 
 int GFX_Draw_Pattern(int out_color)
 {
