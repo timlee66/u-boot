@@ -84,7 +84,8 @@ int print_cpuinfo(void)
 
 int arch_cpu_init(void)
 {
-	if (!IS_ENABLED(CONFIG_SYS_DCACHE_OFF)) {
+	if (!IS_ENABLED(CONFIG_SYS_DCACHE_OFF) &&
+	    !IS_ENABLED(CONFIG_SYS_NPCM_DCACHE_OFF)) {
 		/* enable cache to speed up system running */
 		if (get_sctlr() & CR_M)
 			return 0;
@@ -144,4 +145,11 @@ int timer_init(void)
 	gd->arch.tbu = 0;
 
 	return 0;
+}
+
+void enable_caches(void)
+{
+	icache_enable();
+	if (!IS_ENABLED(CONFIG_SYS_NPCM_DCACHE_OFF))
+		dcache_enable();
 }
