@@ -19,6 +19,7 @@
 #include <dm/uclass-internal.h>
 
 static bool asynch_allowed;
+static unsigned int controller_index;
 
 struct usb_uclass_priv {
 	int companion_device_count;
@@ -349,6 +350,11 @@ int usb_init(void)
 	return usb_started ? 0 : -ENOENT;
 }
 
+void usb_setup_gadget_controller_idx(unsigned int controller_idx)
+{
+	controller_index = controller_idx;
+}
+
 int usb_setup_ehci_gadget(struct ehci_ctrl **ctlrp)
 {
 	struct usb_plat *plat;
@@ -356,7 +362,7 @@ int usb_setup_ehci_gadget(struct ehci_ctrl **ctlrp)
 	int ret;
 
 	/* Find the old device and remove it */
-	ret = uclass_find_first_device(UCLASS_USB, &dev);
+	ret = uclass_find_device_by_seq(UCLASS_USB, controller_index, &dev);
 	if (ret)
 		return ret;
 	ret = device_remove(dev, DM_REMOVE_NORMAL);
@@ -379,7 +385,7 @@ int usb_remove_ehci_gadget(struct ehci_ctrl **ctlrp)
 	int ret;
 
 	/* Find the old device and remove it */
-	ret = uclass_find_first_device(UCLASS_USB, &dev);
+	ret = uclass_find_device_by_seq(UCLASS_USB, controller_index, &dev);
 	if (ret)
 		return ret;
 	ret = device_remove(dev, DM_REMOVE_NORMAL);
