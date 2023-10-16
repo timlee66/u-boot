@@ -150,6 +150,8 @@
 	snps,reset-active-low;
 	snps,reset-delays-us = <0 10000 1000000>;
 	snps,reset-gpio = <&gpio5 2 GPIO_ACTIVE_LOW>;    /* gpio162 */
+	phy-supply = <&vsbr2>;
+	phy-supply-microvolt = <1800000>;
 	status = "okay";
 };
 
