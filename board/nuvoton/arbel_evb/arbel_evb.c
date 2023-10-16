@@ -16,7 +16,7 @@
 #define DRAM_1GB_SIZE		0x40000000ULL
 #define DRAM_2GB_ECC_SIZE	0x70000000ULL
 #define DRAM_2GB_SIZE		0x80000000ULL
-#define DRAM_4GB_ECC_SIZE	0xE00000000ULL
+#define DRAM_4GB_ECC_SIZE	0xE0000000ULL
 #define DRAM_4GB_SIZE		0x100000000ULL
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -29,14 +29,12 @@ int board_init(void)
 int dram_init(void)
 {
 	struct npcm_gcr *gcr = (struct npcm_gcr *)NPCM_GCR_BA;
-	uint64_t delta = 0ULL;
 
 	/*
 	 * get dram active size value from bootblock.
 	 * Value sent using scrpad_03 register.
 	 * feature available in bootblock 0.0.6 and above.
 	 */
-
 	gd->ram_size = readl(&gcr->scrpad_c);
 	debug("%s: scrpad_c: %llx ", __func__, gd->ram_size);
 
@@ -62,25 +60,27 @@ int dram_init(void)
 		gd->bd->bi_dram[1].size = 0;
 		break;
 	case DRAM_4GB_ECC_SIZE:
-		gd->bd->bi_dram[0].size = DRAM_2GB_ECC_SIZE;
+		gd->bd->bi_dram[0].size = DRAM_2GB_SIZE;
 		gd->bd->bi_dram[1].start = DRAM_4GB_SIZE;
-		gd->bd->bi_dram[1].size = DRAM_2GB_SIZE;
-		delta = DRAM_4GB_SIZE - DRAM_2GB_ECC_SIZE;
+		gd->bd->bi_dram[1].size = DRAM_2GB_SIZE -
+			(DRAM_4GB_SIZE - DRAM_4GB_ECC_SIZE);
+		/* use bank0 only */
+		gd->ram_size = DRAM_2GB_SIZE;
 		break;
 	case DRAM_4GB_SIZE:
 		gd->bd->bi_dram[0].size = DRAM_2GB_SIZE;
 		gd->bd->bi_dram[1].start = DRAM_4GB_SIZE;
 		gd->bd->bi_dram[1].size = DRAM_2GB_SIZE;
-		delta = DRAM_4GB_SIZE - DRAM_2GB_SIZE;
+		/* use bank0 only */
+		gd->ram_size = DRAM_2GB_SIZE;
 		break;
 	default:
 		gd->bd->bi_dram[0].size = DRAM_1GB_SIZE;
 		gd->bd->bi_dram[1].start = 0;
 		gd->bd->bi_dram[1].size = 0;
+		gd->ram_size = DRAM_1GB_SIZE;
 		break;
 	}
-
-	gd->ram_size -= delta;
 
 	return 0;
 }
