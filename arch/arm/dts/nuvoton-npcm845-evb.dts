@@ -48,7 +48,7 @@
 		spi1 = &fiu1;
 		spi3 = &fiu3;
 		spi4 = &fiux;
-		spi5 = &spi1;
+		spi5 = &pspi;
 		usb0 = &udc0;
 		usb1 = &ehci1;
 		usb2 = &udc8;
@@ -194,7 +194,7 @@
 	status = "okay";
 };
 
-&spi1 {
+&pspi {
 	status = "okay";
 };
 
