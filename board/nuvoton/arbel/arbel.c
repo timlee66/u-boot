@@ -124,17 +124,19 @@ int dram_init(void)
 	 * feature available in bootblock 0.0.6 and above.
 	 */
 	gd->ram_size = readl(&gcr->scrpad_c);
-	debug("%s: scrpad_c: %llx ", __func__, gd->ram_size);
 
-	if (gd->ram_size == 0) {
+	if (gd->ram_size == 0)
 		gd->ram_size = readl(&gcr->scrpad_b);
-		debug("%s: scrpad_b: %llx ", __func__, gd->ram_size);
-	} else {
+	else
 		gd->ram_size *= 0x100000ULL;
-	}
-
-	gd->bd->bi_dram[0].start = 0;
 	debug("ram_size: %llx ", gd->ram_size);
+
+	return 0;
+}
+
+int dram_init_banksize(void)
+{
+	gd->bd->bi_dram[0].start = 0;
 
 	switch (gd->ram_size) {
 	case DRAM_512MB_ECC_SIZE:
@@ -169,13 +171,6 @@ int dram_init(void)
 		gd->ram_size = DRAM_1GB_SIZE;
 		break;
 	}
-
-	return 0;
-}
-
-int dram_init_banksize(void)
-{
-	dram_init();
 
 	return 0;
 }
