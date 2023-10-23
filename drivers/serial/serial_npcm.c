@@ -100,12 +100,13 @@ static int npcm_serial_setbrg(struct udevice *dev, int baudrate)
 static int npcm_serial_probe(struct udevice *dev)
 {
 	struct npcm_serial_plat *plat = dev_get_plat(dev);
-	struct npcm_uart *uart = plat->reg;
+	struct npcm_uart *uart;
 	struct clk clk, parent;
 	u32 freq;
 	int ret;
 
 	plat->reg = dev_read_addr_ptr(dev);
+	uart = plat->reg;
 
 	if (!IS_ENABLED(CONFIG_SYS_SKIP_UART_INIT)) {
 		freq = dev_read_u32_default(dev, "clock-frequency", 0);
