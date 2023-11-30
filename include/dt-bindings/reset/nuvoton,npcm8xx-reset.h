@@ -121,4 +121,22 @@
 #define NPCM8XX_RESET_JTM2		30
 #define NPCM8XX_RESET_USBH2		31
 
+/* Reset Control Registers offset */
+#define WD0RCR		0x38
+#define WD1RCR		0x3c
+#define WD2RCR		0x40
+#define SWRSTC1		0x44
+#define SWRSTC2		0x48
+#define SWRSTC3		0x4c
+#define TIPRSTC		0x50
+#define CORSTC		0x5c
+#define WD0RCRB		0x80
+#define WD1RCRB		0x84
+#define WD2RCRB		0x88
+#define SWRSTC1B	0x8c
+#define SWRSTC2B	0x90
+#define SWRSTC3B	0x94
+#define TIPRSTCB	0x98
+#define CORSTCB		0x9c
+
 #endif

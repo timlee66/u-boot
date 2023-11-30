@@ -1,99 +1,110 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright 2021 Nuvoton Technology Corp.
+ * Copyright 2023 Nuvoton Technology Corp.
  */
 
-#include <common.h>
 #include <dm.h>
 #include <reset-uclass.h>
 #include <asm/io.h>
 #include <dm/device_compat.h>
 
-/* Register Offsets */
-#define NPCM_IPSRST1		0x20
-#define NPCM_IPSRST2		0x24
-#define NPCM_IPSRST3		0x34
-#define NPCM_IPSRST4		0x74
-
-#define NPCM_RC_RESETS_PER_REG	32
-#define NPCM_MASK_RESETS	GENMASK(4, 0)
-
 struct npcm_reset_priv {
 	void __iomem *base;
-	struct reset_ops ops;
 };
 
-static int npcm_rc_setclear_reset(struct reset_ctl *reset_ctl, bool set)
-{
-	struct npcm_reset_priv *priv = dev_get_priv(reset_ctl->dev);
-	u32 rst_bit = BIT(reset_ctl->id & NPCM_MASK_RESETS);
-	u32 ctrl_offset = reset_ctl->id >> 8;
-	u32 stat;
-
-	stat = readl(priv->base + ctrl_offset);
-	if (set)
-		writel(stat | rst_bit, priv->base + ctrl_offset);
-	else
-		writel(stat & ~rst_bit, priv->base + ctrl_offset);
-
-	return 0;
-}
-
-static int npcm_reset_request(struct reset_ctl *reset_ctl)
+static int npcm_reset_request(struct reset_ctl *rst)
 {
 	return 0;
 }
 
-static int npcm_reset_free(struct reset_ctl *reset_ctl)
+static int npcm_reset_free(struct reset_ctl *rst)
 {
 	return 0;
 }
 
-static int npcm_reset_assert(struct reset_ctl *reset_ctl)
+static int npcm_reset_assert(struct reset_ctl *rst)
 {
-	debug("%s: reset_ctl->id: %lx\n", __func__, reset_ctl->id);
-	return npcm_rc_setclear_reset(reset_ctl, true);
+	struct npcm_reset_priv *priv = dev_get_priv(rst->dev);
+	u32 val;
+
+	debug("%s: id 0x%lx, data %ld\n", __func__, rst->id, rst->data);
+	val = readl(priv->base + rst->id);
+	val |= BIT(rst->data);
+	writel(val, priv->base + rst->id);
+
+	return 0;
 }
 
-static int npcm_reset_deassert(struct reset_ctl *reset_ctl)
+static int npcm_reset_deassert(struct reset_ctl *rst)
 {
-	debug("%s: reset_ctl->id: %lx\n", __func__, reset_ctl->id);
-	return npcm_rc_setclear_reset(reset_ctl, false);
+	struct npcm_reset_priv *priv = dev_get_priv(rst->dev);
+	u32 val;
+
+	debug("%s: id 0x%lx, data %ld\n", __func__, rst->id, rst->data);
+	val = readl(priv->base + rst->id);
+	val &= ~BIT(rst->data);
+	writel(val, priv->base + rst->id);
+
+	return 0;
 }
 
-static int npcm_reset_xlate(struct reset_ctl *reset_ctl,
+static int npcm_reset_xlate(struct reset_ctl *rst,
 			    struct ofnode_phandle_args *args)
 {
-	unsigned int offset, bit;
-
 	if (args->args_count != 2) {
-		dev_err(reset_ctl->dev, "Invaild args_count: %d\n", args->args_count);
+		dev_err(rst->dev, "Invaild args_count: %d\n", args->args_count);
 		return -EINVAL;
 	}
 
-	offset = args->args[0];
-	if (offset != NPCM_IPSRST1 && offset != NPCM_IPSRST2 &&
-	    offset != NPCM_IPSRST3 && offset != NPCM_IPSRST4) {
-		dev_err(reset_ctl->dev, "Error reset register (0x%x)\n", offset);
-		return -EINVAL;
-	}
-	bit = args->args[1];
-	if (bit >= NPCM_RC_RESETS_PER_REG) {
-		dev_err(reset_ctl->dev, "Error reset number (%d)\n", bit);
-		return -EINVAL;
-	}
-	reset_ctl->id = (offset << 8) | bit;
+	/* Use id field as register offset and data field as reset bit positiion */
+	rst->id = args->args[0];
+	rst->data = args->args[1];
 
 	return 0;
 }
 
-static int npcm_reset_probe(struct udevice *dev)
+static int npcm_reset_bind(struct udevice *dev)
 {
 	struct npcm_reset_priv *priv = dev_get_priv(dev);
+	u32 *rcr_values;
+	int num_fields;
+	u32 reg, val;
+	int ret, i;
 
 	priv->base = dev_remap_addr(dev);
 	if (!priv->base)
+		return -EINVAL;
+
+	/*
+	 * Set RCR initial value
+	 * The rcr-initial-values cell is <reg_offset val>
+	 */
+	num_fields = dev_read_size(dev, "rcr-initial-values");
+	if (num_fields < 2)
+		return 0;
+
+	num_fields /= sizeof(u32);
+	if (num_fields % 2)
+		return -EINVAL;
+
+	num_fields = num_fields / 2;
+	rcr_values = malloc(num_fields * 2 * sizeof(u32));
+	if (!rcr_values)
 		return -ENOMEM;
+
+	ret = dev_read_u32_array(dev, "rcr-initial-values", rcr_values,
+				 num_fields * 2);
+	if (ret < 0) {
+		free(rcr_values);
+		return -EINVAL;
+	}
+
+	for (i = 0; i < num_fields; i++) {
+		reg = rcr_values[2 * i];
+		val = rcr_values[2 * i + 1];
+		writel(val, priv->base + reg);
+	}
+	free(rcr_values);
 
 	return 0;
 }
@@ -116,7 +127,7 @@ U_BOOT_DRIVER(npcm_reset) = {
 	.name = "npcm_reset",
 	.id = UCLASS_RESET,
 	.of_match = npcm_reset_ids,
-	.probe = npcm_reset_probe,
+	.bind = npcm_reset_bind,
 	.ops = &npcm_reset_ops,
 	.priv_auto = sizeof(struct npcm_reset_priv),
 };
