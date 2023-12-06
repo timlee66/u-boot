@@ -29,7 +29,8 @@ static unsigned int	bus;
 static unsigned int	cs;
 static unsigned int	mode;
 static unsigned int	freq;
-static int   		bitlen;
+static int   		tx_bitlen;
+static int   		rx_bitlen;
 static uchar 		dout[MAX_SPI_BYTES];
 static uchar 		din[MAX_SPI_BYTES];
 
@@ -61,8 +62,13 @@ static int do_spi_xfer(int bus, int cs)
 	ret = spi_claim_bus(slave);
 	if (ret)
 		goto done;
-	ret = spi_xfer(slave, bitlen, dout, din,
-		       SPI_XFER_BEGIN | SPI_XFER_END);
+
+	if (rx_bitlen) {
+		/* rx_bitlen is specified, half-duplex transfer */
+		spi_xfer(slave, tx_bitlen, dout, NULL, SPI_XFER_BEGIN);
+		spi_xfer(slave, rx_bitlen, NULL, din, SPI_XFER_END);
+	} else
+		spi_xfer(slave, tx_bitlen, dout, din, SPI_XFER_BEGIN | SPI_XFER_END);
 #if !CONFIG_IS_ENABLED(DM_SPI)
 	/* We don't get an error code in this case */
 	if (ret)
@@ -73,7 +79,10 @@ static int do_spi_xfer(int bus, int cs)
 	} else {
 		int j;
 
-		for (j = 0; j < ((bitlen + 7) / 8); j++)
+		/* rx_bitlen is not specified, full-duplex transfer */
+		if (!rx_bitlen)
+			rx_bitlen = tx_bitlen;
+		for (j = 0; j < ((rx_bitlen + 7) / 8); j++)
 			printf("%02X", din[j]);
 		printf("\n");
 	}
@@ -103,6 +112,7 @@ int do_spi(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 	uchar tmp;
 	int   j;
 
+	rx_bitlen = 0;
 	/*
 	 * We use the last specified parameters, unless new ones are
 	 * entered.
@@ -127,7 +137,7 @@ int do_spi(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 				freq = simple_strtoul(cp+1, &cp, 10);
 		}
 		if (argc >= 3)
-			bitlen = simple_strtoul(argv[2], NULL, 10);
+			tx_bitlen = simple_strtoul(argv[2], NULL, 10);
 		if (argc >= 4) {
 			cp = argv[3];
 			for(j = 0; *cp; j++, cp++) {
@@ -146,10 +156,16 @@ int do_spi(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 					dout[j / 2] |= tmp;
 			}
 		}
+		if (argc >= 5)
+			rx_bitlen = simple_strtoul(argv[4], NULL, 10);
 	}
 
-	if ((bitlen < 0) || (bitlen >  (MAX_SPI_BYTES * 8))) {
-		printf("Invalid bitlen %d\n", bitlen);
+	if ((tx_bitlen < 0) || (tx_bitlen >  (MAX_SPI_BYTES * 8))) {
+		printf("Invalid tx_bitlen %d\n", tx_bitlen);
+		return 1;
+	}
+	if ((rx_bitlen < 0) || (rx_bitlen >  (MAX_SPI_BYTES * 8))) {
+		printf("Invalid rx_bitlen %d\n", rx_bitlen);
 		return 1;
 	}
 
@@ -162,13 +178,16 @@ int do_spi(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 /***************************************************/
 
 U_BOOT_CMD(
-	sspi,	5,	1,	do_spi,
+	sspi,	6,	1,	do_spi,
 	"SPI utility command",
-	"[<bus>:]<cs>[.<mode>][@<freq>] <bit_len> <dout> - Send and receive bits\n"
+	"[<bus>:]<cs>[.<mode>][@<freq>] <tx_bitlen> <dout> <rx_bitlen> - Send and receive bits\n"
 	"<bus>     - Identifies the SPI bus\n"
 	"<cs>      - Identifies the chip select\n"
 	"<mode>    - Identifies the SPI mode to use\n"
 	"<freq>    - Identifies the SPI bus frequency in Hz\n"
-	"<bit_len> - Number of bits to send (base 10)\n"
-	"<dout>    - Hexadecimal string that gets sent"
+	"<tx_bitlen> - Number of bits to send (base 10)\n"
+	"<dout>    - Hexadecimal string that gets sent\n"
+	"<rx_bitlen> - Number of bits to receive (base 10)\n"
+	"if rx_bitlen is specified, do the half-duplex trasnfer (tx and then rx)\n"
+	"if rx_bitlen is not specified, do the full-duplex transfer"
 );
