@@ -1142,7 +1142,7 @@ void gfx_ip_reset()
 
 #ifdef CONFIG_ARCH_NPCM8XX
 	/* Reset PCI */
-	writel(8, PCIRCTL);
+	writel(0x10, PCIRCTL);
 
 	/* Release PCI Reset and allow external PCI reset clear the internal control of reset */
         writew((1 << 1 ) | (1 << 0), PCIRCTL); /* 11b 3h */
