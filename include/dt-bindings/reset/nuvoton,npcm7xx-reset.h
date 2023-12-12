@@ -88,4 +88,14 @@
 #define NPCM7XX_RESET_USB_PHY_1		24
 #define NPCM7XX_RESET_USB_PHY_2		25
 
+/* Reset Control Registers offset */
+#define WD0RCR		0x38
+#define WD1RCR		0x3c
+#define WD2RCR		0x40
+#define SWRSTC1		0x44
+#define SWRSTC2		0x48
+#define SWRSTC3		0x4c
+#define SWRSTC4		0x50
+#define CORSTC		0x5c
+
 #endif
