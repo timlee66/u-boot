@@ -63,16 +63,27 @@ static int npcm_reset_xlate(struct reset_ctl *rst,
 	return 0;
 }
 
-static int npcm_reset_bind(struct udevice *dev)
+static int npcm_reset_probe(struct udevice *dev)
 {
 	struct npcm_reset_priv *priv = dev_get_priv(dev);
+
+	priv->base = dev_remap_addr(dev);
+	if (!priv->base)
+		return -EINVAL;
+
+	return 0;
+}
+
+static int npcm_reset_bind(struct udevice *dev)
+{
+	void __iomem *reg_base;
 	u32 *rcr_values;
 	int num_fields;
 	u32 reg, val;
 	int ret, i;
 
-	priv->base = dev_remap_addr(dev);
-	if (!priv->base)
+	reg_base = dev_remap_addr(dev);
+	if (!reg_base)
 		return -EINVAL;
 
 	/*
@@ -102,7 +113,7 @@ static int npcm_reset_bind(struct udevice *dev)
 	for (i = 0; i < num_fields; i++) {
 		reg = rcr_values[2 * i];
 		val = rcr_values[2 * i + 1];
-		writel(val, priv->base + reg);
+		writel(val, reg_base + reg);
 	}
 	free(rcr_values);
 
@@ -128,6 +139,7 @@ U_BOOT_DRIVER(npcm_reset) = {
 	.id = UCLASS_RESET,
 	.of_match = npcm_reset_ids,
 	.bind = npcm_reset_bind,
+	.probe = npcm_reset_probe,
 	.ops = &npcm_reset_ops,
 	.priv_auto = sizeof(struct npcm_reset_priv),
 };
