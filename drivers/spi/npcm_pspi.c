@@ -7,6 +7,7 @@
 #include <dm.h>
 #include <spi.h>
 #include <clk.h>
+#include <reset.h>
 #include <asm/gpio.h>
 #include <linux/iopoll.h>
 
@@ -42,7 +43,6 @@ static inline void spi_cs_activate(struct udevice *dev)
 
 	dm_gpio_set_value(&priv->cs_gpio, 1);
 }
-
 
 static inline void spi_cs_deactivate(struct udevice *dev)
 {
@@ -192,6 +192,7 @@ static int npcm_pspi_probe(struct udevice *bus)
 {
 	struct npcm_pspi_priv *priv = dev_get_priv(bus);
 	int node = dev_of_offset(bus);
+	struct reset_ctl reset;
 	int ret;
 
 	ret = clk_get_by_index(bus, 0, &priv->clk);
@@ -202,6 +203,14 @@ static int npcm_pspi_probe(struct udevice *bus)
 	priv->max_hz = dev_read_u32_default(bus, "spi-max-frequency", 1000000);
 	gpio_request_by_name_nodev(offset_to_ofnode(node), "cs-gpios", 0,
 				   &priv->cs_gpio, GPIOD_IS_OUT | GPIOD_ACTIVE_LOW);
+
+	/* Reset HW */
+	ret = reset_get_by_index(bus, 0, &reset);
+	if (!ret) {
+		reset_assert(&reset);
+		udelay(5);
+		reset_deassert(&reset);
+	}
 
 	return 0;
 }

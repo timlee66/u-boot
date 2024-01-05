@@ -296,6 +296,7 @@
 				interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&clk NPCM8XX_CLK_APB5>;
 				clock-names = "clk_apb5";
+				resets = <&rst NPCM8XX_RESET_IPSRST2 NPCM8XX_RESET_PSPI2>;
 				status = "disabled";
 			};
 
