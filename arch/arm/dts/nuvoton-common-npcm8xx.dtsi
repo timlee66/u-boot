@@ -281,7 +281,8 @@
 			host_intf: host_intf@9f000 {
 				compatible = "nuvoton,npcm845-host-intf";
 				reg = <0x9f000 0x1000>;
-				type = "lpc";
+				type = "espi";
+				channel-support = <0xf>;
 				ioaddr = <0x4e>;
 				syscon = <&gcr>;
 			};
