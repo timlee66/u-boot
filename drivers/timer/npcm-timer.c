@@ -12,7 +12,7 @@
 
 /* Register offsets */
 #define SECCNT	0x0	/* Seconds Counter Register */
-#define CNTR25M	0x4	/* Counter 25M Register */
+#define CNTR25M	0x4	/* 25MHz Counter Register */
 
 struct npcm_timer_priv {
 	void __iomem *base;
@@ -21,10 +21,22 @@ struct npcm_timer_priv {
 static u64 npcm_timer_get_count(struct udevice *dev)
 {
 	struct npcm_timer_priv *priv = dev_get_priv(dev);
+	u64 reg_sec, reg_25m;
 	u64 counter;
 
-	counter = readl(priv->base + SECCNT) * NPCM_TIMER_CLOCK_RATE;
-	counter += readl(priv->base + CNTR25M);
+	reg_sec = readl(priv->base + SECCNT);
+	reg_25m = readl(priv->base + CNTR25M);
+	/*
+	 * When CNTR25M reaches 25M, it goes to 0 and SECCNT is increased by 1.
+	 * When CNTR25M is zero, wait for CNTR25M to become non-zero in case
+	 * SECCNT is not updated yet.
+	 */
+	if (reg_25m == 0) {
+		while (reg_25m == 0)
+			reg_25m = readl(priv->base + CNTR25M);
+		reg_sec = readl(priv->base + SECCNT);
+	}
+	counter = reg_sec * NPCM_TIMER_CLOCK_RATE + reg_25m;
 
 	return counter;
 }
