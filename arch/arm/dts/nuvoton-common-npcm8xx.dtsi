@@ -69,6 +69,11 @@
 			clocks = <&clk_refclk>;
 		};
 
+		timer0: timer@f0801068 {
+			compatible = "nuvoton,npcm845-timer";
+			reg = <0x0 0xf0801068 0x0 0x8>;
+		};
+
 		gmac0: eth@f0802000 {
 			device_type = "network";
 			compatible = "nuvoton,npcm-dwmac", "st,stm32-dwmac";
@@ -299,14 +304,6 @@
 				clock-names = "clk_apb5";
 				resets = <&rst NPCM8XX_RESET_IPSRST2 NPCM8XX_RESET_PSPI2>;
 				status = "disabled";
-			};
-
-			timer0: timer@8000 {
-				compatible = "nuvoton,npcm845-timer";
-				interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x8000 0x1C>;
-				clocks	= <&clk_refclk>;
-				clock-names = "refclk";
 			};
 
 			watchdog0: watchdog@801c {
