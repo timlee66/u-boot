@@ -396,6 +396,15 @@ config SHA_HW_ACCEL
 	  This affects the 'hash' command and also the
 	  hash_lookup_algo() function.
 
+config SHA512_HW_ACCEL
+	bool "Enable hardware acceleration for SHA512"
+	depends on SHA512
+	help
+	  This option enables hardware acceleration
+	  for SHA512 hashing.
+	  This affects the 'hash' command and also the
+	  hash_lookup_algo() function.
+
 config SHA_PROG_HW_ACCEL
 	bool "Enable Progressive hashing support using hardware"
 	depends on SHA_HW_ACCEL
