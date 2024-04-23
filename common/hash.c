@@ -262,10 +262,20 @@ static struct hash_algo hash_algo[] = {
 		.name		= "sha384",
 		.digest_size	= SHA384_SUM_LEN,
 		.chunk_size	= CHUNKSZ_SHA384,
+#ifdef CONFIG_SHA512_HW_ACCEL
+		.hash_func_ws	= hw_sha384,
+#else
 		.hash_func_ws	= sha384_csum_wd,
+#endif
+#if defined(CONFIG_SHA512_HW_ACCEL) && defined(CONFIG_SHA_PROG_HW_ACCEL)
+		.hash_init	= hw_sha_init,
+		.hash_update	= hw_sha_update,
+		.hash_finish	= hw_sha_finish,
+#else
 		.hash_init	= hash_init_sha384,
 		.hash_update	= hash_update_sha384,
 		.hash_finish	= hash_finish_sha384,
+#endif
 	},
 #endif
 #ifdef CONFIG_SHA512
