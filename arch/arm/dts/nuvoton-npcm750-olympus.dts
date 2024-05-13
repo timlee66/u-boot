@@ -205,6 +205,10 @@
 	status = "okay";
 };
 
+&watchdog0 {
+	status = "okay";
+};
+
 &pinctrl {
 	pinctrl-names = "default";
 		pinctrl-0 = <
