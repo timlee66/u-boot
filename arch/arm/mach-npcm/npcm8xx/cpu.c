@@ -9,31 +9,7 @@
 #include <asm/arch/gcr.h>
 #include <asm/armv8/mmu.h>
 #include <asm/system.h>
-#include <asm/global_data.h>
 #include <cpu_func.h>
-
-/* System Counter */
-struct sctr_regs {
-	u32 cntcr;
-	u32 cntsr;
-	u32 cntcv1;
-	u32 cntcv2;
-	u32 resv1[4];
-	u32 cntfid0;
-	u32 cntfid1;
-	u32 cntfid2;
-	u32 resv2[1001];
-	u32 counterid[1];
-};
-
-#define SC_CNTCR_ENABLE		BIT(0)
-#define SC_CNTCR_HDBG		BIT(1)
-#define SC_CNTCR_FREQ0		BIT(8)
-#define SC_CNTCR_FREQ1		BIT(9)
-
-#define SYSCNT_CTRL_BASE_ADDR   0xF07FC000
-
-DECLARE_GLOBAL_DATA_PTR;
 
 int print_cpuinfo(void)
 {
@@ -129,23 +105,6 @@ static struct mm_region npcm_mem_map[] = {
 };
 
 struct mm_region *mem_map = npcm_mem_map;
-
-int timer_init(void)
-{
-	struct sctr_regs *sctr = (struct sctr_regs *)SYSCNT_CTRL_BASE_ADDR;
-	unsigned int cntfrq_el0;
-
-	__asm__ __volatile__("mrs %0, CNTFRQ_EL0\n\t" : "=r" (cntfrq_el0) : : "memory");
-	writel(cntfrq_el0, &sctr->cntfid0);
-
-	clrsetbits_le32(&sctr->cntcr, SC_CNTCR_FREQ0 | SC_CNTCR_FREQ1,
-			SC_CNTCR_ENABLE | SC_CNTCR_HDBG);
-
-	gd->arch.tbl = 0;
-	gd->arch.tbu = 0;
-
-	return 0;
-}
 
 void enable_caches(void)
 {
