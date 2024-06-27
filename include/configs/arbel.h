@@ -39,7 +39,6 @@
 #define SPI3_END_ADDR			0xBFFFFFFF
 
 /* Default environemnt variables */
-#define CONFIG_BOOTCOMMAND "run common_bootargs; run romboot"
 #define CONFIG_EXTRA_ENV_SETTINGS   "uimage_flash_addr=80400000\0"   \
 		"stdin=serial\0"   \
 		"stdout=serial\0"   \
