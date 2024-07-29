@@ -5,7 +5,7 @@
 
 #include <dt-bindings/phy/nuvoton,npcm-usbphy.h>
 #include "nuvoton-npcm845.dtsi"
-#include "nuvoton-npcm845-pincfg.dtsi"
+#include "nuvoton-npcm845-yosemite4-pincfg.dtsi"
 
 / {
 	model = "Nuvoton npcm845 yosemite4";
@@ -203,8 +203,31 @@
 		&r1_pins
 		&r1en_pins
 		&r1oen_pins
-                &r2_pins
-                &r2en_pins
-                &r2oen_pins
+		&r2_pins
+		&r2en_pins
+		&r2oen_pins
+		&gpio234_pins
+		&gpio61_pins
+		&gpio46_pins
+		&gpio54_pins
+		&gpio55_pins
+		&gpio121_pins
+		&gpio108_pins
+		&gpio109_pins
+		&gpio183_pins
+		&gpio184_pins
+		&gpio189_pins
+		&gpio92_pins
+		&gpio35_pins
+		&gpio36_pins
+		&gpio62_pins
+		&gpio45_pins
+		&gpio83_pins
+		&gpio144_pins
+		&gpio145_pins
+		&gpio146_pins
+		&gpio159_pins
+		&gpio127_pins
+		&gpio15_pins
 	>;
 };
