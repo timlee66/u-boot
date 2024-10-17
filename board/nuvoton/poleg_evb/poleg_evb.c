@@ -4,6 +4,7 @@
  * Copyright (c) 2021 Nuvoton Technology Corp.
  */
 
+#include <bootm.h>
 #include <common.h>
 #include <dm.h>
 #include <env.h>
