@@ -39,14 +39,26 @@ static ulong env_new_offset	= CONFIG_ENV_OFFSET_REDUND;
 
 DECLARE_GLOBAL_DATA_PTR;
 
+__weak int spi_get_env_cs(void)
+{
+#ifdef CONFIG_ENV_SPI_CS
+	return CONFIG_ENV_SPI_CS;
+#else
+	return 0;
+#endif
+}
+
 static int setup_flash_device(struct spi_flash **env_flash)
 {
+	int cs = spi_get_env_cs();
+	printf("\n Using CS %d for Uboot ENV \n", cs);
+
 #if CONFIG_IS_ENABLED(DM_SPI_FLASH)
 	struct udevice *new;
 	int	ret;
 
 	/* speed and mode will be read from DT */
-	ret = spi_flash_probe_bus_cs(CONFIG_ENV_SPI_BUS, CONFIG_ENV_SPI_CS,
+	ret = spi_flash_probe_bus_cs(CONFIG_ENV_SPI_BUS, cs,
 				     &new);
 	if (ret) {
 		env_set_default("spi_flash_probe_bus_cs() failed", 0);
@@ -55,7 +67,7 @@ static int setup_flash_device(struct spi_flash **env_flash)
 
 	*env_flash = dev_get_uclass_priv(new);
 #else
-	*env_flash = spi_flash_probe(CONFIG_ENV_SPI_BUS, CONFIG_ENV_SPI_CS,
+	*env_flash = spi_flash_probe(CONFIG_ENV_SPI_BUS, cs,
 				     CONFIG_ENV_SPI_MAX_HZ, CONFIG_ENV_SPI_MODE);
 	if (!*env_flash) {
 		env_set_default("spi_flash_probe() failed", 0);
