@@ -7,6 +7,7 @@ config SYS_VENDOR
 	default "nuvoton"
 
 config SYS_CONFIG_NAME
+	string "Board configuration name"
 	default "arbel"
 
 config SYS_MEM_TOP_HIDE
