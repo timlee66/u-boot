@@ -35,7 +35,7 @@
 		"getwdc=setexpr.l wdc *0xf0800060 \\\\& 0x00200000\0" \
 		"selectbootcs=if itest.l ${wdc} != 0x200000; then setenv uimage_flash_addr 80300000; setenv bootspi 0; setenv backupspi 1; else setenv uimage_flash_addr 88300000; setenv bootspi 1; setenv backupspi 0; fi\0" \
 		"selectmtdname=if itest.l ${wdc} != 0x200000; then setenv bootsuffix \"\"; setenv backupsuffix \"2\"; else setenv bootsuffix \"2\"; setenv backupsuffix \"\"; fi\0" \
-		"setmtdparts=setenv mtdparts \"spi0.${bootspi}:128M@0(bmc${bootsuffix}),2816K@0(u-boot),256K@0x2C0000(u-boot-env),6M@0x300000(kernel),40M@0x900000(rofs),15M@0x3100000(rwfs);spi0.${backupspi}:128M@0(bmc${backupsuffix})\"\0" \
+		"setmtdparts=setenv mtdparts \"spi0.${bootspi}:128M@0(bmc${bootsuffix}),2816K@0(u-boot),256K@0x2C0000(u-boot-env),6M@0x300000(kernel),86M@0xA00000(rofs),32M@0x6000000(rwfs);spi0.${backupspi}:128M@0(bmc${backupsuffix})\"\0" \
 		"\0"
 #endif
 
