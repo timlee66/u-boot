@@ -51,7 +51,6 @@ __weak int spi_get_env_cs(void)
 static int setup_flash_device(struct spi_flash **env_flash)
 {
 	int cs = spi_get_env_cs();
-	printf("\n Using CS %d for Uboot ENV \n", cs);
 
 #if CONFIG_IS_ENABLED(DM_SPI_FLASH)
 	struct udevice *new;
